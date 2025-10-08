@@ -1,0 +1,413 @@
+---
+alwaysApply: true
+---
+
+# Architecture & Code Organization
+
+## Core Principles
+
+### 1. Single Responsibility
+Each class/module has ONE clear purpose.
+
+### 2. Loose Coupling
+Systems communicate via events, not direct calls.
+
+### 3. Data-Driven Design
+Configuration over hardcoding.
+
+---
+
+## Living Architecture Documentation
+
+### Architecture Docs - Required
+
+**Purpose**: Modular documentation for AI and human navigation
+
+**Location**: `docs/ARCHITECTURE.md` (index) + `docs/architecture/` (detailed sections)
+
+**Keep Updated**: After any structural change
+
+**Structure**: 13 modular files instead of single monolithic file for token efficiency
+
+**How to Use** (IMPORTANT for AI assistants):
+1. **Always start with** `docs/ARCHITECTURE.md` - it's the navigation index
+2. **Identify relevant section** from the index (e.g., "04-component-responsibilities.md")
+3. **Load only that section** - don't load all 13 files at once!
+4. **Benefits**: 50-90% reduction in context usage vs old monolithic file
+
+**Available Sections**:
+- `01-core-principles.md` - The 4 foundational principles (READ FIRST)
+- `02-system-overview.md` - High-level architecture and data flow
+- `03-data-architecture.md` - State management patterns
+- `04-component-responsibilities.md` - All systems detailed (largest file)
+- `05-communication-patterns.md` - Event usage and patterns
+- `06-implementation-phases.md` - Roadmap and task breakdown
+- `07-critical-patterns.md` - Key design patterns
+- `08-directory-structure.md` - File organization
+- `09-configuration.md` - Config structure and rules
+- `10-testing-strategy.md` - Testing approach
+- `11-handoff-checklist.md` - Onboarding guide
+- `12-decisions-log.md` - Historical decisions
+- `13-qa-troubleshooting.md` - Common issues and solutions
+
+### Update Protocol
+
+**When to update architecture docs**:
+- New directory/module added → update `08-directory-structure.md`
+- Component added/changed → update `04-component-responsibilities.md`
+- New event added → update `05-communication-patterns.md`
+- New config values → update `09-configuration.md`
+- Architectural decision → add to `12-decisions-log.md`
+- Refactoring → update relevant section(s)
+
+**How to update**:
+1. Make code changes
+2. Update ONLY the relevant architecture file(s)
+3. Include in same commit
+4. Commit message: "feat(scope): description + updated architecture docs"
+
+**See**: `docs/architecture/README.md` for detailed maintenance guide
+
+---
+
+## File Organization
+
+### Keep Files Focused
+
+**Target**: < 200 lines per file
+**Refactor at**: 300 lines
+**Hard limit**: 400 lines
+
+**When file grows**:
+1. Identify distinct responsibilities
+2. Extract into separate files
+3. Update `docs/architecture/08-directory-structure.md`
+4. Update imports
+
+### Example Splits
+
+**Before**: `Renderer.js` (1000 lines)
+```javascript
+// Everything in one file
+class Renderer {
+  renderText() { /* 100 lines */ }
+  renderShapes() { /* 200 lines */ }
+  renderSprites() { /* 300 lines */ }
+  renderEffects() { /* 400 lines */ }
+}
+```
+
+**After**: Split by responsibility
+```
+/rendering
+├── Renderer.js          # Orchestrates rendering (~100 lines)
+├── TextRenderer.js      # Text rendering only (~100 lines)
+├── ShapeRenderer.js     # Shapes only (~150 lines)
+├── SpriteRenderer.js    # Sprites only (~200 lines)
+└── EffectRenderer.js    # Effects only (~250 lines)
+```
+
+---
+
+## Component Communication
+
+### Event-Driven Pattern (Preferred)
+
+**Use events for**:
+- Cross-system communication
+- Decoupling components
+- Asynchronous actions
+
+**Implementation**:
+```javascript
+// Emit events instead of direct calls
+eventBus.emit('entity:damaged', { id: entityId, amount: 50 });
+
+// Listen for events
+eventBus.on('entity:damaged', (data) => {
+  this.applyDamage(data.id, data.amount);
+});
+```
+
+**Event Naming Convention**:
+- Format: `domain:action`
+- Examples: `player:moved`, `enemy:spawned`, `game:paused`
+- Use past tense for completed actions
+
+### Direct Injection (When Needed)
+
+**Use dependency injection for**:
+- Core utilities (config, logger)
+- Performance-critical paths
+- Simple data access
+
+```javascript
+class System {
+  constructor(config, eventBus) {
+    this.config = config;
+    this.eventBus = eventBus;
+  }
+}
+```
+
+### Anti-Patterns to Avoid
+
+❌ **Direct instantiation of other systems**
+```javascript
+class SystemA {
+  constructor() {
+    this.systemB = new SystemB(); // BAD - tight coupling
+  }
+}
+```
+
+❌ **Direct method calls between systems**
+```javascript
+systemA.doSomething();
+systemB.doSomethingElse(); // BAD - creates dependencies
+```
+
+✅ **Use events instead**
+```javascript
+eventBus.emit('something:happened', data);
+// SystemB listens and responds
+```
+
+---
+
+## Configuration Management
+
+### Central Configuration
+
+**Required**: `config.js` or equivalent
+
+**Purpose**: All constants, magic numbers, tuning values
+
+**Structure**:
+```javascript
+// config.js
+export const CONFIG = {
+  // Visual
+  TILE_SIZE: 64,
+  CANVAS_WIDTH: 1280,
+  CANVAS_HEIGHT: 720,
+  
+  // Gameplay
+  PLAYER_SPEED: 5,
+  ENEMY_HEALTH: 100,
+  
+  // Costs
+  TOWER_COST: {
+    BASIC: 10,
+    ADVANCED: 25
+  }
+};
+```
+
+### Detection Protocol
+
+If you see repeated values (same number in multiple places):
+1. Stop implementation
+2. Suggest extracting to config
+3. Update all usages
+4. Then continue with feature
+
+### Usage
+
+❌ **Hardcoded magic numbers**
+```javascript
+enemy.x += 5;
+enemy.health = 100;
+if (tileSize === 64) { }
+```
+
+✅ **Config references**
+```javascript
+enemy.x += CONFIG.ENEMY_SPEED;
+enemy.health = CONFIG.ENEMY_HEALTH;
+if (CONFIG.TILE_SIZE === 64) { }
+```
+
+---
+
+## Domain-Specific Patterns
+
+### For Game Projects: Entity Component System (ECS)
+
+**When to use**: Games with multiple entity types
+
+**Structure**:
+```
+/entities
+  ├── Entity.js          # Base entity container
+  └── EntityFactory.js   # Creates configured entities
+/components
+  ├── HealthComponent.js
+  ├── PositionComponent.js
+  ├── VelocityComponent.js
+  └── [Feature]Component.js
+/systems
+  ├── MovementSystem.js  # Processes Position + Velocity
+  ├── HealthSystem.js    # Processes Health
+  └── RenderSystem.js    # Processes Render components
+```
+
+**Configuration-driven**:
+```javascript
+// Define entities via config, not classes
+const ENTITY_TYPES = {
+  BASIC_ENEMY: {
+    components: {
+      health: { max: 100 },
+      movement: { speed: 2 },
+      render: { sprite: 'enemy', size: 32 }
+    }
+  }
+};
+```
+
+**Benefits**:
+- Easy to add new entity types (just config)
+- No class per entity type
+- Flexible behavior combinations
+
+---
+
+## Testing Architecture
+
+### Make Components Testable
+
+**Principles**:
+- Inject dependencies (don't instantiate internally)
+- Pure functions where possible
+- Avoid global state
+- Test each system independently
+
+**Example**:
+```javascript
+// Testable - dependencies injected
+class MovementSystem {
+  constructor(eventBus, config) {
+    this.eventBus = eventBus;
+    this.config = config;
+  }
+  
+  update(entities) {
+    // Logic here
+  }
+}
+
+// Can test with mock eventBus and config
+```
+
+---
+
+## Performance Patterns
+
+### Object Pooling
+
+**Use for**: Frequently created/destroyed objects
+
+**Examples**: Particles, projectiles, temporary effects
+
+**Implementation**:
+```javascript
+class ObjectPool {
+  constructor(factory, reset) {
+    this.available = [];
+    this.factory = factory;
+    this.reset = reset;
+  }
+  
+  acquire() {
+    return this.available.pop() || this.factory();
+  }
+  
+  release(obj) {
+    this.reset(obj);
+    this.available.push(obj);
+  }
+}
+
+// Usage
+const projectilePool = new ObjectPool(
+  () => new Projectile(),
+  (p) => p.reset()
+);
+```
+
+### Canvas Optimization
+
+**Static element caching**:
+```javascript
+// Create off-screen canvas
+this.staticCanvas = document.createElement('canvas');
+this.staticCtx = this.staticCanvas.getContext('2d');
+
+// Render once
+renderStatic(this.staticCtx);
+
+// In render loop, just copy (fast!)
+ctx.drawImage(this.staticCanvas, 0, 0);
+```
+
+**When to optimize**:
+- Performance issues identified
+- Many objects created/destroyed
+- Complex repeated rendering
+
+**When NOT to optimize**:
+- Before performance is a problem
+- Code not yet working correctly
+- Would significantly complicate code
+
+---
+
+## Refactoring Triggers
+
+### File Size
+- 300 lines: Plan refactoring
+- 400 lines: Must refactor before adding more
+
+### Code Smells
+- Duplicate code in 2+ places: Extract shared function
+- Complex nested conditionals: Extract to functions or use strategy pattern
+- Long parameter lists (> 4): Use config object
+
+### System Complexity
+- System doing multiple things: Split by responsibility
+- Hard to test: Refactor for testability
+- Hard to understand: Simplify or extract
+
+---
+
+## Before You Start Coding
+
+### Checklist
+- [ ] Check `docs/ARCHITECTURE.md` index - find relevant section
+- [ ] Read relevant architecture section (e.g., `04-component-responsibilities.md`)
+- [ ] Confirm file sizes - will this push anything over 400 lines?
+- [ ] Check config - are there repeated values?
+- [ ] Understand pattern - event-driven or direct injection?
+- [ ] Plan structure - how will this integrate?
+
+### When Unsure
+
+Ask before implementing:
+- "Should this be a new system or added to existing [system]?"
+- "Should this communicate via events or direct calls?"
+- "This will add [N] lines to [file]. Should I refactor first?"
+
+---
+
+## Success Metrics
+
+Architecture is healthy if:
+- ✅ Files stay under 400 lines
+- ✅ Systems are loosely coupled
+- ✅ New features easy to add
+- ✅ Changes don't break unrelated features
+- ✅ Architecture docs stay up-to-date
+- ✅ Code is testable
+
+If not, let's discuss architectural improvements.

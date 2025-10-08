@@ -1,0 +1,496 @@
+---
+alwaysApply: true
+---
+
+# Development Tools & Commands
+
+## Quick Commands
+
+Quick commands are shortcuts for common requests. Just say the command and I'll know what to do.
+
+### Session Management
+
+**"start session"**
+- Check git status
+- Review `docs/ARCHITECTURE.md` (index)
+- Show current priorities
+- Ask what we're working on today
+
+**"end session"**
+- Ensure all work committed
+- Quick functionality test
+- Document what's next
+- Update architecture docs if needed
+
+### Development Flow
+
+**"what's next?"**
+- Review current state
+- Suggest next logical step
+- Show implementation plan
+
+**"status check"**
+- Current branch
+- Uncommitted changes
+- Recent commits
+- File size warnings
+
+**"show plan"**
+- Break down current feature
+- Show implementation steps
+- Identify dependencies
+
+### Code Quality
+
+**"review code"**
+- Check for code smells
+- Find files > 300 lines
+- Identify duplicate code
+- Suggest refactorings
+
+**"check sizes"**
+- List all files > 200 lines
+- Warn about files > 300 lines
+- Identify files needing refactoring
+
+**"find duplicates"**
+- Scan for duplicate code
+- Suggest extraction opportunities
+
+### Testing
+
+**"test plan"**
+- Create testing checklist for current feature
+- Identify edge cases
+- Suggest test scenarios
+
+**"test this"**
+- Guide through testing current feature
+- List expected behaviors
+- Identify what could break
+
+### Architecture
+
+**"show architecture"**
+- Display `docs/ARCHITECTURE.md` index
+- Help identify which section to read
+- Explain component relationships (from relevant section)
+- Visualize system structure
+
+**"where does this go?"**
+- Help identify correct component
+- Explain reasoning
+- Suggest alternatives
+
+### Git Operations
+
+**"commit ready?"**
+- Check if code is ready to commit
+- Verify tests passed
+- Suggest commit message
+
+**"show changes"**
+- Summarize what changed
+- List modified files
+- Explain changes made
+
+**"revert this"**
+- Help undo recent changes
+- Show revert options
+- Execute git commands
+
+---
+
+## Debug Tools
+
+### Debug Toggles (When Applicable)
+
+For visual/interactive projects, implement these keyboard shortcuts:
+
+```javascript
+// Debug system toggles
+D - Toggle debug mode
+G - Toggle grid/layout visualization
+B - Toggle bounding boxes
+C - Toggle collision visualization
+P - Toggle performance metrics
+L - Toggle logging
+H - Toggle help overlay (show all debug keys)
+```
+
+### Implementation Template
+
+```javascript
+class DebugManager {
+  constructor() {
+    this.enabled = false;
+    this.showGrid = false;
+    this.showBounds = false;
+    this.showCollisions = false;
+    this.showPerformance = false;
+    
+    this.setupKeyboardShortcuts();
+  }
+  
+  setupKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      switch(e.key.toLowerCase()) {
+        case 'd': this.enabled = !this.enabled; break;
+        case 'g': this.showGrid = !this.showGrid; break;
+        case 'b': this.showBounds = !this.showBounds; break;
+        case 'c': this.showCollisions = !this.showCollisions; break;
+        case 'p': this.showPerformance = !this.showPerformance; break;
+        case 'h': this.showHelp(); break;
+      }
+    });
+  }
+  
+  render(ctx) {
+    if (!this.enabled) return;
+    
+    if (this.showGrid) this.renderGrid(ctx);
+    if (this.showBounds) this.renderBounds(ctx);
+    if (this.showCollisions) this.renderCollisions(ctx);
+    if (this.showPerformance) this.renderPerformance(ctx);
+  }
+}
+```
+
+### Console Logging
+
+**Development mode**:
+```javascript
+class Logger {
+  static debug(message, data) {
+    if (CONFIG.DEBUG_MODE) {
+      console.log(`[DEBUG] ${message}`, data);
+    }
+  }
+  
+  static warn(message, data) {
+    console.warn(`[WARN] ${message}`, data);
+  }
+  
+  static error(message, data) {
+    console.error(`[ERROR] ${message}`, data);
+  }
+}
+
+// Usage
+Logger.debug('Entity spawned', { id: entity.id, pos: entity.position });
+```
+
+---
+
+## Performance Profiling
+
+### FPS Counter
+
+```javascript
+class FPSCounter {
+  constructor() {
+    this.fps = 60;
+    this.frames = 0;
+    this.lastTime = performance.now();
+  }
+  
+  update() {
+    this.frames++;
+    const currentTime = performance.now();
+    
+    if (currentTime >= this.lastTime + 1000) {
+      this.fps = Math.round((this.frames * 1000) / (currentTime - this.lastTime));
+      this.frames = 0;
+      this.lastTime = currentTime;
+    }
+  }
+  
+  render(ctx) {
+    ctx.fillStyle = this.fps < 30 ? 'red' : 'green';
+    ctx.fillText(`FPS: ${this.fps}`, 10, 20);
+  }
+}
+```
+
+### Performance Markers
+
+```javascript
+// Measure performance of specific operations
+class PerformanceMonitor {
+  static measure(label, fn) {
+    const start = performance.now();
+    const result = fn();
+    const duration = performance.now() - start;
+    
+    if (duration > 16) { // Longer than 1 frame
+      console.warn(`${label} took ${duration.toFixed(2)}ms`);
+    }
+    
+    return result;
+  }
+}
+
+// Usage
+PerformanceMonitor.measure('Enemy Update', () => {
+  this.enemies.forEach(e => e.update());
+});
+```
+
+---
+
+## Development Helpers
+
+### Auto-Reload (For Local Development)
+
+```javascript
+// Add to index.html during development
+if (location.hostname === 'localhost') {
+  new EventSource('/esbuild').addEventListener('change', () => location.reload());
+}
+```
+
+### State Inspector
+
+```javascript
+class StateInspector {
+  static inspect(obj, label = 'State') {
+    console.group(label);
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'object') {
+        this.inspect(value, key);
+      } else {
+        console.log(`${key}:`, value);
+      }
+    }
+    console.groupEnd();
+  }
+}
+
+// Usage
+StateInspector.inspect(gameState, 'Game State');
+```
+
+---
+
+## Architecture Documentation Tools
+
+### Auto-Generate Component List
+
+```javascript
+// Script to list all components
+const fs = require('fs');
+const path = require('path');
+
+function scanDirectory(dir, prefix = '') {
+  const items = fs.readdirSync(dir);
+  const components = [];
+  
+  for (const item of items) {
+    const fullPath = path.join(dir, item);
+    const stat = fs.statSync(fullPath);
+    
+    if (stat.isDirectory()) {
+      components.push(...scanDirectory(fullPath, prefix + item + '/'));
+    } else if (item.endsWith('.js')) {
+      const lines = fs.readFileSync(fullPath, 'utf8').split('\n').length;
+      components.push({
+        name: item,
+        path: prefix + item,
+        lines: lines
+      });
+    }
+  }
+  
+  return components;
+}
+
+// Run and generate report
+const components = scanDirectory('./src');
+console.table(components.sort((a, b) => b.lines - a.lines));
+```
+
+---
+
+## Code Generation Helpers
+
+### Component Template
+
+```javascript
+// Template for new components
+class ComponentTemplate {
+  static generate(name, type = 'system') {
+    return `/**
+ * ${name}
+ * 
+ * Purpose: [Describe what this does]
+ * Dependencies: [List dependencies]
+ * Events: [List events emitted/listened to]
+ */
+
+import { EventBus } from './EventBus.js';
+import { CONFIG } from './config.js';
+
+export class ${name} {
+  constructor(eventBus, config = CONFIG) {
+    this.eventBus = eventBus;
+    this.config = config;
+    
+    this.setupEventListeners();
+  }
+  
+  setupEventListeners() {
+    // this.eventBus.on('event:name', this.handleEvent.bind(this));
+  }
+  
+  update(deltaTime) {
+    // Update logic
+  }
+  
+  render(ctx) {
+    // Render logic (if needed)
+  }
+}
+`;
+  }
+}
+
+// Usage: ComponentTemplate.generate('MovementSystem');
+```
+
+---
+
+## Workflow Automation
+
+### Pre-Commit Checks
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+echo "Running pre-commit checks..."
+
+# Check file sizes
+echo "Checking file sizes..."
+find src -name "*.js" | while read file; do
+  lines=$(wc -l < "$file")
+  if [ $lines -gt 400 ]; then
+    echo "❌ ERROR: $file has $lines lines (limit: 400)"
+    exit 1
+  elif [ $lines -gt 300 ]; then
+    echo "⚠️  WARNING: $file has $lines lines (approaching limit)"
+  fi
+done
+
+# Check for console.logs in production code
+echo "Checking for debug statements..."
+if grep -r "console.log" src/ --exclude-dir=debug; then
+  echo "⚠️  WARNING: Found console.log statements"
+fi
+
+echo "✅ Pre-commit checks passed"
+```
+
+### Architecture Validator
+
+```javascript
+// Validate architecture rules
+class ArchitectureValidator {
+  static validate() {
+    const issues = [];
+    
+    // Check file sizes
+    const largeFiles = this.findLargeFiles('./src', 400);
+    if (largeFiles.length > 0) {
+      issues.push(`Files exceeding 400 lines: ${largeFiles.join(', ')}`);
+    }
+    
+    // Check for direct system dependencies
+    const coupledFiles = this.findDirectDependencies();
+    if (coupledFiles.length > 0) {
+      issues.push(`Files with direct system dependencies: ${coupledFiles.join(', ')}`);
+    }
+    
+    // Check for magic numbers
+    const magicNumbers = this.findMagicNumbers();
+    if (magicNumbers.length > 10) {
+      issues.push(`Found ${magicNumbers.length} magic numbers`);
+    }
+    
+    return issues;
+  }
+}
+```
+
+---
+
+## Quick Reference Card
+
+### Essential Keyboard Shortcuts
+```
+D - Debug mode
+G - Grid visualization
+P - Performance stats
+H - Help / Show all shortcuts
+```
+
+### Essential Commands
+```
+"start session"     - Begin work
+"what's next?"      - Get next step
+"test this"         - Guide testing
+"commit ready?"     - Check commit readiness
+"check sizes"       - Find large files
+"end session"       - Wrap up
+```
+
+### File Size Warnings
+```
+🟢 < 200 lines      - Good
+🟡 200-299 lines    - OK
+🟠 300-399 lines    - Plan refactoring
+🔴 400+ lines       - MUST refactor
+```
+
+---
+
+## Custom Tools for This Project
+
+[Add project-specific tools here as needed]
+
+### Example: Game-Specific Tools
+
+```javascript
+// Spawn test enemies
+function spawnTestWave(count = 10) {
+  for (let i = 0; i < count; i++) {
+    game.spawnEnemy('basic', { x: 0, y: i * 50 });
+  }
+}
+
+// Test all enemy types
+function testAllEnemyTypes() {
+  const types = ['basic', 'fast', 'tank', 'boss'];
+  types.forEach((type, i) => {
+    game.spawnEnemy(type, { x: 100, y: i * 100 });
+  });
+}
+
+// Reset game state
+function resetGame() {
+  game.reset();
+  console.log('Game reset to initial state');
+}
+```
+
+---
+
+## Tool Effectiveness
+
+These tools are working if:
+- ✅ Quick commands save time
+- ✅ Debug toggles used frequently
+- ✅ Performance monitoring catches issues early
+- ✅ File size warnings prevent bloat
+- ✅ Architecture stays clean
+
+Suggest new tools as needs arise!

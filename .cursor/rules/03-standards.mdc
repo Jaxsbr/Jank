@@ -1,0 +1,507 @@
+---
+alwaysApply: true
+---
+
+# Code Quality Standards
+
+## Core Quality Principles
+
+1. **Readable** > Clever
+2. **Explicit** > Implicit
+3. **Simple** > Complex
+4. **Tested** > Assumed
+
+---
+
+## File Size Limits (ENFORCED)
+
+### Hard Limits
+
+| Metric | Target | Warning | Hard Limit | Action |
+|--------|--------|---------|------------|--------|
+| File size | < 200 lines | 300 lines | 400 lines | MUST refactor |
+| Function size | < 20 lines | 30 lines | 50 lines | MUST split |
+| Class methods | < 10 methods | 15 methods | 20 methods | MUST split |
+
+### Enforcement Protocol
+
+**Before adding code to ANY file**:
+1. Check current line count
+2. If 300-399 lines: Show warning, suggest refactoring
+3. If 400+ lines: STOP, require refactoring before proceeding
+
+**Response when limit exceeded**:
+```
+⚠️ STOP: [FileName] is [N] lines (limit: 400)
+
+This file must be refactored before adding more code.
+
+Suggested approach:
+1. [Component1] - [Responsibility] (~[X] lines)
+2. [Component2] - [Responsibility] (~[Y] lines)
+
+Should I create refactoring plan?
+```
+
+---
+
+## Function Quality
+
+### Size
+- **Target**: < 20 lines
+- **Maximum**: 50 lines
+- **If exceeding**: Extract helper functions
+
+### Complexity
+- **Single purpose**: Function does ONE thing
+- **Early returns**: Reduce nesting
+- **No side effects** (unless explicitly stated)
+
+### Examples
+
+❌ **Bad: Too long, too complex**
+```javascript
+function processEntity(entity) {
+  if (entity.isActive) {
+    if (entity.health > 0) {
+      if (entity.position.x > 0) {
+        // 40 more lines of nested logic...
+      }
+    }
+  }
+}
+```
+
+✅ **Good: Short, focused, clear**
+```javascript
+function processEntity(entity) {
+  if (!entity.isActive) return;
+  if (entity.health <= 0) return;
+  if (entity.position.x <= 0) return;
+  
+  updateEntityPosition(entity);
+  updateEntityState(entity);
+  checkEntityCollisions(entity);
+}
+```
+
+---
+
+## Naming Conventions
+
+### Variables
+
+**Use descriptive names**:
+```javascript
+✅ const enemyCount = 10;
+✅ const maxHealthPoints = 100;
+✅ const isPlayerAlive = true;
+
+❌ const n = 10;
+❌ const hp = 100;
+❌ const flag = true;
+```
+
+**Boolean names**: Start with `is`, `has`, `can`, `should`
+```javascript
+isActive, hasWeapon, canJump, shouldRender
+```
+
+**Collections**: Use plural names
+```javascript
+enemies, towers, particles
+```
+
+### Functions
+
+**Verbs for actions**:
+```javascript
+calculateDamage()
+renderSprite()
+updatePosition()
+checkCollision()
+```
+
+**Get/Set for accessors**:
+```javascript
+getHealth()
+setPosition()
+```
+
+### Constants
+
+**UPPER_SNAKE_CASE**:
+```javascript
+const MAX_ENEMIES = 100;
+const TILE_SIZE = 64;
+const DEFAULT_SPEED = 5;
+```
+
+### Classes
+
+**PascalCase**:
+```javascript
+class EnemyManager { }
+class RenderSystem { }
+class EntityFactory { }
+```
+
+---
+
+## Code Organization
+
+### File Structure
+
+```javascript
+// 1. Imports
+import { CONFIG } from './config.js';
+import { EventBus } from './EventBus.js';
+
+// 2. Constants
+const LOCAL_CONSTANT = 10;
+
+// 3. Main class/functions
+class MyComponent {
+  // Properties first
+  constructor() { }
+  
+  // Public methods
+  publicMethod() { }
+  
+  // Private methods (prefixed with _)
+  _privateMethod() { }
+}
+
+// 4. Exports
+export { MyComponent };
+```
+
+### Function Order
+
+Within a class:
+1. Constructor
+2. Public methods (alphabetically)
+3. Private methods (alphabetically)
+4. Getters/setters at the end
+
+---
+
+## Comment Guidelines
+
+### When to Comment
+
+✅ **Comment these**:
+- Complex algorithms
+- Non-obvious business logic
+- Magic numbers (or better, extract to config!)
+- Workarounds for bugs
+- Performance optimizations
+
+❌ **Don't comment these**:
+- Obvious code
+- What code does (code should be self-explanatory)
+- Commented-out code (delete it, use git)
+
+### Comment Style
+
+```javascript
+// ✅ GOOD: Explains WHY
+// Using binary search because array is pre-sorted
+// and can have 10k+ elements
+const index = binarySearch(array, target);
+
+// ❌ BAD: Explains WHAT (obvious from code)
+// Loop through the array
+for (let i = 0; i < array.length; i++) { }
+```
+
+### Magic Numbers
+
+Always explain OR extract to config:
+
+```javascript
+// ❌ BAD: What is 64? Why 64?
+if (tile.size === 64) { }
+
+// ✅ BETTER: Comment explains
+// 64 is the tile size used in all game graphics
+if (tile.size === 64) { }
+
+// ✅ BEST: Extract to config
+if (tile.size === CONFIG.TILE_SIZE) { }
+```
+
+---
+
+## Error Handling
+
+### Be Explicit
+
+```javascript
+// ❌ Silent failures
+function loadData() {
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return null; // Silent failure - hard to debug!
+  }
+}
+
+// ✅ Explicit error handling
+function loadData() {
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('Failed to parse data:', e);
+    throw new Error('Invalid data format');
+  }
+}
+```
+
+### Validation
+
+```javascript
+// ✅ Validate inputs
+function setHealth(value) {
+  if (typeof value !== 'number') {
+    throw new Error('Health must be a number');
+  }
+  if (value < 0) {
+    throw new Error('Health cannot be negative');
+  }
+  this.health = value;
+}
+```
+
+---
+
+## Git Commit Standards
+
+### Commit Message Format
+
+```
+{type}({scope}): {description}
+
+[optional body]
+```
+
+### Types
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code restructuring
+- `docs`: Documentation
+- `test`: Test additions
+- `style`: Formatting, no logic change
+- `perf`: Performance improvement
+- `chore`: Maintenance
+
+### Scopes
+[Project-specific - define based on your components]
+
+### Examples
+
+```
+feat(player): add double-jump ability
+fix(collision): resolve ghost collisions at high speed
+refactor(render): split 800-line renderer into focused components
+docs(api): add JSDoc comments to public methods
+```
+
+### When to Commit
+
+Only after:
+1. Feature works
+2. Code tested
+3. User confirmed it works
+
+Never before:
+- Code compiles but not tested
+- Known bugs exist
+- User hasn't verified
+
+---
+
+## Code Review Checklist
+
+### Before Submitting/Committing
+
+- [ ] Code follows naming conventions
+- [ ] No files exceed 400 lines
+- [ ] No functions exceed 50 lines
+- [ ] Magic numbers explained or in config
+- [ ] Error handling is explicit
+- [ ] Code tested and working
+- [ ] No console.logs (except intentional logging)
+- [ ] No commented-out code
+- [ ] Architecture docs updated if structure changed (see `docs/architecture/README.md`)
+
+---
+
+## Testing Standards
+
+### What to Test
+
+1. **Core functionality** - Does it work?
+2. **Edge cases** - What breaks it?
+3. **Integration points** - Systems work together?
+4. **Regression** - Old features still work?
+
+### Testing Protocol
+
+After every implementation:
+1. Test the new feature
+2. Test related features (regression)
+3. Test edge cases if critical
+4. Confirm everything still works
+
+### Test Documentation
+
+For manual testing, document expected behavior:
+```javascript
+/**
+ * Test: Player jump
+ * Steps:
+ * 1. Click jump button
+ * 2. Player should move upward
+ * 3. Player should fall back down
+ * 4. Can jump again after landing
+ * 
+ * Edge cases:
+ * - Cannot jump while already in air
+ * - Cannot jump while stunned
+ */
+```
+
+---
+
+## Performance Guidelines
+
+### Premature Optimization is Evil
+
+❌ **Don't optimize**:
+- Before code works correctly
+- Before performance is a problem
+- Based on assumptions
+
+✅ **Do optimize**:
+- After measuring performance issues
+- With benchmarks to validate improvement
+- When user experience is impacted
+
+### When Performance Matters
+
+If implementing:
+- Frequent operations (every frame)
+- Large datasets (1000+ items)
+- Complex calculations
+
+Then consider:
+- Object pooling
+- Caching results
+- Reducing allocations
+- Lazy evaluation
+
+But always: **Make it work, then make it fast**
+
+---
+
+## Common Code Smells
+
+### Detect and Refactor
+
+🚩 **Duplicate code** → Extract shared function
+```javascript
+// ❌ Duplicate logic
+function updatePlayer() { /* repeated code */ }
+function updateEnemy() { /* same repeated code */ }
+
+// ✅ Extract shared
+function updateEntity(entity) { /* shared logic */ }
+```
+
+🚩 **Long parameter lists** → Use config object
+```javascript
+// ❌ Too many parameters
+function createEntity(x, y, health, speed, sprite, size, color) { }
+
+// ✅ Config object
+function createEntity(config) {
+  const { x, y, health, speed, sprite, size, color } = config;
+}
+```
+
+🚩 **Deep nesting** → Use early returns
+```javascript
+// ❌ Deep nesting
+if (a) {
+  if (b) {
+    if (c) {
+      // do thing
+    }
+  }
+}
+
+// ✅ Early returns
+if (!a) return;
+if (!b) return;
+if (!c) return;
+// do thing
+```
+
+🚩 **God classes** → Split by responsibility
+```javascript
+// ❌ Renderer does everything (4000 lines!)
+class Renderer {
+  renderText() { }
+  renderShapes() { }
+  renderSprites() { }
+  renderEffects() { }
+  renderUI() { }
+  renderDebug() { }
+}
+
+// ✅ Split by purpose
+class TextRenderer { }
+class ShapeRenderer { }
+class SpriteRenderer { }
+// etc.
+```
+
+---
+
+## Continuous Improvement
+
+### Regular Checks
+
+**Weekly** (or every 10 commits):
+- Any files approaching 400 lines?
+- Any duplicate code patterns?
+- Any performance issues?
+- Architecture docs up to date?
+
+**Before Major Features**:
+- Clean up existing code smells
+- Refactor technical debt
+- Update documentation
+
+### Refactoring Priorities
+
+1. **Critical**: Files > 400 lines
+2. **High**: Functions > 50 lines
+3. **Medium**: Duplicate code
+4. **Low**: Naming improvements
+
+---
+
+## Success Metrics
+
+Code quality is good if:
+- ✅ All files under 400 lines
+- ✅ Functions mostly under 20 lines
+- ✅ Clear, descriptive names
+- ✅ Minimal code duplication
+- ✅ Easy to add new features
+- ✅ Easy to find relevant code
+- ✅ Bugs are localized, not cascading
+
+If not meeting these, time to refactor!

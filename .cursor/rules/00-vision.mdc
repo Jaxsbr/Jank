@@ -1,0 +1,144 @@
+---
+alwaysApply: true
+---
+
+# Project Vision & Principles
+
+## Purpose
+
+**Factory Defense** - A roguelite tower defense web game where players control a stationary robot defending a factory from waves of enemies. Through repeated playthroughs, players accumulate permanent upgrades (skill points and special parts) that make subsequent runs more powerful. Success requires balancing machine upgrades, managing cooldown abilities, and strategic target prioritization.
+
+**Target Loop**: Die → Upgrade → Retry → Progress Further
+
+## Success Criteria
+
+### Player Experience
+- **Session Length**: 2-5 minutes per run (quick, addictive gameplay)
+- **Runs per Player**: 10+ average (indicates successful roguelite hook)
+- **Retention**: 40%+ return within 24 hours
+
+### Gameplay Balance
+- **Wave 10 Clear Rate**: 60-70% (mid-game checkpoint)
+- **Final Boss Clear Rate**: 15-25% (aspirational challenge)
+- **Machine Diversity**: No single machine dominates 80%+ of runs
+
+### Technical Performance
+- **Load Time**: < 3 seconds
+- **Frame Rate**: Consistent 60fps on target devices
+- **Mobile Playable**: 80%+ of users can complete tutorial
+
+## Core Principles
+
+### 1. Simplicity First
+- Start with the simplest solution that works
+- Add complexity only when proven necessary
+- Prefer clear code over clever code
+- **MVP Focus**: Phase 1 delivers playable single-run loop
+
+### 2. Incremental Progress
+- Small, testable changes
+- Validate each step before proceeding
+- Build confidence through working software
+- **Phased Development**: 6 phases from MVP to launch
+
+### 3. Quality Over Speed
+- Correct implementation > fast implementation
+- Test before moving forward
+- Refactor before complexity accumulates
+- **Target**: 60fps performance maintained
+
+### 4. Clear Communication
+- Confirm understanding before implementing
+- Ask questions when ambiguous
+- Explain reasoning for technical decisions
+
+### 5. Roguelite Design Excellence
+- Death should feel like progress (skill points gained)
+- Each run should feel meaningfully different (machine choices, parts)
+- Power progression should be satisfying but not trivializing
+- **Inspiration**: Vampire Survivors, Hades, Risk of Rain
+
+## Project Constraints
+
+### Technical
+- **Platform**: Web-based (HTML5/Canvas)
+- **Responsive**: Desktop (1920x1080+), Tablet (768-1024px), Mobile (320-767px)
+- **Technologies**: React, Canvas/WebGL, A* pathfinding, localStorage persistence
+- **Grid**: Fixed 12x12 tile grid
+- **Pathfinding Required**: Enemies must navigate varied map layouts
+
+### Timeline
+- **Phase 1 (MVP)**: Weeks 1-3 - Core gameplay loop
+- **Phase 2**: Weeks 4-5 - Progression systems
+- **Phase 3**: Weeks 6-7 - Full machine & enemy variety
+- **Phase 4**: Weeks 8-9 - Special abilities & polish
+- **Phase 5**: Weeks 10-11 - Content & balance
+- **Phase 6**: Weeks 12-13 - Responsive design & QA
+
+### Scope
+- **Initial**: 4 enemy types, 3 machine types, 20-25 waves
+- **Post-MVP**: Additional parts, expanded skill tree, multiple map layouts
+- **Future**: Daily challenges, endless mode, multiplayer (post-launch)
+
+## Design Guidelines
+
+### Visual Style
+- **Theme**: Industrial/Factory aesthetic (gritty, mechanical)
+- **Perspective**: Top-down (recommended for simplicity)
+- **Color Palette**:
+  - Energy Machine: Blue/Electric
+  - Heat Machine: Orange/Red
+  - Pressure Machine: Yellow/Industrial
+  - Enemies: Contrasting colors (red/purple)
+  - Robot: Gray/Silver with accent colors
+
+### Game Feel
+- **Impactful**: Screen shake, particle effects, damage numbers
+- **Responsive**: Immediate feedback on all actions
+- **Satisfying**: Upgrade animations, attack sounds, enemy deaths
+- **Clear**: Visual hierarchy, readable health bars, obvious threats
+
+### UX Principles
+- **Mobile-First Considerations**: Large touch targets, compact HUD
+- **Accessibility**: Colorblind mode, audio cues, clear UI
+- **Onboarding**: Tutorial for first-time players
+- **Session Flow**: Menu → Upgrade → Play → Death → Repeat
+
+## Core Systems Overview
+
+### Player Robot (Stationary)
+- Auto-attacks nearest enemy within range
+- Manual target override available
+- Special abilities on cooldown
+- Proximity blast for area damage
+
+### Factory Machines (3 Types)
+- **Energy**: Attack speed/fire rate multiplier
+- **Heat**: Fire/melting damage over time effects
+- **Pressure**: Heavy/explosive attack strength
+- Upgraded within run using scrap (resets each run)
+
+### Progression (Dual Layer)
+- **Within-Run**: Scrap → Machine upgrades (temporary)
+- **Between-Runs**: XP → Skill points & Special parts (permanent)
+
+### Enemy Waves
+- Timed intervals (15-20 seconds)
+- Increasing difficulty and variety
+- Boss waves every 5 waves
+- Final boss at wave 20-25
+
+## Phase 1 MVP Focus
+
+For initial development, focus on:
+- Grid rendering (12x12 tiles)
+- Robot entity (stationary, auto-attack)
+- One enemy type (Scout with pathfinding)
+- Wave spawner (5 test waves)
+- Projectile system (collision, damage)
+- Factory health and loss condition
+- Basic HUD (wave, health, scrap)
+- One machine (Energy) with 3 upgrade levels
+- Scrap economy (earn and spend)
+
+**Deliverable**: Playable 5-wave demo with core loop working

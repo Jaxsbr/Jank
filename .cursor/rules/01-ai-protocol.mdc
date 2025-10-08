@@ -1,0 +1,288 @@
+---
+alwaysApply: true
+---
+
+# AI Collaboration Protocol
+
+## Critical: Read This First
+
+This file defines how we work together effectively. Following these protocols prevents common issues like wrong implementations, large untestable changes, and premature commits.
+
+---
+
+## 1. Disambiguation Protocol
+
+### BEFORE Any Implementation
+
+**If ANY of these apply, STOP and ask for clarification**:
+- Request mentions "the [thing]" without specifying which one
+- Multiple components could match the description
+- Ambiguous references ("it", "this", "that", "there")
+- Cross-system changes
+- First time implementing a feature type
+
+### Disambiguation Template
+
+```
+I want to make sure I understand correctly before implementing:
+
+📍 Location: [specific file/component I'll change]
+🎯 Scope: [what exactly will change]
+✅ Expected outcome: [what should happen after]
+
+Is this correct? If not, please clarify.
+```
+
+### Examples
+
+❌ BAD: "update the button to be pink" → immediately implement
+✅ GOOD: "I see multiple buttons. Which one? (1) Menu play button (2) In-game pause button"
+
+❌ BAD: "add that feature we discussed" → assume which feature
+✅ GOOD: "Which feature? The one from yesterday about [X], or [Y]?"
+
+---
+
+## 2. Incremental Implementation Protocol
+
+### NEVER Implement Entire Phases at Once
+
+When user says "implement phase 1" or "add feature X":
+
+1. **Break it down** into smallest testable units
+2. **Propose breakdown** and get approval
+3. **Implement ONLY first unit**
+4. **Request testing**
+5. **Wait for confirmation**
+6. **Then** proceed to next unit
+
+### Size Limits Per Implementation Cycle
+
+- **Maximum 2 files** changed per cycle
+- **Maximum 100 lines** changed per cycle
+- **If more needed**: Break into multiple cycles
+
+### Implementation Cycle Template
+
+```
+This feature has multiple steps. Let me break it down:
+
+Phase 1.1: [smallest testable unit]
+- Files: [1-2 specific files]
+- Changes: [brief description]
+- Test: [how to verify it works]
+
+I'll implement ONLY Phase 1.1 first.
+After you test and confirm it works, I'll propose Phase 1.2.
+
+Ready to proceed with Phase 1.1?
+```
+
+### After Implementation
+
+```
+✅ Implemented: [what was done]
+
+📋 Please test: [specific behavior to verify]
+
+Let me know:
+- Does it work as expected?
+- Any bugs or issues?
+- Ready for next step?
+```
+
+### Examples
+
+❌ BAD: User says "implement login" → implement entire auth system
+✅ GOOD: "Login has 3 parts. Let's start with Part 1: UI form (no validation yet)"
+
+❌ BAD: Implement 10 files at once
+✅ GOOD: Implement 2 files, request testing, then continue
+
+---
+
+## 3. Testing & Commit Protocol
+
+### After EVERY Implementation
+
+1. **Show what changed**
+2. **Request testing**: "Please test: [specific behavior]"
+3. **Wait for user feedback**
+4. **If bugs found**: Fix them (DO NOT suggest commit)
+5. **Only after user confirms "it works"**: Offer to commit
+
+### NEVER Say (Before User Confirms)
+
+❌ "Let's commit this change"
+❌ "Next step: commit"
+❌ "Ready to commit?"
+❌ "I'll commit these changes"
+
+### ALWAYS Say (After Implementation)
+
+✅ "Please test: [specific behavior]"
+✅ "Let me know if it works as expected"
+✅ "Does everything work correctly?"
+
+### ONLY After User Confirms It Works
+
+✅ "Great! Since it's working, ready to commit?
+
+Suggested commit message:
+`feat(scope): description`
+
+Approve?"
+
+### Bug Fix Iterations
+
+If bug found:
+1. Fix the bug
+2. Request testing again
+3. DO NOT suggest commit until user confirms fix works
+4. Repeat until user confirms "it works"
+
+---
+
+## 4. File Size Monitoring
+
+### Check File Size BEFORE Adding Code
+
+Before editing any file, mentally check:
+- Is this file approaching 400 lines?
+- Will my changes push it over 400 lines?
+
+### If File Exceeds Limits
+
+**300+ lines**: Show warning, suggest planning refactoring
+**400+ lines**: STOP, require refactoring discussion before adding more
+
+### Response Template
+
+```
+⚠️ WARNING: [FileName] is currently [N] lines
+
+Before adding more code, we should refactor this file.
+
+Suggested split:
+1. [Component1] - [Responsibility] (~150 lines)
+2. [Component2] - [Responsibility] (~150 lines)
+3. [Component3] - [Responsibility] (~100 lines)
+
+Should I create a refactoring plan, or do you want to proceed anyway?
+```
+
+### NEVER
+
+❌ Silently add code to 400+ line files
+❌ Say "we can refactor later" without discussion
+❌ Ignore file size limits
+
+---
+
+## 5. Configuration Detection
+
+### When Adding Repeated Values
+
+If you notice the same value used multiple times:
+
+```
+I notice [value] is used in [N] places.
+
+Should I extract this to a config file first?
+This will make it easier to change later.
+
+Suggested:
+// config.js
+export const [CONSTANT_NAME] = [value];
+```
+
+### Before Hardcoding
+
+If implementing feature with specific values (sizes, speeds, costs, etc.):
+
+✅ GOOD: Add to config file first, then reference
+❌ BAD: Hardcode value directly in implementation
+
+---
+
+## 6. Architecture Consultation
+
+### Before Making Changes
+
+1. **Check `docs/ARCHITECTURE.md` index** (if it exists) to find relevant section
+2. **Read relevant section** (e.g., `04-component-responsibilities.md`) - don't load all files!
+3. **Identify** which system/component handles this
+4. **Propose** where changes will go
+5. **Explain** why that's the right place
+6. **Wait** for confirmation
+
+### When Unsure
+
+```
+I need to understand the architecture better to implement this correctly.
+
+Based on file structure, I see:
+- [System A] handles [responsibility]
+- [System B] handles [responsibility]
+
+This feature seems related to [X]. Should it go in [System A]?
+Or should I create a new system?
+```
+
+---
+
+## 7. Communication Principles
+
+### When You're Uncertain
+
+✅ **Ask questions** - Better to clarify than implement wrong
+✅ **Explain reasoning** - Help me understand your thinking
+✅ **Propose alternatives** - "We could do A or B, what's better?"
+
+### When You Understand
+
+✅ **Restate briefly** - Confirm understanding
+✅ **Show plan** - Let me see your approach
+✅ **Proceed with confidence** - No need to ask permission for clear tasks
+
+### Tone
+
+- Professional but conversational
+- Concise but complete
+- Helpful, not just obedient
+
+---
+
+## Quick Reference Card
+
+### Before Implementation Checklist
+- [ ] Do I fully understand what's being asked?
+- [ ] Is this the right component/file?
+- [ ] Can this be broken into smaller steps?
+- [ ] Have I checked file sizes?
+
+### After Implementation Checklist
+- [ ] Show what changed
+- [ ] Request specific testing
+- [ ] Wait for confirmation
+- [ ] Only suggest commit after approval
+
+### Red Flags (STOP and Ask)
+- 🚩 Ambiguous request
+- 🚩 Multiple components match description
+- 🚩 Implementation would touch 3+ files
+- 🚩 File approaching 400 lines
+- 🚩 Uncertain where change belongs
+
+---
+
+## Success Metrics
+
+These protocols are working if:
+- ✅ Fewer "wrong component" implementations
+- ✅ Smaller, more testable changes
+- ✅ No commits before testing confirmed
+- ✅ Files stay under 400 lines
+- ✅ Clear communication, fewer misunderstandings
+
+If these aren't happening, let's discuss adjusting the protocols.
