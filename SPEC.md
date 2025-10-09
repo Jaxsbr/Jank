@@ -376,13 +376,14 @@ This section clarifies **WHEN** each type of upgrade happens:
 ## 6. Technical Architecture
 
 ### 6.1 Core Technologies (Suggested)
-- **Frontend**: React (component-based UI)
-- **Game Loop**: RequestAnimationFrame or Phaser.js framework
-- **Pathfinding**: A* algorithm implementation
-- **State Management**: Redux or Zustand for game state
+- **Frontend**: Vanilla JS + Canvas (Phase 1), evaluate React for Phase 2+ if UI complexity requires it
+- **Game Loop**: RequestAnimationFrame (custom game loop)
+- **Rendering**: HTML5 Canvas 2D
+- **Pathfinding**: A* algorithm implementation (custom)
+- **State Management**: Plain JavaScript objects with event system
 - **Persistence**: LocalStorage for player profile (skill points, parts)
-- **Styling**: Tailwind CSS for responsive UI
-- **Animation**: CSS transitions + Canvas/WebGL for game grid
+- **Styling**: Vanilla CSS (responsive, no framework needed)
+- **Animation**: Canvas-based rendering + CSS for UI overlays
 
 ### 6.2 Key Systems to Implement
 

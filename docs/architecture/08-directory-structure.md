@@ -158,7 +158,7 @@ factory-defense/
 ### `/src/ui/`
 **User interface** - menus, HUD, screens.
 - DOM-based UI (not canvas)
-- React components if using React
+- Vanilla JS DOM manipulation and event handling
 
 ### `/src/utils/`
 **Utility functions** - pure helpers with no state.
@@ -281,20 +281,17 @@ import { CONFIG } from '@/config/config';
 ### Import Order
 
 ```javascript
-// 1. External dependencies
-import React from 'react';
-
-// 2. Core/infrastructure
+// 1. Core/infrastructure
 import { EventBus } from './core/EventBus.js';
 import { CONFIG } from './config/config.js';
 
-// 3. Systems
+// 2. Systems
 import { ScrapManager } from './systems/ScrapManager.js';
 
-// 4. Entities
+// 3. Entities
 import { Robot } from './entities/Robot.js';
 
-// 5. Utils
+// 4. Utils
 import { distance } from './utils/Math.js';
 ```
 
