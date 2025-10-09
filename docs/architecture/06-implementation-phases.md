@@ -16,6 +16,28 @@ Development is split into 6 phases, each building on the previous. **Phase 1 is 
 
 **Goal**: Playable 5-wave single-run loop with basic systems
 
+### Before Starting: Create Phase Branch
+
+**REQUIRED**: Create a phase branch before any implementation work:
+
+```bash
+git checkout -b phase-1-development
+```
+
+**Why?**
+- Keeps main branch clean and stable
+- Allows switching to other branches (docs, hotfixes) without stashing
+- Enables parallel work streams without conflicts
+- Clear separation between planning (main) and implementation (phase branch)
+
+**Workflow**:
+1. All Phase 1 implementation happens on `phase-1-development` branch
+2. Commit features incrementally as they're completed and tested
+3. Merge to main only when Phase 1 is fully complete and tested
+4. Tag release: `v1.0-phase1-complete`
+
+---
+
 **Implementation Order** (each step should be tested before proceeding):
 
 ### 1. Setup & Infrastructure (~1 day)
@@ -112,6 +134,9 @@ Development is split into 6 phases, each building on the previous. **Phase 1 is 
 - [ ] Event bus has clear event naming conventions
 - [ ] Files are all under 300 lines
 - [ ] This documentation updated with actual file locations
+- [ ] Merge `phase-1-development` to `main`
+- [ ] Tag release: `git tag v1.0-phase1-complete`
+- [ ] Push to remote: `git push origin main --tags`
 
 ---
 
@@ -120,6 +145,13 @@ Development is split into 6 phases, each building on the previous. **Phase 1 is 
 **Goal**: Roguelite loop with skill points and parts
 
 **Prerequisites**: Phase 1 complete and tested
+
+### Before Starting: Create Phase 2 Branch
+
+```bash
+git checkout main
+git checkout -b phase-2-development
+```
 
 ### 1. Data Structures (~1 day)
 - [ ] PlayerProfile class
@@ -261,14 +293,34 @@ See [SPEC.md Phase 6](../../SPEC.md#phase-6-responsive-design--qa-weeks-12-13) f
 2. Test all features thoroughly
 3. Update this document with completion date
 4. Review handoff checklist with team/AI
-5. Commit and tag release (e.g., `v1.0-phase1-complete`)
+5. Merge phase branch to main: `git checkout main && git merge phase-X-development`
+6. Tag release: `git tag v1.0-phaseX-complete`
+7. Push: `git push origin main --tags`
 
 ### When Transitioning
 
-1. Create new branch (e.g., `phase-2-development`)
+1. **Create new phase branch** (REQUIRED): `git checkout -b phase-X-development`
 2. Review phase goals and requirements
 3. Break down tasks into daily work items
 4. Update relevant architecture docs if patterns change
+
+### Branch Strategy
+
+**Why phase branches?**
+- Main stays clean and production-ready
+- Can switch contexts (docs, hotfixes) without stashing work-in-progress
+- Enables parallel work streams
+- Clear separation between planning and implementation
+
+**Workflow**:
+```
+main (clean, stable)
+ ├─ phase-1-development (all Phase 1 work)
+ │   └─ merge to main when complete
+ ├─ phase-2-development (all Phase 2 work)
+ │   └─ merge to main when complete
+ └─ etc.
+```
 
 ---
 

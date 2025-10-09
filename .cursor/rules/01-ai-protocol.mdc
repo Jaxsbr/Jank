@@ -253,11 +253,74 @@ Or should I create a new system?
 
 ---
 
+## 8. Git Branch Workflow
+
+### REQUIRED: Phase Branches for Implementation
+
+**Before starting ANY implementation work**:
+
+1. **Check current branch**: `git branch --show-current`
+2. **If on `main` and starting a new phase**: Create phase branch first
+3. **Never implement directly on `main`**
+
+### Creating Phase Branch
+
+```bash
+# Starting Phase 1
+git checkout -b phase-1-development
+
+# Starting Phase 2 (after Phase 1 merged)
+git checkout main
+git checkout -b phase-2-development
+```
+
+### Why Phase Branches?
+
+✅ **Main stays clean** - Production-ready at all times
+✅ **No stash nightmares** - Switch to other branches (docs, hotfixes) without stashing
+✅ **Parallel work streams** - Work on docs in main, implementation in phase branch
+✅ **Clear separation** - Planning (main) vs Implementation (phase branch)
+
+### Workflow
+
+```
+main (planning, docs, stable)
+ ├─ phase-1-development (all Phase 1 implementation)
+ │   ├─ Commit features incrementally as tested
+ │   └─ Merge to main when complete
+ └─ phase-2-development (all Phase 2 implementation)
+```
+
+### When to Commit
+
+- Work on phase branch
+- Commit after each tested feature
+- Small, incremental commits
+- Merge to main only when phase complete
+
+### Phase Completion
+
+When phase is complete:
+1. Test everything thoroughly
+2. Merge to main: `git checkout main && git merge phase-X-development`
+3. Tag release: `git tag v1.0-phaseX-complete`
+4. Push: `git push origin main --tags`
+
+### Reminder for "start session"
+
+When user says "start session" and we're beginning implementation:
+- Check if on `main`
+- If yes, remind about creating phase branch
+- Don't start implementing on `main`
+
+---
+
 ## Quick Reference Card
 
 ### Before Implementation Checklist
 - [ ] Do I fully understand what's being asked?
 - [ ] Is this the right component/file?
+- [ ] Am I on the correct branch (not main)?
 - [ ] Can this be broken into smaller steps?
 - [ ] Have I checked file sizes?
 
