@@ -25,6 +25,7 @@ open http://localhost:3456
 - **[SPEC.md](SPEC.md)** - Full game design specification
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Architecture index & navigation
 - **[docs/VANILLA_JS_SETUP.md](docs/VANILLA_JS_SETUP.md)** - Vanilla JS architecture guide
+- **[docs/VISUAL_CONFIG_SUMMARY.md](docs/VISUAL_CONFIG_SUMMARY.md)** - Canvas rendering & visual config approach
 
 ---
 

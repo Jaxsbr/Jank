@@ -36,8 +36,11 @@ factory-defense/
 │   │
 │   ├── rendering/
 │   │   ├── Renderer.js               # Main renderer (orchestrator)
-│   │   ├── GridRenderer.js           # Grid, tiles, machines
-│   │   ├── EntityRenderer.js         # Robot, enemies, projectiles
+│   │   ├── GridRenderer.js           # Grid, tiles (Phase 1 Step 2)
+│   │   ├── RobotRenderer.js          # Robot rendering (Phase 1 Step 3)
+│   │   ├── EnemyRenderer.js          # Enemy rendering (Phase 1 Step 4)
+│   │   ├── ProjectileRenderer.js     # Projectiles (Phase 1 Step 5)
+│   │   ├── MachineRenderer.js        # Machines (Phase 1 Step 6)
 │   │   ├── UIRenderer.js             # HUD, buttons, overlays
 │   │   └── VFXRenderer.js            # Phase 4: Particle effects
 │   │
@@ -151,9 +154,12 @@ factory-defense/
 - Usually manage collections of entities or state
 
 ### `/src/rendering/`
-**Rendering systems** - draw things to canvas.
+**Rendering systems** - draw things to canvas using Canvas 2D API.
 - Keep render logic separate from game logic
 - Each renderer handles one concern
+- Read visual configs from config.js (colors, sizes, animations)
+- Only contain drawing logic, no hardcoded visual values
+- See: [Configuration Management - Visual Configuration](../architecture/09-configuration.md#visual-configuration-canvas-rendering)
 
 ### `/src/ui/`
 **User interface** - menus, HUD, screens.

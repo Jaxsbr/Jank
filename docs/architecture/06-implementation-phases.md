@@ -21,43 +21,67 @@ Development is split into 6 phases, each building on the previous. **Phase 1 is 
 ### 1. Setup & Infrastructure (~1 day)
 - [ ] Project structure (see [Directory Structure](08-directory-structure.md))
 - [ ] EventBus implementation
-- [ ] Config file with initial values
+- [ ] Config file with foundation visual config (colors, basic sizes)
 - [ ] Basic HTML/Canvas setup
 - [ ] Game loop (requestAnimationFrame)
 - [ ] Test: Game loop running, console shows frame updates
 
+**Visual Foundation Setup**:
+- Define core color palette (PRIMARY, DANGER, SUCCESS, WARNING, BACKGROUND)
+- Define basic environment colors (FLOOR, WALL, PATH, GRID_LINE)
+- Define basic UI colors (text, background, borders)
+- Define base visual properties (TILE_SIZE, GRID_SIZE)
+- **See**: [Configuration Management - Visual Configuration](09-configuration.md#visual-configuration-canvas-rendering)
+
+**Deliverable**: ~80 lines of foundation config establishing visual theme
+
 ### 2. Grid & Rendering (~2 days)
 - [ ] Grid data structure (12x12)
+- [ ] GridRenderer implementation (canvas drawing)
 - [ ] Tile rendering (floor, walls, path)
 - [ ] Camera/viewport system
 - [ ] Test: Can see rendered grid
 
+**Visual Config**: Add grid-specific properties if needed (PATH_MARKER color, etc.)
+
 ### 3. Robot Entity (~2 days)
 - [ ] Robot class with modifier pattern
-- [ ] Robot rendering
+- [ ] RobotRenderer implementation (canvas drawing)
 - [ ] Manual target selection (click handler)
 - [ ] Test: Robot appears, can click to select targets
+
+**Visual Config**: Add ROBOT_BODY, ROBOT_ACCENT colors + ROBOT_SIZE, ROBOT_WEAPON_LENGTH
 
 ### 4. Basic Enemy (~3 days)
 - [ ] Enemy class
 - [ ] Pathfinding (A* algorithm)
 - [ ] Enemy movement along path
-- [ ] Enemy rendering with health bar
+- [ ] EnemyRenderer implementation (canvas drawing)
 - [ ] Test: Enemy spawns, walks to goal
+
+**Visual Config**: Add ENEMY_SCOUT color only + ENEMY_SIZE, ENEMY_HEALTH_BAR properties
+**Note**: Only Scout enemy in Phase 1. Don't add Grunt/Tank/Swarm yet.
 
 ### 5. Combat System (~3 days)
 - [ ] Projectile spawning
 - [ ] Projectile movement
 - [ ] Collision detection
 - [ ] Damage application
+- [ ] ProjectileRenderer implementation (canvas drawing)
 - [ ] Test: Robot shoots, enemy takes damage and dies
+
+**Visual Config**: Add PROJECTILE_BASIC color + PROJECTILE_SIZE, MUZZLE_FLASH_SIZE
 
 ### 6. Economy & Machines (~3 days)
 - [ ] ScrapManager
 - [ ] Machine upgrade UI
 - [ ] Machine bonus application
 - [ ] Energy machine (3 levels)
+- [ ] MachineRenderer implementation (canvas drawing)
 - [ ] Test: Kill enemies → earn scrap → upgrade machine → see stat increase
+
+**Visual Config**: Add ENERGY_BASE, ENERGY_GLOW colors + MACHINE_SIZE, MACHINE_CORE_SIZE
+**Note**: Only Energy machine in Phase 1. Don't add Heat/Pressure yet.
 
 ### 7. Wave System (~2 days)
 - [ ] WaveSystem with timer

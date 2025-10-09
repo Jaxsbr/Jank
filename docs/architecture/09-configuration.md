@@ -442,8 +442,294 @@ if (CONFIG.DEBUG.ENABLED) {
 
 ---
 
+## Visual Configuration (Canvas Rendering)
+
+### Two-Part System
+
+```
+CONFIG (what things look like)
+    ↓
+RENDERERS (how to draw them)
+```
+
+**Rule**: All visual properties (colors, sizes, animations) go in config. Renderers only contain drawing logic.
+
+### Visual Config Structure
+
+```javascript
+export const CONFIG = {
+  // ============================================
+  // COLORS - Visual Palette
+  // ============================================
+  COLORS: {
+    // Foundation (establishes theme)
+    PRIMARY: '#00bfff',        // Electric blue accent
+    DANGER: '#ff0000',         // Red for threats
+    SUCCESS: '#00ff00',        // Green for positive
+    WARNING: '#ffff00',        // Yellow for warnings
+    BACKGROUND: '#1a1a1a',     // Dark industrial
+    
+    // Environment
+    FLOOR: '#2a2a2a',
+    WALL: '#1a1a1a',
+    PATH: '#3a3a2a',
+    GRID_LINE: '#333333',
+    
+    // Robot (added Phase 1 Step 3)
+    ROBOT_BODY: '#808080',
+    ROBOT_ACCENT: '#00bfff',   // Uses PRIMARY
+    
+    // Enemies (added as implemented)
+    ENEMY_SCOUT: '#8b00ff',
+    ENEMY_GRUNT: '#ff00ff',    // Added Phase 3
+    ENEMY_TANK: '#ff0066',     // Added Phase 3
+    ENEMY_HEALTH_BG: '#330000',
+    ENEMY_HEALTH_FG: '#ff0000', // Uses DANGER
+    
+    // Machines (added as implemented)
+    ENERGY_BASE: '#1e3a5f',    // Added Phase 1 Step 6
+    ENERGY_GLOW: '#00bfff',    // Uses PRIMARY
+    HEAT_BASE: '#5f1e1e',      // Added Phase 3
+    HEAT_GLOW: '#ff4500',
+    PRESSURE_BASE: '#5f5f1e',  // Added Phase 3
+    PRESSURE_GLOW: '#ffd700',
+    
+    // Projectiles
+    PROJECTILE_BASIC: '#ffffff',
+    PROJECTILE_ENERGY: '#00bfff',
+    PROJECTILE_HEAT: '#ff4500',
+    PROJECTILE_PRESSURE: '#ffd700',
+    
+    // UI
+    UI_TEXT: '#ffffff',
+    UI_BACKGROUND: 'rgba(0, 0, 0, 0.7)',
+    UI_BORDER: '#00bfff',
+    UI_BUTTON_ENABLED: '#00ff00',
+    UI_BUTTON_DISABLED: '#666666',
+  },
+  
+  // ============================================
+  // VISUAL - Sizes and Properties
+  // ============================================
+  VISUAL: {
+    // Grid (Phase 1 Step 2)
+    TILE_SIZE: 64,
+    GRID_LINE_WIDTH: 1,
+    SHOW_GRID_LINES: true,
+    
+    // Robot (Phase 1 Step 3)
+    ROBOT_SIZE: 48,
+    ROBOT_WEAPON_LENGTH: 20,
+    ROBOT_WEAPON_WIDTH: 4,
+    
+    // Enemies (added as implemented)
+    ENEMY_SIZE: 32,
+    ENEMY_HEALTH_BAR_WIDTH: 40,
+    ENEMY_HEALTH_BAR_HEIGHT: 4,
+    
+    // Machines (Phase 1 Step 6)
+    MACHINE_SIZE: 60,
+    MACHINE_CORE_SIZE: 20,
+    
+    // Projectiles (Phase 1 Step 5)
+    PROJECTILE_SIZE: 4,
+    PROJECTILE_TRAIL_LENGTH: 3,
+    
+    // Effects (Phase 4)
+    EXPLOSION_RADIUS: 40,
+    MUZZLE_FLASH_SIZE: 15,
+  },
+  
+  // ============================================
+  // ANIMATION - Timing and Motion
+  // ============================================
+  ANIMATION: {
+    MACHINE_GLOW_PULSE_SPEED: 2.0,
+    ROBOT_IDLE_BOB_SPEED: 1.0,
+    ROBOT_IDLE_BOB_AMOUNT: 2,    // pixels
+    ENEMY_WALK_CYCLE_SPEED: 4.0,
+  },
+  
+  // ... other gameplay configs ...
+};
+```
+
+### Just-In-Time Config Approach
+
+**DO NOT define everything upfront.** Add visual configs incrementally as features are implemented:
+
+#### Phase 1: Foundation + Basics
+- **Day 1** (Step 1): Foundation colors (PRIMARY, DANGER, SUCCESS, etc.) + basic environment
+- **Step 2**: Grid-specific visuals
+- **Step 3**: Robot-specific visuals
+- **Step 4**: Scout enemy only (not all enemies)
+- **Step 5**: Basic projectile only
+- **Step 6**: Energy machine only (not Heat/Pressure yet)
+
+#### Phase 3: Expand Variety
+- Add Heat machine colors when implementing Heat
+- Add Pressure machine colors when implementing Pressure
+- Add Grunt/Tank/Swarm colors when implementing each
+
+#### Phase 5: Wave-Specific Content
+- Add specific enemy variants as needed (e.g., Slime for Wave 12)
+
+**Benefits**:
+- Only define what's currently used
+- Avoid wasted effort on unused configs
+- Iterate visually as you see results
+- Configs grow gradually (manageable)
+
+### Visual Consistency
+
+Reuse foundation colors to maintain theme:
+
+```javascript
+// Foundation defined Day 1
+PRIMARY: '#00bfff',
+
+// Later features reference foundation
+ENERGY_GLOW: '#00bfff',    // Same as PRIMARY
+ROBOT_ACCENT: '#00bfff',   // Same as PRIMARY
+UI_BORDER: '#00bfff',      // Same as PRIMARY
+```
+
+### Adding Visual Configs
+
+**Workflow for each feature**:
+
+1. **Before implementing renderer**: Add required colors/sizes to config
+2. **Implement renderer**: Reference config values (no hardcoding)
+3. **View and iterate**: Adjust config values until satisfied
+4. **Commit**: Feature working + configs defined
+
+**Example: Adding Tank Enemy**
+
+```javascript
+// Step 1: Add to config (2 minutes)
+COLORS: {
+  ENEMY_TANK: '#ff0066',
+}
+VISUAL: {
+  ENEMY_SIZE_TANK: 48,  // Larger than Scout
+}
+
+// Step 2: Implement in EnemyRenderer (10 minutes)
+renderTankEnemy(tank) {
+  const size = CONFIG.VISUAL.ENEMY_SIZE_TANK;
+  const color = CONFIG.COLORS.ENEMY_TANK;
+  // ... drawing logic ...
+}
+
+// Step 3: View, adjust size to 52 in config
+// Step 4: Commit when satisfied
+```
+
+### Config Organization
+
+Group visual configs logically:
+
+```javascript
+COLORS: {
+  // ============ FOUNDATION ============
+  PRIMARY: '#00bfff',
+  
+  // ============ ENVIRONMENT ============
+  FLOOR: '#2a2a2a',
+  
+  // ============ ROBOT ============
+  ROBOT_BODY: '#808080',
+  
+  // ============ ENEMIES ============
+  ENEMY_SCOUT: '#8b00ff',
+  // (Add more as implemented)
+  
+  // ============ MACHINES ============
+  ENERGY_BASE: '#1e3a5f',
+  // (Add Heat/Pressure when implemented)
+}
+```
+
+Add comments to track when configs were added:
+
+```javascript
+// ============ WAVE 12: SLIME ENEMIES ============
+ENEMY_SLIME_GREEN: '#00ff88',  // Added Phase 5
+SLIME_WOBBLE_SPEED: 3.0,
+```
+
+### Renderer Implementation
+
+Renderers read from config and implement drawing:
+
+```javascript
+// src/rendering/RobotRenderer.js
+import { CONFIG } from '../config/config.js';
+
+export class RobotRenderer {
+  constructor(ctx) {
+    this.ctx = ctx;
+  }
+  
+  render(robot, time) {
+    const ctx = this.ctx;
+    const x = robot.position.x;
+    const y = robot.position.y;
+    const size = CONFIG.VISUAL.ROBOT_SIZE;
+    
+    // Idle bobbing animation
+    const bobOffset = Math.sin(time * CONFIG.ANIMATION.ROBOT_IDLE_BOB_SPEED) 
+                      * CONFIG.ANIMATION.ROBOT_IDLE_BOB_AMOUNT;
+    
+    // Main body
+    this.drawHexagon(
+      x, 
+      y + bobOffset, 
+      size / 2, 
+      CONFIG.COLORS.ROBOT_BODY
+    );
+    
+    // Glowing core
+    this.drawGlowingCircle(
+      x, 
+      y + bobOffset, 
+      size / 4, 
+      CONFIG.COLORS.ROBOT_ACCENT
+    );
+  }
+  
+  drawHexagon(x, y, radius, color) {
+    // Canvas drawing logic using color parameter
+  }
+  
+  drawGlowingCircle(x, y, radius, color) {
+    // Canvas drawing logic using color parameter
+  }
+}
+```
+
+**Key principles**:
+- Config = What to draw (colors, sizes)
+- Renderer = How to draw (canvas API calls)
+- No hardcoded visual values in renderers
+
+### Expected Config Growth
+
+| Phase | Config Lines | What's Added |
+|-------|-------------|--------------|
+| **Phase 1 Start** | ~80 | Foundation + environment |
+| **Phase 1 End** | ~150 | + Energy, Scout, projectiles |
+| **Phase 2 End** | ~200 | + UI, menu, skill tree |
+| **Phase 3 End** | ~300 | + 2 machines, 3 enemies |
+| **Phase 5 End** | ~400 | + Bosses, special enemies, VFX |
+
+File stays manageable because growth is incremental.
+
+---
+
 ## Related Documentation
 
 - See config usage: [Component Responsibilities](04-component-responsibilities.md)
 - Understand why config matters: [Core Principles](01-core-principles.md#4-configuration-over-hardcoding)
 - See config in patterns: [Critical Design Patterns](07-critical-patterns.md#pattern-3-config-driven-entities)
+- See renderer organization: [Directory Structure](08-directory-structure.md#srcrendering)
