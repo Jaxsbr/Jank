@@ -9,7 +9,10 @@
         "test": "jest",
         "test:changed": "jest --onlyChanged",
         "lint": "eslint src --ext .ts,.tsx --fix",
-        "type-check": "tsc --noEmit"
+        "lint:check": "eslint src --ext .ts,.tsx",
+        "type-check": "tsc --noEmit",
+        "check-all": "npm run type-check && npm run lint:check",
+        "check-all:fix": "npm run type-check && npm run lint"
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",

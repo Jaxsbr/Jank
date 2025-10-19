@@ -18,7 +18,15 @@
         "sourceMap": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
-        "strictFunctionTypes": true
+        "strictFunctionTypes": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitOverride": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
+        "exactOptionalPropertyTypes": false,
+        "noPropertyAccessFromIndexSignature": true
     },
     "include": [
         "src/**/*"
@@ -26,5 +34,8 @@
     "exclude": [
         "node_modules",
         "dist"
-    ]
+    ],
+    "ts-node": {
+        "esm": true
+    }
 }

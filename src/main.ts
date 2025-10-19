@@ -1,66 +1,59 @@
 import * as THREE from 'three';
+import { defaultFloor } from './configs/defaultFloor';
+import { Core } from './game/Core';
 import './styles.css';
+import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
+import { createFloor } from './systems/ObjectFactory';
+import { Renderer } from './systems/Renderer';
+import { DebugUI } from './ui/DebugUI';
 
-// Create a simple Three.js scene with JANK text
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new Renderer()
 
-// Set up the renderer
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x1a1a1a);
 
-// Add renderer to DOM
-const app = document.getElementById('app');
-if (app) {
-    app.appendChild(renderer.domElement);
-}
+const floor = createFloor(defaultFloor);
+scene.add(floor);
 
-// Create a simple cube to represent "JANK"
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+// Create the game core
+const core = new Core();
+core.setPosition(0, 0, 0);
+scene.add(core.getGroup());
+
+// Create the UI
+new DebugUI(core, camera, floor);
+
+// Add scene lighting
+const ambientLight = createAmbientLight()
+const directionalLight = createDirectionalLight()
+scene.add(ambientLight);
+scene.add(directionalLight);
 
 // Position camera
-camera.position.z = 5;
+camera.position.set(0, 5, 5);
+camera.lookAt(0, 0, 0);
+
 
 // Animation loop
 function animate(): void {
     requestAnimationFrame(animate);
 
-    // Rotate the cube
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    // Update the core animation
+    core.update();
 
-    renderer.render(scene, camera);
+    // renderer.render(scene, camera);
+    renderer.update(scene, camera)
 }
+
 
 // Handle window resize
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.setSize(window.innerWidth, window.innerHeight);
+    // TODO: Renderer should handle this
 });
 
-// Start animation
+
 animate();
-
-// Add JANK text overlay
-const textOverlay = document.createElement('div');
-textOverlay.textContent = 'JANK';
-textOverlay.style.position = 'absolute';
-textOverlay.style.top = '50%';
-textOverlay.style.left = '50%';
-textOverlay.style.transform = 'translate(-50%, -50%)';
-textOverlay.style.fontSize = '4rem';
-textOverlay.style.fontWeight = 'bold';
-textOverlay.style.color = '#ffffff';
-textOverlay.style.fontFamily = 'monospace';
-textOverlay.style.pointerEvents = 'none';
-textOverlay.style.zIndex = '1000';
-textOverlay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
-
-if (app) {
-    app.appendChild(textOverlay);
-}
