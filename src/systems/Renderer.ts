@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { Event, GlobalEventDispatcher, IEventListener } from './eventing';
 
-export class Renderer {
+export class Renderer implements IEventListener {
     private renderer: THREE.WebGLRenderer;
     constructor() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -12,10 +13,14 @@ export class Renderer {
         const app = document.getElementById('app');
         if (app) {
             app.appendChild(this.renderer.domElement);
-
-            // TODO: subscribe to browser resize event, update reneder size
+            GlobalEventDispatcher.registerListener("Render", this)
         }
         
+    }
+    onEvent(event: Event): boolean {
+        const { width, height } = event.args as { width: number; height: number };
+        this.renderer.setSize(width, height);
+        return true;
     }
 
     public update(scene: THREE.Scene, camera: THREE.PerspectiveCamera): void {

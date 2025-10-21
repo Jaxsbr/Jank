@@ -5,6 +5,7 @@ import './styles.css';
 import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
 import { createFloor } from './systems/ObjectFactory';
 import { Renderer } from './systems/Renderer';
+import { Event, EventType, GlobalEventDispatcher } from './systems/eventing';
 import { DebugUI } from './ui/DebugUI';
 
 
@@ -35,17 +36,11 @@ camera.position.set(0, 5, 5);
 camera.lookAt(0, 0, 0);
 
 
-// Animation loop
 function animate(): void {
     requestAnimationFrame(animate);
-
-    // Update the core animation
     core.update();
-
-    // renderer.render(scene, camera);
     renderer.update(scene, camera)
 }
-
 
 // Handle window resize
 window.addEventListener('resize', () => {
@@ -53,6 +48,10 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     // renderer.setSize(window.innerWidth, window.innerHeight);
     // TODO: Renderer should handle this
+    GlobalEventDispatcher.dispatch(new Event<{ width: number; height: number }>(EventType.WindowResize, { 
+        width: window.innerWidth, 
+        height: window.innerHeight 
+    }));
 });
 
 
