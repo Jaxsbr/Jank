@@ -11,6 +11,9 @@ export default defineConfig({
             '@': '/src'
         }
     },
+    optimizeDeps: {
+        include: ['three']
+    },
     esbuild: {
         target: 'es2020'
     }
