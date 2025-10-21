@@ -1,11 +1,17 @@
 import * as THREE from 'three';
-import { Event, GlobalEventDispatcher, IEventListener } from './eventing';
+import { Event, EventType, GlobalEventDispatcher, IEventListener } from './eventing';
 
 export class Renderer implements IEventListener {
     private renderer: THREE.WebGLRenderer;
-    constructor() {
+    private camera: THREE.PerspectiveCamera;
+    constructor(width: number, height: number) {
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        // Position camera
+        this.camera.position.set(0, 5, 5);
+        this.camera.lookAt(0, 0, 0);
+        
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(width, height);
         this.renderer.setClearColor(0x1a1a1a);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -17,13 +23,21 @@ export class Renderer implements IEventListener {
         }
         
     }
-    onEvent(event: Event): boolean {
-        const { width, height } = event.args as { width: number; height: number };
-        this.renderer.setSize(width, height);
-        return true;
+    onEvent(event: Event): void {
+        if (event.eventName === EventType.WindowResize) {
+            const { width, height } = event.args as { width: number; height: number };
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(width, height);            
+        }
+
+        if (event.eventName === EventType.CameraZoomChanged) {
+            const { x, y, z } = event.args as { x: number, y: number, z: number };
+            this.camera.position.set(x, y, z);
+        }
     }
 
-    public update(scene: THREE.Scene, camera: THREE.PerspectiveCamera): void {
-        this.renderer.render(scene, camera);
+    public update(scene: THREE.Scene): void {
+        this.renderer.render(scene, this.camera);
     }
 }

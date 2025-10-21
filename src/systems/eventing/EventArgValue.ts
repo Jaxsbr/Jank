@@ -1,4 +1,7 @@
+import { Vector3 } from 'three';
+
 export type EventArgValue =
     | string
     | number
-    | boolean;
+    | boolean
+    | Vector3;

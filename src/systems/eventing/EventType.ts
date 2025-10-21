@@ -1,3 +1,4 @@
 export enum EventType {
-    WindowResize
+    WindowResize,
+    CameraZoomChanged
 }

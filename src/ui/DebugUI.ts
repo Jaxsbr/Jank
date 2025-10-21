@@ -1,16 +1,15 @@
 import * as THREE from 'three';
 import { Core, CoreState } from '../game/Core';
+import { Event, EventType, GlobalEventDispatcher } from '../systems/eventing';
 
 export class DebugUI {
     private container!: HTMLDivElement;
     private isVisible: boolean = false;
     private core: Core;
-    private camera: THREE.PerspectiveCamera;
     private floor: THREE.Group;
 
-    constructor(core: Core, camera: THREE.PerspectiveCamera, floor: THREE.Group) {
+    constructor(core: Core, floor: THREE.Group) {
         this.core = core;
-        this.camera = camera;
         this.floor = floor;
         this.createUI();
         this.setupEventListeners();
@@ -125,7 +124,12 @@ export class DebugUI {
         zoomSlider.addEventListener('input', (e) => {
             const target = e.target as HTMLInputElement;
             const distance = parseInt(target.value);
-            this.camera.position.set(0, distance, distance);
+            GlobalEventDispatcher.dispatch(new Event<{ x: number, y: number, z: number }>(
+                EventType.CameraZoomChanged, {
+                    x: 0,
+                    y: distance,
+                    z: distance
+                }));
             zoomValue.textContent = `Distance: ${distance}`;
         });
 
@@ -254,7 +258,7 @@ export class DebugUI {
         `;
 
         // Update glow when either color or intensity changes
-        const updateGlow = () => {
+        const updateGlow = (): void  => {
             const color = glowColorInput.value.replace('#', '0x');
             const intensity = parseFloat(glowIntensitySlider.value);
             this.core.updateMainSphereEmissive(parseInt(color, 16), intensity);
@@ -331,7 +335,7 @@ export class DebugUI {
         `;
 
         // Update knob glow when either color or intensity changes
-        const updateKnobGlow = () => {
+        const updateKnobGlow = (): void => {
             const color = knobGlowColorInput.value.replace('#', '0x');
             const intensity = parseFloat(knobGlowIntensitySlider.value);
             this.core.updateKnobSpheresEmissive(parseInt(color, 16), intensity);
