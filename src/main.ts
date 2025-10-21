@@ -5,8 +5,8 @@ import './styles.css';
 import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
 import { createFloor } from './systems/ObjectFactory';
 import { Renderer } from './systems/Renderer';
-// Note: Using .js extension for ES module resolution in CI environments
-import { Event, EventType, GlobalEventDispatcher } from './systems/eventing/index.js';
+// Note: Using explicit index.ts for module resolution in CI environments
+import { Event, EventType, GlobalEventDispatcher } from './systems/eventing/index.ts';
 import { DebugUI } from './ui/DebugUI';
 
 const scene = new THREE.Scene();
