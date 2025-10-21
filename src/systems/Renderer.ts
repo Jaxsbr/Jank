@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Event } from './eventing/Event';
-import { EventType } from './eventing/EventType';
 import { GlobalEventDispatcher } from './eventing/EventDispatcher';
+import { EventType } from './eventing/EventType';
 import { IEventListener } from './eventing/IEventListener';
 
 export class Renderer implements IEventListener {
