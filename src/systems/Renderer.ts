@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { Event, EventType, GlobalEventDispatcher, IEventListener } from './eventing';
+import { Event } from './eventing/Event';
+import { EventType } from './eventing/EventType';
+import { GlobalEventDispatcher } from './eventing/EventDispatcher';
+import { IEventListener } from './eventing/IEventListener';
 
 export class Renderer implements IEventListener {
     private renderer: THREE.WebGLRenderer;

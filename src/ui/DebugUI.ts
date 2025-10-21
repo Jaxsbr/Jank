@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { Core, CoreState } from '../game/Core';
-import { Event, EventType, GlobalEventDispatcher } from '../systems/eventing';
+import { Event } from '../systems/eventing/Event';
+import { EventType } from '../systems/eventing/EventType';
+import { GlobalEventDispatcher } from '../systems/eventing/EventDispatcher';
 
 export class DebugUI {
     private container!: HTMLDivElement;
@@ -96,10 +98,10 @@ export class DebugUI {
         const zoomSlider = document.createElement('input');
         zoomSlider.type = 'range';
         zoomSlider.id = 'zoom-slider';
-        zoomSlider.min = '5';
-        zoomSlider.max = '50';
-        zoomSlider.step = '5';
-        zoomSlider.value = '50'; // Default to current position
+        zoomSlider.min = '2';
+        zoomSlider.max = '26';
+        zoomSlider.step = '2';
+        zoomSlider.value = '26'; // Default to current position
         zoomSlider.style.cssText = `
             width: 100%;
             height: 30px;
