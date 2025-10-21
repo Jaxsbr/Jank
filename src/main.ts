@@ -5,8 +5,10 @@ import './styles.css';
 import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
 import { createFloor } from './systems/ObjectFactory';
 import { Renderer } from './systems/Renderer';
-// Note: Using explicit index.ts for module resolution in CI environments
-import { Event, EventType, GlobalEventDispatcher } from './systems/eventing/index';
+// Note: Using explicit individual imports for CI compatibility
+import { Event } from './systems/eventing/Event';
+import { EventType } from './systems/eventing/EventType';
+import { GlobalEventDispatcher } from './systems/eventing/EventDispatcher';
 import { DebugUI } from './ui/DebugUI';
 
 const scene = new THREE.Scene();
