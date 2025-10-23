@@ -1,5 +1,5 @@
 import { Entity } from './Entity';
 
 export interface IEntitySystem {
-    update(entities: Entity[]): void;
+    update(entities: readonly Entity[]): void;
 }
