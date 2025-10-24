@@ -1,10 +1,10 @@
 import * as THREE from 'three';
+import { EntityFactory } from './entities/EntityFactory';
+import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
+import { RenderSystem } from './entities/systems/RenderSystem';
+import { RotationSystem } from './entities/systems/RotationSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
 import { defaultEnvironment } from './environment/configs/defaultEnvironment';
-import { EntityFactory } from './game/ecs/EntityFactory';
-import { BobAnimationSystem } from './game/ecs/systems/BobAnimationSystem';
-import { RenderSystem } from './game/ecs/systems/RenderSystem';
-import { RotationSystem } from './game/ecs/systems/RotationSystem';
 import './styles.css';
 import { Renderer } from './systems/Renderer';
 import { Event } from './systems/eventing/Event';

@@ -1,4 +1,4 @@
-import { IComponent } from '../IComponent';
+import { IComponent } from '../../ecs/IComponent';
 
 export class RotationComponent implements IComponent {
     private x: number;

@@ -1,5 +1,5 @@
 import { Scene } from 'three';
-import { Renderer } from '../../../systems/Renderer';
+import { Renderer } from '../../systems/Renderer';
 
 export class RenderSystem {
     private renderer: Renderer;

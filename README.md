@@ -30,17 +30,37 @@ Navigate to `http://localhost:5173/`
 
 ```
 /src
-  /core        # game loop, world, ECS-like minimal helpers
-  /entities    # Core, Enemy, Projectile factories
-  /systems     # Movement, Targeting, Combat, Spawn
-  /render      # Three.js scene setup, camera, render loop
-  /ui          # HUD, upgrade screen (DOM)
-  /config      # tunables and seedable RNG
-  /utils       # helpers: random, vector, timers
-/tests
-  /unit        # Unit tests
-  /integration # Integration tests
-index.html     # Main HTML entry point
+  main.ts           # Game entry point
+  /ui               # User interface components
+  /systems          # Game infrastructure (eventing, logging, renderer)
+  /ecs              # SHARED ECS infrastructure
+    Entity.ts
+    IComponent.ts
+    IEntitySystem.ts
+  /entities         # General game entities (player, enemies, pickups)
+    /components
+      GeometryComponent.ts
+      HealthComponent.ts
+      PositionComponent.ts
+      ...
+    /systems
+      BobAnimationSystem.ts
+      RotationSystem.ts
+      ...
+    EntityFactory.ts
+  /tiles            # Hexagonal tile system
+    /components
+      TileComponent.ts
+      TileVisualComponent.ts
+      TileEffectComponent.ts
+    /systems
+      TileAnimationSystem.ts
+      TileHeightSystem.ts
+      ...
+    TileFactory.ts
+    TileGrid.ts
+    TileManager.ts
+  /environment      # World elements (sky, floor, walls)
 ```
 
 ## GitHub Pages Deployment

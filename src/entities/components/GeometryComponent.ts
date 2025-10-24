@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { IComponent } from '../IComponent';
+import { IComponent } from '../../ecs/IComponent';
 
 export enum SecondaryGeometryType {
     Sphere = 'sphere',
