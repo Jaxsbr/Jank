@@ -1,12 +1,11 @@
 import * as THREE from 'three';
-import { defaultFloor } from './configs/defaultFloor';
+import { EnvironmentManager } from './environment/EnvironmentManager';
+import { defaultEnvironment } from './environment/configs/defaultEnvironment';
 import { EntityFactory } from './game/ecs/EntityFactory';
 import { BobAnimationSystem } from './game/ecs/systems/BobAnimationSystem';
 import { RenderSystem } from './game/ecs/systems/RenderSystem';
 import { RotationSystem } from './game/ecs/systems/RotationSystem';
 import './styles.css';
-import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
-import { createFloor } from './systems/ObjectFactory';
 import { Renderer } from './systems/Renderer';
 import { Event } from './systems/eventing/Event';
 import { GlobalEventDispatcher } from './systems/eventing/EventDispatcher';
@@ -20,20 +19,14 @@ const bobAnimationSystem = new BobAnimationSystem()
 const rotationSystem = new RotationSystem()
 const entityFactory = new EntityFactory(scene)
 
-const floor = createFloor(defaultFloor);
-scene.add(floor);
+// Create environment
+const environmentManager = new EnvironmentManager(scene, defaultEnvironment);
 
 // Create the game core
 entityFactory.createCoreEntity()
 
 // Create the UI
-new DebugUI(floor);
-
-// Add scene lighting
-const ambientLight = createAmbientLight()
-const directionalLight = createDirectionalLight()
-scene.add(ambientLight);
-scene.add(directionalLight);
+new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
 function animate(): void {
     requestAnimationFrame(animate);
