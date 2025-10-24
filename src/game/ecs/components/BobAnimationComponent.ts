@@ -1,4 +1,4 @@
-import { IComponent } from '../ecs/IComponent';
+import { IComponent } from '../IComponent';
 
 export class BobAnimationComponent implements IComponent {
     private animationTime: number = 0;

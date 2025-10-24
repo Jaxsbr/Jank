@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { defaultFloor } from './configs/defaultFloor';
-import { Core } from './game/Core';
+import { EntityFactory } from './game/ecs/EntityFactory';
+import { BobAnimationSystem } from './game/ecs/systems/BobAnimationSystem';
+import { RenderSystem } from './game/ecs/systems/RenderSystem';
+import { RotationSystem } from './game/ecs/systems/RotationSystem';
 import './styles.css';
 import { createAmbientLight, createDirectionalLight } from './systems/DirectionalLight';
 import { createFloor } from './systems/ObjectFactory';
@@ -9,10 +12,6 @@ import { Event } from './systems/eventing/Event';
 import { GlobalEventDispatcher } from './systems/eventing/EventDispatcher';
 import { EventType } from './systems/eventing/EventType';
 import { DebugUI } from './ui/DebugUI';
-import { EntityFactory } from './game/EntityFactory';
-import { RenderSystem } from './game/systems/RenderSystem';
-import { BobAnimationSystem } from './game/systems/BobAnimationSystem';
-import { RotationSystem } from './game/systems/RotationSystem';
 
 const scene = new THREE.Scene();
 const renderer = new Renderer(window.innerWidth, window.innerHeight)
@@ -26,12 +25,9 @@ scene.add(floor);
 
 // Create the game core
 entityFactory.createCoreEntity()
-const core = new Core();
-core.setPosition(0, 0, 0);
-// scene.add(core.getGroup());
 
 // Create the UI
-new DebugUI(core, floor);
+new DebugUI(floor);
 
 // Add scene lighting
 const ambientLight = createAmbientLight()
@@ -41,7 +37,6 @@ scene.add(directionalLight);
 
 function animate(): void {
     requestAnimationFrame(animate);
-    core.update();
 
     const entities = entityFactory.getEntities()
     bobAnimationSystem.update(entities)

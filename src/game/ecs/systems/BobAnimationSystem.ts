@@ -2,8 +2,8 @@ import { BobAnimationComponent } from '../components/BobAnimationComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
-import { Entity } from '../ecs/Entity';
-import { IEntitySystem } from '../ecs/IEntitySystem';
+import { Entity } from '../Entity';
+import { IEntitySystem } from '../IEntitySystem';
 
 export class BobAnimationSystem implements IEntitySystem {
     update(entities: readonly Entity[]): void {
@@ -26,7 +26,7 @@ export class BobAnimationSystem implements IEntitySystem {
 
                     // Update animation position
                     const bobOffset = Math.sin(bobAnimation.getAnimationTime * multiplier) * bobAnimation.getBobAmplitude;
-                    const calculatedY = bobAnimation.getBaseY + bobOffset                    
+                    const calculatedY = bobAnimation.getBaseY + bobOffset
                     const geometryGroup = geometry.getGeometryGroup();
                     geometryGroup.position.y = calculatedY;
                     

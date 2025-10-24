@@ -2,8 +2,8 @@ import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { RotationComponent } from '../components/RotationComponent';
-import { Entity } from '../ecs/Entity';
-import { IEntitySystem } from '../ecs/IEntitySystem';
+import { Entity } from '../Entity';
+import { IEntitySystem } from '../IEntitySystem';
 
 export class RotationSystem implements IEntitySystem {
     update(entities: readonly Entity[]): void {

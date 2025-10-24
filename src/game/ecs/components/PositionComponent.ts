@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { IComponent } from '../ecs/IComponent';
+import { IComponent } from '../IComponent';
 
 export class PositionComponent implements IComponent {
     private x: number;

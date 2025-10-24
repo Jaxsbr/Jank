@@ -1,10 +1,10 @@
 import { Scene, Vector3 } from 'three';
+import { Entity } from './Entity';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
 import { GeometryComponent, SecondaryGeometryConfig, SecondaryGeometryType } from './components/GeometryComponent';
 import { HealthComponent } from './components/HealthComponent';
 import { PositionComponent } from './components/PositionComponent';
 import { RotationComponent } from './components/RotationComponent';
-import { Entity } from './ecs/Entity';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;

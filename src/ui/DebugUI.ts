@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Core, CoreState } from '../game/Core';
 import { Event } from '../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../systems/eventing/EventDispatcher';
 import { EventType } from '../systems/eventing/EventType';
@@ -7,11 +6,9 @@ import { EventType } from '../systems/eventing/EventType';
 export class DebugUI {
     private container!: HTMLDivElement;
     private isVisible: boolean = false;
-    private core: Core;
     private floor: THREE.Group;
 
-    constructor(core: Core, floor: THREE.Group) {
-        this.core = core;
+    constructor(floor: THREE.Group) {
         this.floor = floor;
         this.createUI();
         this.setupEventListeners();
@@ -39,7 +36,7 @@ export class DebugUI {
 
         // Create title
         const title = document.createElement('div');
-        title.textContent = 'Core Control Panel';
+        title.textContent = 'Debug Control Panel';
         title.style.cssText = `
             font-weight: bold;
             margin-bottom: 10px;
@@ -47,44 +44,6 @@ export class DebugUI {
             text-align: center;
         `;
         this.container.appendChild(title);
-
-        // Create state picker
-        const stateLabel = document.createElement('div');
-        stateLabel.textContent = 'Core State:';
-        stateLabel.style.marginBottom = '5px';
-        this.container.appendChild(stateLabel);
-
-        const stateSelect = document.createElement('select');
-        stateSelect.id = 'core-state-select';
-        stateSelect.style.cssText = `
-            width: 100%;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-            color: white;
-            font-family: inherit;
-            font-size: 24px;
-        `;
-
-        // Add options for each CoreState
-        Object.values(CoreState).forEach(state => {
-            const option = document.createElement('option');
-            option.value = state;
-            option.textContent = state;
-            stateSelect.appendChild(option);
-        });
-
-        // Set default to Idle
-        stateSelect.value = CoreState.Idle;
-
-        // Add change listener
-        stateSelect.addEventListener('change', (e) => {
-            const target = e.target as HTMLSelectElement;
-            this.core.setState(target.value as CoreState);
-        });
-
-        this.container.appendChild(stateSelect);
 
         // Add zoom control
         const zoomLabel = document.createElement('div');
@@ -138,217 +97,6 @@ export class DebugUI {
         this.container.appendChild(zoomSlider);
         this.container.appendChild(zoomValue);
 
-        // Add Core Material Controls
-        const materialLabel = document.createElement('div');
-        materialLabel.textContent = 'Core Material:';
-        materialLabel.style.cssText = `
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #40E0D0;
-        `;
-        this.container.appendChild(materialLabel);
-
-        // Note: Main sphere is now white, controlled by glow
-
-        // Metalness control
-        const metalnessLabel = document.createElement('div');
-        metalnessLabel.textContent = 'Metalness:';
-        metalnessLabel.style.cssText = `
-            margin-top: 15px;
-            margin-bottom: 5px;
-        `;
-        this.container.appendChild(metalnessLabel);
-
-        const metalnessSlider = document.createElement('input');
-        metalnessSlider.type = 'range';
-        metalnessSlider.id = 'metalness-slider';
-        metalnessSlider.min = '0';
-        metalnessSlider.max = '1';
-        metalnessSlider.step = '0.1';
-        metalnessSlider.value = '0.3';
-        metalnessSlider.style.cssText = `
-            width: 100%;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-            outline: none;
-        `;
-
-        const metalnessValue = document.createElement('div');
-        metalnessValue.id = 'metalness-value';
-        metalnessValue.textContent = `Metalness: ${metalnessSlider.value}`;
-        metalnessValue.style.cssText = `
-            margin-top: 5px;
-            font-size: 20px;
-            color: #40E0D0;
-            text-align: center;
-        `;
-
-        metalnessSlider.addEventListener('input', (e) => {
-            const target = e.target as HTMLInputElement;
-            const metalness = parseFloat(target.value);
-            this.core.updateMainSphereMetalness(metalness);
-            metalnessValue.textContent = `Metalness: ${metalness.toFixed(1)}`;
-        });
-
-        this.container.appendChild(metalnessSlider);
-        this.container.appendChild(metalnessValue);
-
-        // Add Glow Controls
-        const glowLabel = document.createElement('div');
-        glowLabel.textContent = 'Glow Effect:';
-        glowLabel.style.cssText = `
-            margin-top: 15px;
-            margin-bottom: 5px;
-        `;
-        this.container.appendChild(glowLabel);
-
-        // Glow color control
-        const glowColorLabel = document.createElement('div');
-        glowColorLabel.textContent = 'Glow Color:';
-        glowColorLabel.style.marginBottom = '5px';
-        this.container.appendChild(glowColorLabel);
-
-        const glowColorInput = document.createElement('input');
-        glowColorInput.type = 'color';
-        glowColorInput.id = 'glow-color-picker';
-        glowColorInput.value = '#000000'; // Default to black (no glow)
-        glowColorInput.style.cssText = `
-            width: 100%;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-        `;
-        this.container.appendChild(glowColorInput);
-
-        // Glow intensity control
-        const glowIntensityLabel = document.createElement('div');
-        glowIntensityLabel.textContent = 'Glow Intensity:';
-        glowIntensityLabel.style.cssText = `
-            margin-top: 10px;
-            margin-bottom: 5px;
-        `;
-        this.container.appendChild(glowIntensityLabel);
-
-        const glowIntensitySlider = document.createElement('input');
-        glowIntensitySlider.type = 'range';
-        glowIntensitySlider.id = 'glow-intensity-slider';
-        glowIntensitySlider.min = '0';
-        glowIntensitySlider.max = '2';
-        glowIntensitySlider.step = '0.1';
-        glowIntensitySlider.value = '0';
-        glowIntensitySlider.style.cssText = `
-            width: 100%;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-            outline: none;
-        `;
-
-        const glowIntensityValue = document.createElement('div');
-        glowIntensityValue.id = 'glow-intensity-value';
-        glowIntensityValue.textContent = `Intensity: ${glowIntensitySlider.value}`;
-        glowIntensityValue.style.cssText = `
-            margin-top: 5px;
-            font-size: 20px;
-            color: #40E0D0;
-            text-align: center;
-        `;
-
-        // Update glow when either color or intensity changes
-        const updateGlow = (): void  => {
-            const color = glowColorInput.value.replace('#', '0x');
-            const intensity = parseFloat(glowIntensitySlider.value);
-            this.core.updateMainSphereEmissive(parseInt(color, 16), intensity);
-            glowIntensityValue.textContent = `Intensity: ${intensity.toFixed(1)}`;
-        };
-
-        glowColorInput.addEventListener('change', updateGlow);
-        glowIntensitySlider.addEventListener('input', updateGlow);
-
-        this.container.appendChild(glowIntensitySlider);
-        this.container.appendChild(glowIntensityValue);
-
-        // Add Knob Glow Controls
-        const knobGlowLabel = document.createElement('div');
-        knobGlowLabel.textContent = 'Knob Glow:';
-        knobGlowLabel.style.cssText = `
-            margin-top: 15px;
-            margin-bottom: 5px;
-        `;
-        this.container.appendChild(knobGlowLabel);
-
-        // Knob glow color control
-        const knobGlowColorLabel = document.createElement('div');
-        knobGlowColorLabel.textContent = 'Knob Glow Color:';
-        knobGlowColorLabel.style.marginBottom = '5px';
-        this.container.appendChild(knobGlowColorLabel);
-
-        const knobGlowColorInput = document.createElement('input');
-        knobGlowColorInput.type = 'color';
-        knobGlowColorInput.id = 'knob-glow-color-picker';
-        knobGlowColorInput.value = '#8A2BE2'; // Default to violet
-        knobGlowColorInput.style.cssText = `
-            width: 100%;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-        `;
-        this.container.appendChild(knobGlowColorInput);
-
-        // Knob glow intensity control
-        const knobGlowIntensityLabel = document.createElement('div');
-        knobGlowIntensityLabel.textContent = 'Knob Glow Intensity:';
-        knobGlowIntensityLabel.style.cssText = `
-            margin-top: 10px;
-            margin-bottom: 5px;
-        `;
-        this.container.appendChild(knobGlowIntensityLabel);
-
-        const knobGlowIntensitySlider = document.createElement('input');
-        knobGlowIntensitySlider.type = 'range';
-        knobGlowIntensitySlider.id = 'knob-glow-intensity-slider';
-        knobGlowIntensitySlider.min = '0';
-        knobGlowIntensitySlider.max = '2';
-        knobGlowIntensitySlider.step = '0.1';
-        knobGlowIntensitySlider.value = '0';
-        knobGlowIntensitySlider.style.cssText = `
-            width: 100%;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #40E0D0;
-            border-radius: 4px;
-            outline: none;
-        `;
-
-        const knobGlowIntensityValue = document.createElement('div');
-        knobGlowIntensityValue.id = 'knob-glow-intensity-value';
-        knobGlowIntensityValue.textContent = `Intensity: ${knobGlowIntensitySlider.value}`;
-        knobGlowIntensityValue.style.cssText = `
-            margin-top: 5px;
-            font-size: 20px;
-            color: #40E0D0;
-            text-align: center;
-        `;
-
-        // Update knob glow when either color or intensity changes
-        const updateKnobGlow = (): void => {
-            const color = knobGlowColorInput.value.replace('#', '0x');
-            const intensity = parseFloat(knobGlowIntensitySlider.value);
-            this.core.updateKnobSpheresEmissive(parseInt(color, 16), intensity);
-            knobGlowIntensityValue.textContent = `Intensity: ${intensity.toFixed(1)}`;
-        };
-
-        knobGlowColorInput.addEventListener('change', updateKnobGlow);
-        knobGlowIntensitySlider.addEventListener('input', updateKnobGlow);
-
-        this.container.appendChild(knobGlowIntensitySlider);
-        this.container.appendChild(knobGlowIntensityValue);
 
         // Add Floor Material Controls
         const floorLabel = document.createElement('div');
