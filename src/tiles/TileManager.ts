@@ -3,18 +3,15 @@ import { Entity } from '../ecs/Entity';
 import { HexCoordinate } from './HexCoordinate';
 import { TileFactory } from './TileFactory';
 import { TileGrid } from './TileGrid';
-import { TileManagerConfig } from './TileManagerConfig';
 import { TileType } from './TileType';
 
 export class TileManager {
     private tileGrid: TileGrid;
     private tileFactory: TileFactory;
-    private config: TileManagerConfig;
     private scene: THREE.Scene;
 
-    constructor(scene: THREE.Scene, config: TileManagerConfig) {
+    constructor(scene: THREE.Scene) {
         this.scene = scene;
-        this.config = config;
         this.tileGrid = new TileGrid(scene);
         this.tileFactory = new TileFactory(scene);
     }

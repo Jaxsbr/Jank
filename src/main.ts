@@ -28,19 +28,16 @@ const entityFactory = new EntityFactory(scene)
 // const tileAnimationSystem = new TileAnimationSystem(0.2);
 const tileEffectSystem = new TileEffectSystem(15, 2);
 // const tileHeightSystem = new TileHeightSystem(2, 3);
-const tileSize = 5;
-const maxRadius = 7
-const centerPosition = new THREE.Vector3(0, 0, 0);
-const tileManager = new TileManager(scene, { tileSize, maxRadius, centerPosition })
+const tileManager = new TileManager(scene);
 tileManager.initialize()
 
 // Hexagon ring around center tile
-tileManager.addTile({ q: 0, r: -1.1 }, TileType.ONE);      // 1
-tileManager.addTile({ q: 1.1, r: -1.1 }, TileType.TWO);    // 2
-tileManager.addTile({ q: 1.1, r: 0 }, TileType.THREE);     // 3
-tileManager.addTile({ q: 0, r: 1.1 }, TileType.ONE);       // 4
-tileManager.addTile({ q: -1.1, r: 1.1 }, TileType.TWO);    // 5
-tileManager.addTile({ q: -1.1, r: 0 }, TileType.THREE);    // 6
+tileManager.addTile({ q: 0, r: -1.2 }, TileType.ONE);      // 1
+tileManager.addTile({ q: 1.2, r: -1.2 }, TileType.TWO);    // 2
+tileManager.addTile({ q: 1.2, r: 0 }, TileType.THREE);     // 3
+tileManager.addTile({ q: 0, r: 1.2 }, TileType.ONE);       // 4
+tileManager.addTile({ q: -1.2, r: 1.2 }, TileType.TWO);    // 5
+tileManager.addTile({ q: -1.2, r: 0 }, TileType.THREE);    // 6
 
 // Create environment
 const environmentManager = new EnvironmentManager(scene, defaultEnvironment);

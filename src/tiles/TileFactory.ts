@@ -3,7 +3,6 @@ import { Entity } from '../ecs/Entity';
 import { EffectType } from './EffectType';
 import { HexCoordinate } from './HexCoordinate';
 import { TileEffectType } from './TileEffectType';
-import { TileFactoryConfig } from './TileFactoryConfig';
 import { TileType } from './TileType';
 import { TileComponent } from './components/TileComponent';
 import { TileEffectComponent } from './components/TileEffectComponent';
@@ -11,54 +10,15 @@ import { TileMaterial, TileVisualComponent } from './components/TileVisualCompon
 import { defaultColorTransitionEffectConfig } from './configs/ColorTransitionEffectConfig';
 import { defaultPulseEffectConfig } from './configs/PulseEffectConfig';
 import { defaultStaticEffectConfig } from './configs/StaticEffectConfig';
+import { TileAppearanceConfig } from './configs/TileAppearanceConfig';
 
 export class TileFactory {
     private scene: THREE.Scene;
-    private config: TileFactoryConfig;
+    private config: typeof TileAppearanceConfig;
 
-    constructor(scene: THREE.Scene, config?: Partial<TileFactoryConfig>) {
+    constructor(scene: THREE.Scene) {
         this.scene = scene;
-        this.config = {
-            tileSize: 0.85,
-            materials: {
-                center: {
-                    color: 0x00ff00, // Green
-                    roughness: 0.3,
-                    metalness: 0.1
-                },
-                [TileType.ONE]: {
-                    color: 0xff0000, // Red
-                    roughness: 0.8,
-                    metalness: 0.1
-                },
-                [TileType.TWO]: {
-                    color: 0x0000ff, // Blue
-                    roughness: 0.6,
-                    metalness: 0.1
-                },
-                [TileType.THREE]: {
-                    color: 0xffff00, // Yellow
-                    roughness: 0.5,
-                    metalness: 0.3
-                },
-                [TileType.FOUR]: {
-                    color: 0xff00ff, // Magenta
-                    roughness: 0.7,
-                    metalness: 0.2
-                },
-                [TileType.FIVE]: {
-                    color: 0x00ffff, // Cyan
-                    roughness: 0.4,
-                    metalness: 0.4
-                },
-                [TileType.SIX]: {
-                    color: 0xff8800, // Orange
-                    roughness: 0.9,
-                    metalness: 0.1
-                }
-            },
-            ...config
-        };
+        this.config = TileAppearanceConfig;
     }
 
     /**
