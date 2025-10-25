@@ -28,9 +28,18 @@ export class SkyboxComponent {
         if (this.config.type === 'gradient') {
             this.skyboxGroup.traverse((child) => {
                 if (child instanceof THREE.Mesh && child.material instanceof THREE.ShaderMaterial) {
-                    if (child.material.uniforms && child.material.uniforms['topColor'] && child.material.uniforms['bottomColor']) {
-                        child.material.uniforms['topColor'].value.setHex(topColor);
-                        child.material.uniforms['bottomColor'].value.setHex(bottomColor);
+                    const uniforms = child.material.uniforms;
+                    if (uniforms?.['topColor'] && uniforms['bottomColor']) {
+                        const topColorUniform = uniforms['topColor'];
+                        const bottomColorUniform = uniforms['bottomColor'];
+                        if (topColorUniform && bottomColorUniform && 
+                            topColorUniform.value && bottomColorUniform.value) {
+                            // Type assertion for uniform values that should have setHex method
+                            const topColorValue = topColorUniform.value as { setHex: (color: number) => void };
+                            const bottomColorValue = bottomColorUniform.value as { setHex: (color: number) => void };
+                            topColorValue.setHex(topColor);
+                            bottomColorValue.setHex(bottomColor);
+                        }
                     }
                 }
             });
