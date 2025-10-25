@@ -7,7 +7,7 @@ export class LightingComponent {
     constructor() {
         this.ambientLight = new THREE.AmbientLight(0x404040, 0.4);
         this.directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        this.directionalLight.position.set(5, 10, 5); // Position light at an angle for better shadows
+        this.directionalLight.position.set(0, 10, 0); // Position light directly above center origin
         this.directionalLight.castShadow = true;
         this.directionalLight.shadow.mapSize.width = 2048;
         this.directionalLight.shadow.mapSize.height = 2048;
