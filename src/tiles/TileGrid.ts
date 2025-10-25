@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from '../ecs/Entity';
-
-export interface HexCoordinate {
-    q: number;
-    r: number;
-}
+import { HexCoordinate } from './HexCoordinate';
 
 export class TileGrid {
     private tiles: Map<string, Entity> = new Map();

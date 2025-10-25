@@ -1,59 +1,11 @@
 import * as THREE from 'three';
 import { Entity } from '../ecs/Entity';
-import { HexCoordinate } from './TileGrid';
+import { HexCoordinate } from './HexCoordinate';
+import { TileFactoryConfig } from './TileFactoryConfig';
+import { TileType } from './TileType';
 import { TileComponent } from './components/TileComponent';
 import { TileEffectComponent } from './components/TileEffectComponent';
 import { TileMaterial, TileVisualComponent } from './components/TileVisualComponent';
-
-export enum TileType {
-    ONE = 'one',
-    TWO = 'two',
-    THREE = 'three',
-    FOUR = 'four',
-    FIVE = 'five',
-    SIX = 'six'
-}
-
-export interface TileFactoryConfig {
-    tileSize: number;
-    materials: {
-        center: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.ONE]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.TWO]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.THREE]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.FOUR]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.FIVE]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-        [TileType.SIX]: {
-            color: number;
-            roughness: number;
-            metalness: number;
-        };
-    };
-}
 
 export class TileFactory {
     private scene: THREE.Scene;
@@ -62,40 +14,40 @@ export class TileFactory {
     constructor(scene: THREE.Scene, config?: Partial<TileFactoryConfig>) {
         this.scene = scene;
         this.config = {
-            tileSize: 1,
+            tileSize: 0.85,
             materials: {
                 center: {
-                    color: 0x00ff00,
+                    color: 0x00ff00, // Green
                     roughness: 0.3,
                     metalness: 0.1
                 },
                 [TileType.ONE]: {
-                    color: 0xff0000,
+                    color: 0xff0000, // Red
                     roughness: 0.8,
                     metalness: 0.1
                 },
                 [TileType.TWO]: {
-                    color: 0x0000ff,
+                    color: 0x0000ff, // Blue
                     roughness: 0.6,
                     metalness: 0.1
                 },
                 [TileType.THREE]: {
-                    color: 0xffff00,
+                    color: 0xffff00, // Yellow
                     roughness: 0.5,
                     metalness: 0.3
                 },
                 [TileType.FOUR]: {
-                    color: 0xff00ff,
+                    color: 0xff00ff, // Magenta
                     roughness: 0.7,
                     metalness: 0.2
                 },
                 [TileType.FIVE]: {
-                    color: 0x00ffff,
+                    color: 0x00ffff, // Cyan
                     roughness: 0.4,
                     metalness: 0.4
                 },
                 [TileType.SIX]: {
-                    color: 0xff8800,
+                    color: 0xff8800, // Orange
                     roughness: 0.9,
                     metalness: 0.1
                 }
@@ -159,9 +111,10 @@ export class TileFactory {
     /**
      * Create effect component based on tile type
      */
-    private createEffectComponent(_tileType: TileType): TileEffectComponent | null {
+    private createEffectComponent(tileType: TileType): TileEffectComponent | null {
         // For now, no effects for the numbered tile types
         // This can be expanded later when you define what each tile type does
+        void tileType; // Suppress unused parameter warning
         return null;
     }
 

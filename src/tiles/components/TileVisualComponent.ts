@@ -41,7 +41,7 @@ export class TileVisualComponent implements IComponent {
      * Create solid hexagon geometry using Three.js ExtrudeGeometry
      */
     private createHexagonGeometry(size: number): THREE.BufferGeometry {
-        const tileHeight = 0.2; // Height of the 3D hexagon
+        const tileHeight = 0.1; // Height of the 3D hexagon
         
         // Create hexagonal shape
         const hexagonShape = new THREE.Shape();

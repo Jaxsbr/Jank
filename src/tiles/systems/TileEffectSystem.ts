@@ -54,10 +54,12 @@ export class TileEffectSystem implements IEntitySystem {
         // Update emissive color based on effect type and state
         if (isActive) {
             switch (effectType) {
-                case 'attack':
-                    console.log('Setting attack tile emissive - base color:', visualComponent.getTileMesh().material.color.getHexString());
+                case 'attack': {
+                    const material = visualComponent.getTileMesh().material as THREE.MeshStandardMaterial;
+                    console.log('Setting attack tile emissive - base color:', material.color.getHexString());
                     visualComponent.setEmissive(0xff4444, 0.5); // Red glow
                     break;
+                }
                 case 'buff':
                     visualComponent.setEmissive(0x44ff44, 0.3); // Green glow
                     break;
@@ -124,6 +126,8 @@ export class TileEffectSystem implements IEntitySystem {
     public getActiveEffectsInRadius(centerEntity: Entity, radius: number): Entity[] {
         // TODO: Implement spatial query to get tiles in radius
         // This would use the TileGrid to find nearby tiles with active effects
+        void centerEntity; // Suppress unused parameter warning
+        void radius; // Suppress unused parameter warning
         return [];
     }
 

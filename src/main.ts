@@ -10,11 +10,11 @@ import { Renderer } from './systems/Renderer';
 import { Event } from './systems/eventing/Event';
 import { GlobalEventDispatcher } from './systems/eventing/EventDispatcher';
 import { EventType } from './systems/eventing/EventType';
-import { TileType } from './tiles/TileFactory';
 import { TileManager } from './tiles/TileManager';
-import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
-import { TileEffectSystem } from './tiles/systems/TileEffectSystem';
-import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
+import { TileType } from './tiles/TileType';
+// import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
+// import { TileEffectSystem } from './tiles/systems/TileEffectSystem';
+// import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { DebugUI } from './ui/DebugUI';
 
 const scene = new THREE.Scene();
@@ -24,9 +24,9 @@ const bobAnimationSystem = new BobAnimationSystem()
 const rotationSystem = new RotationSystem()
 const entityFactory = new EntityFactory(scene)
 
-const tileAnimationSystem = new TileAnimationSystem(0.2);
-const tileEffectSystem = new TileEffectSystem(15, 2);
-const tileHeightSystem = new TileHeightSystem(2, 3);
+// const tileAnimationSystem = new TileAnimationSystem(0.2);
+// const tileEffectSystem = new TileEffectSystem(15, 2);
+// const tileHeightSystem = new TileHeightSystem(2, 3);
 const tileSize = 5;
 const maxRadius = 7
 const centerPosition = new THREE.Vector3(0, 0, 0);
@@ -56,7 +56,7 @@ function animate(): void {
     const entities = entityFactory.getEntities();
     bobAnimationSystem.update(entities);
     rotationSystem.update(entities);
-    const tileEntities = tileManager.getAllTiles()
+    // const tileEntities = tileManager.getAllTiles()
     // tileAnimationSystem.update(tileEntities);
     // tileEffectSystem.update(tileEntities);
     // tileHeightSystem.update(tileEntities);

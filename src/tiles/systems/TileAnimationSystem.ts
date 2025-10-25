@@ -10,7 +10,7 @@ export class TileAnimationSystem implements IEntitySystem {
     }
 
     update(entities: readonly Entity[]): void {
-        const currentTime = performance.now() / 1000; // Convert to seconds
+        // const currentTime = performance.now() / 1000; // Convert to seconds
         const deltaTime = 1/60; // Assume 60 FPS for now, could be improved with actual delta time
 
         entities.forEach(entity => {

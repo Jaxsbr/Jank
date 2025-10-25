@@ -1,13 +1,10 @@
 import * as THREE from 'three';
 import { Entity } from '../ecs/Entity';
-import { TileFactory, TileType } from './TileFactory';
-import { HexCoordinate, TileGrid } from './TileGrid';
-
-export interface TileManagerConfig {
-    tileSize: number;
-    maxRadius: number;
-    centerPosition: THREE.Vector3;
-}
+import { HexCoordinate } from './HexCoordinate';
+import { TileFactory } from './TileFactory';
+import { TileGrid } from './TileGrid';
+import { TileManagerConfig } from './TileManagerConfig';
+import { TileType } from './TileType';
 
 export class TileManager {
     private tileGrid: TileGrid;
@@ -85,8 +82,8 @@ export class TileManager {
         if (!centerTile) return;
 
         // Calculate height based on number of surrounding tiles
-        const surroundingTiles = this.tileGrid.getTilesInRadius({ q: 0, r: 0 }, 1);
-        const height = Math.max(0, (surroundingTiles.length - 1) * 0.1); // -1 to exclude center tile itself
+        // const surroundingTiles = this.tileGrid.getTilesInRadius({ q: 0, r: 0 }, 1);
+        // const height = Math.max(0, (surroundingTiles.length - 1) * 0.1); // -1 to exclude center tile itself
         
         // TODO: Update center tile height
         // This will affect the player's base Y position
