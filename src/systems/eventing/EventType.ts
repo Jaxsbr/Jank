@@ -1,4 +1,5 @@
 export enum EventType {
     WindowResize,
-    CameraZoomChanged
+    CameraZoomChanged,
+    TileEffectTrigger
 }

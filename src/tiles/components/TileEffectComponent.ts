@@ -1,22 +1,45 @@
 import { IComponent } from '../../ecs/IComponent';
-
-export type EffectType = 'attack' | 'buff' | 'heal' | 'shield' | 'speed';
+import { EffectType } from '../EffectType';
+import { TileEffectType } from '../TileEffectType';
+import { ColorTransitionEffectConfig } from '../configs/ColorTransitionEffectConfig';
+import { PulseEffectConfig } from '../configs/PulseEffectConfig';
+import { StaticEffectConfig } from '../configs/StaticEffectConfig';
 
 export class TileEffectComponent implements IComponent {
     private effectType: EffectType;
+    private tileEffectType: TileEffectType;
     private power: number;
     private duration: number;
     private cooldown: number;
     private lastActivation: number;
     private isActive: boolean;
+    
+    // Effect configs
+    private staticEffectConfig?: StaticEffectConfig;
+    private pulseEffectConfig?: PulseEffectConfig;
+    private colorTransitionEffectConfig?: ColorTransitionEffectConfig;
 
-    constructor(effectType: EffectType, power: number, duration: number) {
+    constructor(
+        effectType: EffectType, 
+        power: number, 
+        duration: number, 
+        tileEffectType: TileEffectType = TileEffectType.STATIC,
+        staticConfig?: StaticEffectConfig,
+        pulseConfig?: PulseEffectConfig,
+        colorTransitionConfig?: ColorTransitionEffectConfig
+    ) {
         this.effectType = effectType;
+        this.tileEffectType = tileEffectType;
         this.power = power;
         this.duration = duration;
         this.cooldown = 1.0; // 1 second cooldown by default
         this.lastActivation = 0;
         this.isActive = false;
+        
+        // Store effect configs
+        this.staticEffectConfig = staticConfig;
+        this.pulseEffectConfig = pulseConfig;
+        this.colorTransitionEffectConfig = colorTransitionConfig;
     }
 
     /**
@@ -52,6 +75,13 @@ export class TileEffectComponent implements IComponent {
      */
     public getEffectType(): EffectType {
         return this.effectType;
+    }
+
+    /**
+     * Get tile effect type
+     */
+    public getTileEffectType(): TileEffectType {
+        return this.tileEffectType;
     }
 
     /**
@@ -123,5 +153,26 @@ export class TileEffectComponent implements IComponent {
     public getRemainingCooldown(currentTime: number): number {
         const elapsed = currentTime - this.lastActivation;
         return Math.max(0, this.cooldown - elapsed);
+    }
+
+    /**
+     * Get static effect config
+     */
+    public getStaticEffectConfig(): StaticEffectConfig | undefined {
+        return this.staticEffectConfig;
+    }
+
+    /**
+     * Get pulse effect config
+     */
+    public getPulseEffectConfig(): PulseEffectConfig | undefined {
+        return this.pulseEffectConfig;
+    }
+
+    /**
+     * Get color transition effect config
+     */
+    public getColorTransitionEffectConfig(): ColorTransitionEffectConfig | undefined {
+        return this.colorTransitionEffectConfig;
     }
 }

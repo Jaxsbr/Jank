@@ -1,25 +1,56 @@
-import * as THREE from 'three';
 import { Entity } from '../../ecs/Entity';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
+import { Event } from '../../systems/eventing/Event';
+import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventType } from '../../systems/eventing/EventType';
+import { IEventListener } from '../../systems/eventing/IEventListener';
+import { EffectType } from '../EffectType';
+import { TileEffectType } from '../TileEffectType';
 import { TileComponent } from '../components/TileComponent';
 import { TileEffectComponent } from '../components/TileEffectComponent';
 import { TileVisualComponent } from '../components/TileVisualComponent';
 
-export class TileEffectSystem implements IEntitySystem {
+export class TileEffectSystem implements IEntitySystem, IEventListener {
     private effectRadius: number;
     private effectCooldown: number;
+    private tileEntities: readonly Entity[] = [];
 
     constructor(effectRadius: number = 2.0, effectCooldown: number = 1.0) {
         this.effectRadius = effectRadius;
         this.effectCooldown = effectCooldown;
+        
+        // Register as event listener
+        GlobalEventDispatcher.registerListener('TileEffectSystem', this);
+    }
+
+    /**
+     * Handle events from the event dispatcher
+     */
+    public onEvent(event: Event): void {
+        if (event.eventName === EventType.TileEffectTrigger) {
+            const entityIndex = event.args['entityIndex'] as number;
+            const currentTime = event.args['currentTime'] as number;
+            
+            // Get all tiles with effects to match the indexing from main.ts
+            const tilesWithEffects = this.tileEntities.filter(tile => 
+                tile.hasComponent(TileEffectComponent)
+            );
+            
+            if (typeof entityIndex === 'number' && typeof currentTime === 'number' && entityIndex >= 0 && entityIndex < tilesWithEffects.length) {
+                const entity = tilesWithEffects[entityIndex];
+                if (entity) {
+                    this.activateTileEffect(entity, currentTime);
+                }
+            }
+        }
     }
 
     update(entities: readonly Entity[]): void {
+        this.tileEntities = entities;
         const currentTime = performance.now() / 1000; // Convert to seconds
 
         entities.forEach(entity => {
             if (entity.hasComponent(TileComponent) && entity.hasComponent(TileEffectComponent)) {
-                console.log('Processing tile with effect component');
                 const tileComponent = entity.getComponent(TileComponent);
                 const effectComponent = entity.getComponent(TileEffectComponent);
                 const visualComponent = entity.getComponent(TileVisualComponent);
@@ -48,41 +79,171 @@ export class TileEffectSystem implements IEntitySystem {
     ): void {
         if (!visualComponent) return;
 
+        const tileEffectType = effectComponent.getTileEffectType();
         const effectType = effectComponent.getEffectType();
         const isActive = effectComponent.getIsActive();
         
-        // Update emissive color based on effect type and state
+        // Get base effect color based on effect type
+        const effectColor = this.getEffectColor(effectType);
+        
+        // Update emissive color based on tile effect type
         if (isActive) {
-            switch (effectType) {
-                case 'attack': {
-                    const material = visualComponent.getTileMesh().material as THREE.MeshStandardMaterial;
-                    console.log('Setting attack tile emissive - base color:', material.color.getHexString());
-                    visualComponent.setEmissive(0xff4444, 0.5); // Red glow
+            switch (tileEffectType) {
+                case TileEffectType.PULSE:
+                    this.renderPulseEffect(visualComponent, effectComponent, currentTime, effectColor);
                     break;
-                }
-                case 'buff':
-                    visualComponent.setEmissive(0x44ff44, 0.3); // Green glow
+                case TileEffectType.STATIC:
+                    this.renderStaticEffect(visualComponent, effectComponent, currentTime, effectColor);
                     break;
-                case 'heal':
-                    visualComponent.setEmissive(0x4444ff, 0.4); // Blue glow
-                    break;
-                case 'shield':
-                    visualComponent.setEmissive(0xffff44, 0.6); // Yellow glow
-                    break;
-                case 'speed':
-                    visualComponent.setEmissive(0xff44ff, 0.4); // Magenta glow
+                case TileEffectType.COLOR_TRANSITION:
+                    this.renderColorTransitionEffect(visualComponent, effectComponent, currentTime, effectColor);
                     break;
             }
         } else {
-            // Fade out emissive effect
-            const timeSinceActivation = effectComponent.getTimeSinceLastActivation(currentTime);
-            const fadeTime = 0.5; // 0.5 seconds fade
-            const fadeProgress = Math.min(1, timeSinceActivation / fadeTime);
-            const material = visualComponent.getTileMesh().material as THREE.MeshStandardMaterial;
-            const currentEmissive = material.emissiveIntensity;
-            const newEmissive = currentEmissive * (1 - fadeProgress);
-            visualComponent.setEmissive(0x000000, newEmissive);
+            // Effect is inactive - don't render anything
+            visualComponent.setEmissive(0x000000, 0);
         }
+    }
+
+    /**
+     * Render pulse effect with fade in/out
+     */
+    private renderPulseEffect(
+        visualComponent: TileVisualComponent, 
+        effectComponent: TileEffectComponent, 
+        currentTime: number,
+        fallbackColor: number
+    ): void {
+        const config = effectComponent.getPulseEffectConfig();
+        if (!config) {
+            visualComponent.setEmissive(fallbackColor, 0.5);
+            return;
+        }
+        
+        const timeSinceActivation = effectComponent.getTimeSinceLastActivation(currentTime);
+        const pulseCycleTime = config.pulseDuration / config.pulseFrequency;
+        const cycleProgress = (timeSinceActivation % pulseCycleTime) / pulseCycleTime;
+        
+        // Fade in for first half, fade out for second half
+        let intensity: number;
+        if (cycleProgress < 0.5) {
+            // Fade in: 0 to maxIntensity
+            intensity = config.maxIntensity * (cycleProgress * 2);
+        } else {
+            // Fade out: maxIntensity to 0
+            intensity = config.maxIntensity * (1 - (cycleProgress - 0.5) * 2);
+        }
+        
+        visualComponent.setEmissive(config.color, intensity);
+    }
+
+    /**
+     * Render static effect with fade in/out
+     */
+    private renderStaticEffect(
+        visualComponent: TileVisualComponent, 
+        effectComponent: TileEffectComponent, 
+        currentTime: number,
+        fallbackColor: number
+    ): void {
+        const config = effectComponent.getStaticEffectConfig();
+        if (!config) {
+            visualComponent.setEmissive(fallbackColor, 0.5);
+            return;
+        }
+        
+        const timeSinceActivation = effectComponent.getTimeSinceLastActivation(currentTime);
+        const duration = effectComponent.getDuration();
+        const remainingTime = duration - timeSinceActivation;
+        
+        let intensity = config.staticGlowIntensity;
+        
+        // Fade in
+        if (timeSinceActivation < config.fadeInDuration) {
+            intensity = config.staticGlowIntensity * (timeSinceActivation / config.fadeInDuration);
+        }
+        // Fade out (if within fadeOutDuration of end)
+        else if (remainingTime < config.fadeOutDuration) {
+            intensity = config.staticGlowIntensity * (remainingTime / config.fadeOutDuration);
+        }
+        // Hold at full intensity (default)
+        
+        visualComponent.setEmissive(config.color, intensity);
+    }
+
+    /**
+     * Render color transition effect that cycles between two colors
+     */
+    private renderColorTransitionEffect(
+        visualComponent: TileVisualComponent, 
+        effectComponent: TileEffectComponent, 
+        currentTime: number,
+        fallbackColor: number
+    ): void {
+        const config = effectComponent.getColorTransitionEffectConfig();
+        if (!config) {
+            console.warn('Color transition: No config');
+            visualComponent.setEmissive(fallbackColor, 0.5);
+            return;
+        }
+        
+        const timeSinceActivation = effectComponent.getTimeSinceLastActivation(currentTime);
+        
+        // Calculate progress for back-and-forth transition
+        const transitionTime = config.transitionDuration * 2; // Full cycle
+        const cycleProgress = (timeSinceActivation % transitionTime) / transitionTime;
+        
+        let currentColor: number;
+        if (cycleProgress < 0.5) {
+            // Transition from color1 to color2
+            const t = cycleProgress * 2;
+            currentColor = this.lerpColor(config.color1, config.color2, t);
+        } else {
+            // Transition from color2 to color1
+            const t = (cycleProgress - 0.5) * 2;
+            currentColor = this.lerpColor(config.color2, config.color1, t);
+        }
+        
+        visualComponent.setEmissive(currentColor, config.intensity);
+    }
+
+    /**
+     * Get effect color based on effect type
+     */
+    private getEffectColor(effectType: EffectType): number {
+        switch (effectType) {
+            case EffectType.ATTACK:
+                return 0xff4444; // Red
+            case EffectType.BUFF:
+                return 0x44ff44; // Green
+            case EffectType.HEAL:
+                return 0x4444ff; // Blue
+            case EffectType.SHIELD:
+                return 0xffff44; // Yellow
+            case EffectType.SPEED:
+                return 0xff44ff; // Magenta
+            default:
+                return 0xffffff; // White
+        }
+    }
+
+    /**
+     * Linear interpolation between two colors
+     */
+    private lerpColor(color1: number, color2: number, t: number): number {
+        const r1 = (color1 >> 16) & 0xff;
+        const g1 = (color1 >> 8) & 0xff;
+        const b1 = color1 & 0xff;
+        
+        const r2 = (color2 >> 16) & 0xff;
+        const g2 = (color2 >> 8) & 0xff;
+        const b2 = color2 & 0xff;
+        
+        const r = Math.round(r1 + (r2 - r1) * t);
+        const g = Math.round(g1 + (g2 - g1) * t);
+        const b = Math.round(b1 + (b2 - b1) * t);
+        
+        return (r << 16) | (g << 8) | b;
     }
 
     /**

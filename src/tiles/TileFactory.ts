@@ -1,11 +1,16 @@
 import * as THREE from 'three';
 import { Entity } from '../ecs/Entity';
+import { EffectType } from './EffectType';
 import { HexCoordinate } from './HexCoordinate';
+import { TileEffectType } from './TileEffectType';
 import { TileFactoryConfig } from './TileFactoryConfig';
 import { TileType } from './TileType';
 import { TileComponent } from './components/TileComponent';
 import { TileEffectComponent } from './components/TileEffectComponent';
 import { TileMaterial, TileVisualComponent } from './components/TileVisualComponent';
+import { defaultColorTransitionEffectConfig } from './configs/ColorTransitionEffectConfig';
+import { defaultPulseEffectConfig } from './configs/PulseEffectConfig';
+import { defaultStaticEffectConfig } from './configs/StaticEffectConfig';
 
 export class TileFactory {
     private scene: THREE.Scene;
@@ -112,10 +117,42 @@ export class TileFactory {
      * Create effect component based on tile type
      */
     private createEffectComponent(tileType: TileType): TileEffectComponent | null {
-        // For now, no effects for the numbered tile types
-        // This can be expanded later when you define what each tile type does
-        void tileType; // Suppress unused parameter warning
-        return null;
+        const effectType = EffectType.ATTACK;
+        
+        switch (tileType) {
+            case TileType.ONE:
+                return new TileEffectComponent(
+                    effectType, 
+                    10, 
+                    defaultPulseEffectConfig.duration,
+                    TileEffectType.PULSE,
+                    undefined,
+                    defaultPulseEffectConfig,
+                    undefined
+                );
+            case TileType.TWO:
+                return new TileEffectComponent(
+                    effectType, 
+                    10, 
+                    defaultStaticEffectConfig.duration,
+                    TileEffectType.STATIC,
+                    defaultStaticEffectConfig,
+                    undefined,
+                    undefined
+                );
+            case TileType.THREE:
+                return new TileEffectComponent(
+                    effectType, 
+                    10, 
+                    defaultColorTransitionEffectConfig.duration,
+                    TileEffectType.COLOR_TRANSITION,
+                    undefined,
+                    undefined,
+                    defaultColorTransitionEffectConfig
+                );
+            default:
+                return null; // Other tile types have no effects
+        }
     }
 
     private getMaterialForTileType(tileType: TileType): TileMaterial {
