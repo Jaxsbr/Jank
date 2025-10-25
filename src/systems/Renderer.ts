@@ -10,7 +10,8 @@ export class Renderer implements IEventListener {
     constructor(width: number, height: number) {
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         // Position camera
-        this.camera.position.set(0, 20, 20);
+        this.camera.position.set(0, 4, 4);
+        //this.camera.position.set(0, 20, 0); // top down
         this.camera.lookAt(0, 0, 0);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
