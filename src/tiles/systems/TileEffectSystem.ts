@@ -81,11 +81,17 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
 
         const tileEffectType = effectComponent.getTileEffectType();
         const effectType = effectComponent.getEffectType();
-        const isActive = effectComponent.getIsActive();
+        let isActive = effectComponent.getIsActive();
         
         // Get base effect color based on effect type
         const effectColor = this.getEffectColor(effectType);
         
+        // Override effect duration is alwaysOn
+        const pulseEffectConfig = effectComponent.getPulseEffectConfig()
+        if (pulseEffectConfig && pulseEffectConfig.alwaysOn) {
+            isActive = true
+        }
+
         // Update emissive color based on tile effect type
         if (isActive) {
             switch (tileEffectType) {

@@ -4,6 +4,7 @@ export interface PulseEffectConfig {
     pulseDuration: number;   // Total duration of one complete pulse (seconds)
     pulseFrequency: number;  // Number of pulses per duration
     duration: number; // Total effect duration (seconds)
+    alwaysOn: boolean; // Ignores duration and plays out effect continuously
 }
 
 export const defaultPulseEffectConfig: PulseEffectConfig = {
@@ -11,5 +12,6 @@ export const defaultPulseEffectConfig: PulseEffectConfig = {
     maxIntensity: 0.6,
     pulseDuration: 2.0,
     pulseFrequency: 1.0,
-    duration: 10.0 // Total duration
+    duration: 10.0, // Total duration
+    alwaysOn: false
 };

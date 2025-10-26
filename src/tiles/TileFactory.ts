@@ -34,6 +34,12 @@ export class TileFactory {
         // Add visual component
         const visualComponent = new TileVisualComponent(this.config.tileSize, this.config.materials.center);
         entity.addComponent(visualComponent);
+
+        const effectComponent = this.createEffectComponent(TileType.CENTER);
+        if (effectComponent) {
+            entity.addComponent(effectComponent);
+        }
+
         // Add to scene
         this.scene.add(visualComponent.getTileMesh());
         
@@ -80,6 +86,22 @@ export class TileFactory {
         const effectType = EffectType.ATTACK;
         
         switch (tileType) {
+            case TileType.CENTER:
+                return new TileEffectComponent(
+                    effectType,
+                    10,
+                    defaultPulseEffectConfig.duration,
+                    TileEffectType.PULSE,
+                    undefined,
+                    {
+                        ...defaultPulseEffectConfig,
+                        color: 0xffffff, // White
+                        maxIntensity: 0.7,
+                        pulseDuration: 5,
+                        alwaysOn: true
+                    },
+                    undefined,
+                );
             case TileType.ONE:
                 return new TileEffectComponent(
                     effectType, 
