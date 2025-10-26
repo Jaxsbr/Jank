@@ -4,8 +4,8 @@ export const TileAppearanceConfig = {
     tileSize: 0.85,
     materials: {
         center: {
-            color: 0x00ff00, // Green
-            roughness: 0.3,
+            color: 0xffffff, // White
+            roughness: 0.9,
             metalness: 0.1
         },
         [TileType.ONE]: {
