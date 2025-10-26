@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { EntityFactory } from './entities/EntityFactory';
 import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
+import { MovementSystem } from './entities/systems/MovementSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
 import { RotationSystem } from './entities/systems/RotationSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
@@ -22,6 +23,7 @@ const scene = new THREE.Scene();
 const renderer = new Renderer(window.innerWidth, window.innerHeight)
 const renderSystem = new RenderSystem(renderer, scene)
 const bobAnimationSystem = new BobAnimationSystem()
+const movementSystem = new MovementSystem()
 const rotationSystem = new RotationSystem()
 const entityFactory = new EntityFactory(scene)
 
@@ -45,6 +47,9 @@ const environmentManager = new EnvironmentManager(scene, defaultEnvironment);
 // Create the game core
 entityFactory.createCoreEntity()
 
+// TMP: Test enemy
+entityFactory.createEnemyEntity()
+
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
@@ -57,6 +62,7 @@ function animate(): void {
 
     const entities = entityFactory.getEntities();
     bobAnimationSystem.update(entities);
+    movementSystem.update(entities);
     rotationSystem.update(entities);
     const tileEntities = tileManager.getAllTiles()
     // tileAnimationSystem.update(tileEntities);

@@ -24,15 +24,15 @@ export class BobAnimationSystem implements IEntitySystem {
                     const animationSpeed = bobAnimation.getAnimationSpeed;
                     bobAnimation.setAnimationTime = animationTime + animationSpeed
 
-                    // Update animation position
+                    // Update animation position (only Y axis for bob animation)
                     const bobOffset = Math.sin(bobAnimation.getAnimationTime * multiplier) * bobAnimation.getBobAmplitude;
                     const calculatedY = bobAnimation.getBaseY + bobOffset
                     const geometryGroup = geometry.getGeometryGroup();
+                    
+                    // Only animate the Y position, preserve X and Z from initial positioning
                     geometryGroup.position.y = calculatedY;
                     
-                    // TODO: Why even have a position component?
-                    // Should we not instead have all geometries expose position?
-                    // Will anything have a position without being a geometry?
+                    // Update the position component to reflect the animated Y position
                     position.setY(calculatedY);
                 }
             }
