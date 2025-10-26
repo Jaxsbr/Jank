@@ -8,10 +8,16 @@ import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent } from '../components/TeamComponent';
+import { AnimationConfig, defaultAnimationConfig } from '../config/AnimationConfig';
 
 export class BobAnimationSystem implements IEntitySystem {
+    private config: AnimationConfig;
+
+    constructor(config: AnimationConfig = defaultAnimationConfig) {
+        this.config = config;
+    }
+
     update(entities: readonly Entity[]): void {
-        const multiplier = 1.5
         entities.forEach(entity => {
             if (entity.hasComponent(BobAnimationComponent) &&
                 entity.hasComponent(GeometryComponent) &&
@@ -32,7 +38,7 @@ export class BobAnimationSystem implements IEntitySystem {
                     bobAnimation.setAnimationTime = animationTime + animationSpeed
 
                     // Update animation position (only Y axis for bob animation)
-                    const bobOffset = Math.sin(bobAnimation.getAnimationTime * multiplier) * bobAnimation.getBobAmplitude;
+                    const bobOffset = Math.sin(bobAnimation.getAnimationTime * this.config.bob.multiplier) * bobAnimation.getBobAmplitude;
                     const calculatedY = bobAnimation.getBaseY + bobOffset
                     const geometryGroup = geometry.getGeometryGroup();
                     
@@ -69,7 +75,7 @@ export class BobAnimationSystem implements IEntitySystem {
                         
                         if (distance <= attackComponent.getRange()) {
                             // In combat range - use faster speed (vibrate effect)
-                            const vibrateSpeed = bobAnimation.getOriginalAnimationSpeed() * 5; // 5x faster
+                            const vibrateSpeed = bobAnimation.getOriginalAnimationSpeed() * this.config.vibrate.speedMultiplier;
                             bobAnimation.setAnimationSpeed(vibrateSpeed);
                             return;
                         }

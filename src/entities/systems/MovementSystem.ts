@@ -5,8 +5,15 @@ import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { MovementComponent } from '../components/MovementComponent';
 import { PositionComponent } from '../components/PositionComponent';
+import { EnemyEntityConfig, defaultEnemyEntityConfig } from '../config/EnemyEntityConfig';
 
 export class MovementSystem implements IEntitySystem {
+    private enemyConfig: EnemyEntityConfig;
+
+    constructor(enemyConfig: EnemyEntityConfig = defaultEnemyEntityConfig) {
+        this.enemyConfig = enemyConfig;
+    }
+
     update(entities: readonly Entity[]): void {
         entities.forEach(entity => {
             if (entity.hasComponent(MovementComponent) &&
@@ -26,8 +33,9 @@ export class MovementSystem implements IEntitySystem {
                         // Use geometry group's Y position which is already bob-animated
                         const geometryGroup = geometry.getGeometryGroup();
                         const currentY = geometryGroup.position.y;
-                        position.setPosition(5, currentY, 0);
-                        geometryGroup.position.set(5, currentY, 0);
+                        const respawnPos = this.enemyConfig.respawn.position;
+                        position.setPosition(respawnPos.x, currentY, respawnPos.z);
+                        geometryGroup.position.set(respawnPos.x, currentY, respawnPos.z);
                         movement.setTargetReached(false);
                         movement.setCurrentSpeed(0); // Reset speed for smooth restart
                         return;

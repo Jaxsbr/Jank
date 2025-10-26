@@ -6,6 +6,7 @@ import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { TeamComponent } from '../components/TeamComponent';
+import { DamageVisualConfig, defaultDamageVisualConfig } from '../config/DamageVisualConfig';
 
 interface DamageFlash {
     entity: Entity;
@@ -16,10 +17,11 @@ interface DamageFlash {
 
 export class DamageVisualSystem implements IEventListener {
     private damageFlashes: DamageFlash[] = [];
-    private flashDuration: number = 200; // milliseconds
+    private config: DamageVisualConfig;
     private entities: Entity[] = [];
 
-    constructor() {
+    constructor(config: DamageVisualConfig = defaultDamageVisualConfig) {
+        this.config = config;
         // Register as event listener for damage events
         GlobalEventDispatcher.registerListener('DamageVisualSystem', this);
     }
@@ -71,30 +73,29 @@ export class DamageVisualSystem implements IEventListener {
         const teamComponent = entity.getComponent(TeamComponent);
         let originalMainColor: number;
         let originalSecondaryColor: number;
+        let flashMainColor: number;
+        let flashSecondaryColor: number;
         
         if (teamComponent && teamComponent.isEnemy()) {
-            // Enemy entity: red colors
-            originalMainColor = 0xFF0000;
-            originalSecondaryColor = 0xFF6666;
+            // Enemy entity: use enemy colors from config
+            originalMainColor = this.config.teamColors.enemy.original.main;
+            originalSecondaryColor = this.config.teamColors.enemy.original.secondary;
+            flashMainColor = this.config.teamColors.enemy.flash.main;
+            flashSecondaryColor = this.config.teamColors.enemy.flash.secondary;
         } else {
-            // Core entity: white colors
-            originalMainColor = 0xFFFFFF;
-            originalSecondaryColor = 0xFFFFFF;
+            // Core entity: use core colors from config
+            originalMainColor = this.config.teamColors.core.original.main;
+            originalSecondaryColor = this.config.teamColors.core.original.secondary;
+            flashMainColor = this.config.teamColors.core.flash.main;
+            flashSecondaryColor = this.config.teamColors.core.flash.secondary;
         }
         
-        // Set flash color based on team type for better visibility
-        if (teamComponent && teamComponent.isEnemy()) {
-            // Flash enemy with bright white for visibility
-            geometryComponent.updateMainSphereColor(0xFFFFFF);
-            geometryComponent.updateSecondaryColor(0xFFFF00); // Bright yellow
-        } else {
-            // Flash core with red
-            geometryComponent.updateMainSphereColor(0xFF0000);
-            geometryComponent.updateSecondaryColor(0xFF6666);
-        }
+        // Set flash colors
+        geometryComponent.updateMainSphereColor(flashMainColor);
+        geometryComponent.updateSecondaryColor(flashSecondaryColor);
 
         // Schedule color restoration
-        const endTime = Date.now() + this.flashDuration;
+        const endTime = Date.now() + this.config.flashDuration;
         this.damageFlashes.push({
             entity,
             originalMainColor,

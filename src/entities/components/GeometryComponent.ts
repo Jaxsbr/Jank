@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { IComponent } from '../../ecs/IComponent';
+import { MaterialConfig, defaultMaterialConfig } from '../config/MaterialConfig';
 
 export enum SecondaryGeometryType {
     Sphere = 'sphere',
@@ -25,34 +26,35 @@ export class GeometryComponent implements IComponent {
     constructor(
         mainSphereRadius: number = 0.5,
         mainSphereSegments: number = 32,
-        secondaryConfigs: SecondaryGeometryConfig[] = []
+        secondaryConfigs: SecondaryGeometryConfig[] = [],
+        materialConfig: MaterialConfig = defaultMaterialConfig
     ) {
         this.group = new THREE.Group();
         this.secondaryGeometries = [];
         this.secondaryPositions = [];
 
-        this.createMainMaterial();
+        this.createMainMaterial(materialConfig);
         this.createMainSphere(mainSphereRadius, mainSphereSegments);
 
-        this.createSecondaryMaterial();
+        this.createSecondaryMaterial(materialConfig);
         this.createSecondaryGeometries(secondaryConfigs);
     }
 
-    private createMainMaterial(): void {
+    private createMainMaterial(materialConfig: MaterialConfig): void {
         this.mainMaterial = new THREE.MeshStandardMaterial({
-            color: 0xFFFFFF,
-            metalness: 0.3,
-            roughness: 0.5,
-            envMapIntensity: 0.0
+            color: materialConfig.main.color,
+            metalness: materialConfig.main.metalness,
+            roughness: materialConfig.main.roughness,
+            envMapIntensity: materialConfig.main.envMapIntensity
         });
     }
 
-    private createSecondaryMaterial(): void {
+    private createSecondaryMaterial(materialConfig: MaterialConfig): void {
         this.secondaryMaterial = new THREE.MeshStandardMaterial({
-            color: 0xFFFFFF,
-            metalness: 0.6,
-            roughness: 0.3,
-            envMapIntensity: 0.0
+            color: materialConfig.secondary.color,
+            metalness: materialConfig.secondary.metalness,
+            roughness: materialConfig.secondary.roughness,
+            envMapIntensity: materialConfig.secondary.envMapIntensity
         });
     }
         

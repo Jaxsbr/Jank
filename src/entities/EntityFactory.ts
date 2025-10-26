@@ -10,6 +10,8 @@ import { PositionComponent } from './components/PositionComponent';
 import { RotationComponent } from './components/RotationComponent';
 import { TargetComponent } from './components/TargetComponent';
 import { TeamComponent, TeamType } from './components/TeamComponent';
+import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityConfig';
+import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -27,49 +29,22 @@ export class EntityFactory implements IEntityFactory {
         return this.entities;
     }
 
-    createCoreEntity(): Entity {
-        const maxHP = 100;
-        const position = new Vector3(0, 0, 0);
+    createCoreEntity(config: CoreEntityConfig = defaultCoreEntityConfig): Entity {
         const entity = new Entity();
-        const mainSphereRadius = 0.5;
-        const mainSphereSegments = 32;
-        const protrusionRadius = 0.15;
-        const protrusionWidthandHeight = 16;
-        const embedDepth = protrusionRadius * 0.5; // 1/2 embedded, 1/2 protruding
-        const baseY = 2.0;
-        const bobAmplitude = 0.5;
-        const bobAnimationSpeed = 0.02;
-        // Using vertices of a cube for even distribution, positioned on sphere surface
-        const positions = [
-            // Original 8 cube vertices
-            { x: 0.4, y: 0.4, z: 0.4 },     // +X +Y +Z
-            { x: -0.4, y: 0.4, z: 0.4 },    // -X +Y +Z
-            { x: 0.4, y: -0.4, z: 0.4 },    // +X -Y +Z
-            { x: -0.4, y: -0.4, z: 0.4 },   // -X -Y +Z
-            { x: 0.4, y: 0.4, z: -0.4 },    // +X +Y -Z
-            { x: -0.4, y: 0.4, z: -0.4 },   // -X +Y -Z
-            { x: 0.4, y: -0.4, z: -0.4 },   // +X -Y -Z
-            { x: -0.4, y: -0.4, z: -0.4 },   // -X -Y -Z
-
-            // Additional 6 knobs for symmetric distribution
-            { x: 0.0, y: 0.4, z: 0.0 },     // Top center
-            { x: 0.0, y: -0.4, z: 0.0 },    // Bottom center
-            { x: 0.4, y: 0.0, z: 0.0 },     // Right center
-            { x: -0.4, y: 0.0, z: 0.0 },    // Left center
-            { x: 0.0, y: 0.0, z: 0.4 },     // Front center
-            { x: 0.0, y: 0.0, z: -0.4 }     // Back center
-        ];
+        
+        // Create secondary geometry configurations from config
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
-
-        positions.forEach(pos => {
+        const embedDepth = config.geometry.protrusions.radius * config.geometry.protrusions.embedRatio;
+        
+        config.geometry.positions.forEach(pos => {
             // Normalize the position to be on the sphere surface
             const length = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
             const normalizedX = pos.x / length;
             const normalizedY = pos.y / length;
             const normalizedZ = pos.z / length;
 
-            // Position the sphere so it's embedded (1/2 inside, 1/2 outside)
-            const embedPosition = mainSphereRadius - embedDepth;
+            // Position the sphere so it's embedded
+            const embedPosition = config.geometry.mainSphere.radius - embedDepth;
             const finalX = normalizedX * embedPosition;
             const finalY = normalizedY * embedPosition;
             const finalZ = normalizedZ * embedPosition;
@@ -77,26 +52,43 @@ export class EntityFactory implements IEntityFactory {
             secondaryConfigs.push({
                 type: SecondaryGeometryType.Sphere,
                 position: new Vector3(finalX, finalY, finalZ),
-                size: protrusionRadius,      // sphere radius
-                segments: protrusionWidthandHeight, // sphere width and height
+                size: config.geometry.protrusions.radius,
+                segments: config.geometry.protrusions.segments,
             })
         });
         
-        entity.addComponent(new HealthComponent(maxHP))
-        entity.addComponent(new PositionComponent(position.x, position.y, position.z))
-        const geometryComponent = new GeometryComponent(mainSphereRadius, mainSphereSegments, secondaryConfigs)
+        // Add components using config values
+        entity.addComponent(new HealthComponent(config.health.maxHP))
+        entity.addComponent(new PositionComponent(config.position.x, config.position.y, config.position.z))
+        const geometryComponent = new GeometryComponent(
+            config.geometry.mainSphere.radius, 
+            config.geometry.mainSphere.segments, 
+            secondaryConfigs,
+            config.material
+        )
         entity.addComponent(geometryComponent)
-        entity.addComponent(new RotationComponent(0, 0.01, 0))
-        entity.addComponent(new BobAnimationComponent(bobAnimationSpeed, bobAmplitude, baseY))
+        entity.addComponent(new RotationComponent(config.rotation.x, config.rotation.y, config.rotation.z))
+        entity.addComponent(new BobAnimationComponent(
+            config.bobAnimation.speed, 
+            config.bobAnimation.amplitude, 
+            config.bobAnimation.baseY
+        ))
         
         // Add combat components
         entity.addComponent(new TeamComponent(TeamType.CORE))
-        entity.addComponent(new AttackComponent(10, 2.0, 1000)) // damage: 10, range: 2.0, cooldown: 1000ms
-        entity.addComponent(new TargetComponent(10.0)) // search range: 10.0
-        entity.addComponent(new AttackAnimationComponent(1.2, 200)) // scale multiplier: 1.2, duration: 200ms
+        entity.addComponent(new AttackComponent(
+            config.combat.attack.damage, 
+            config.combat.attack.range, 
+            config.combat.attack.cooldown
+        ))
+        entity.addComponent(new TargetComponent(config.combat.target.searchRange))
+        entity.addComponent(new AttackAnimationComponent(
+            config.combat.attackAnimation.scaleMultiplier, 
+            config.combat.attackAnimation.duration
+        ))
 
         // Set initial position of geometry group
-        geometryComponent.getGeometryGroup().position.set(position.x, position.y, position.z);
+        geometryComponent.getGeometryGroup().position.set(config.position.x, config.position.y, config.position.z);
 
         // Make entity geometry visible by adding to scene
         this.scene.add(geometryComponent.getGeometryGroup())
@@ -104,53 +96,26 @@ export class EntityFactory implements IEntityFactory {
         // Add entity to entities to expose to various entity systems
         this.entities.push(entity)
 
-        // We return the etity incase direct reference is required
+        // We return the entity in case direct reference is required
         return entity
     }
 
-    createEnemyEntity(): Entity {
-        const maxHP = 100;
-        const position = new Vector3(5, 0, 0);
+    createEnemyEntity(config: EnemyEntityConfig = defaultEnemyEntityConfig): Entity {
         const entity = new Entity();
-        const mainSphereRadius = 0.5;
-        const mainSphereSegments = 32;
-        const protrusionRadius = 0.15;
-        const protrusionWidthandHeight = 16;
-        const embedDepth = protrusionRadius * 0.5; // 1/2 embedded, 1/2 protruding
-        const baseY = 1.5;
-        const bobAmplitude = 0.2;
-        const bobAnimationSpeed = 0.01;
-        // Using vertices of a cube for even distribution, positioned on sphere surface
-        const positions = [
-            // Original 8 cube vertices
-            { x: 0.4, y: 0.4, z: 0.4 },     // +X +Y +Z
-            { x: -0.4, y: 0.4, z: 0.4 },    // -X +Y +Z
-            { x: 0.4, y: -0.4, z: 0.4 },    // +X -Y +Z
-            { x: -0.4, y: -0.4, z: 0.4 },   // -X -Y +Z
-            { x: 0.4, y: 0.4, z: -0.4 },    // +X +Y -Z
-            { x: -0.4, y: 0.4, z: -0.4 },   // -X +Y -Z
-            { x: 0.4, y: -0.4, z: -0.4 },   // +X -Y -Z
-            { x: -0.4, y: -0.4, z: -0.4 },   // -X -Y -Z
-
-            // Additional 6 knobs for symmetric distribution
-            { x: 0.0, y: 0.4, z: 0.0 },     // Top center
-            { x: 0.0, y: -0.4, z: 0.0 },    // Bottom center
-            { x: 0.4, y: 0.0, z: 0.0 },     // Right center
-            { x: -0.4, y: 0.0, z: 0.0 },    // Left center
-            { x: 0.0, y: 0.0, z: 0.4 },     // Front center
-            { x: 0.0, y: 0.0, z: -0.4 }     // Back center
-        ];
+        
+        // Create secondary geometry configurations from config
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
-
-        positions.forEach(pos => {
+        const embedDepth = config.geometry.protrusions.radius * config.geometry.protrusions.embedRatio;
+        
+        config.geometry.positions.forEach(pos => {
             // Normalize the position to be on the sphere surface
             const length = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
             const normalizedX = pos.x / length;
             const normalizedY = pos.y / length;
             const normalizedZ = pos.z / length;
 
-            // Position the sphere so it's embedded (1/2 inside, 1/2 outside)
-            const embedPosition = mainSphereRadius - embedDepth;
+            // Position the sphere so it's embedded
+            const embedPosition = config.geometry.mainSphere.radius - embedDepth;
             const finalX = normalizedX * embedPosition;
             const finalY = normalizedY * embedPosition;
             const finalZ = normalizedZ * embedPosition;
@@ -158,42 +123,54 @@ export class EntityFactory implements IEntityFactory {
             secondaryConfigs.push({
                 type: SecondaryGeometryType.Sphere,
                 position: new Vector3(finalX, finalY, finalZ),
-                size: protrusionRadius,      // sphere radius
-                segments: protrusionWidthandHeight, // sphere width and height
+                size: config.geometry.protrusions.radius,
+                segments: config.geometry.protrusions.segments,
             })
         });
 
-        entity.addComponent(new HealthComponent(maxHP))
-        entity.addComponent(new PositionComponent(position.x, position.y, position.z))
-        const geometryComponent = new GeometryComponent(mainSphereRadius, mainSphereSegments, secondaryConfigs)
-        
-        // Make enemy visually distinct with red color
-        geometryComponent.updateMainSphereColor(0xFF0000) // Red main sphere
-        geometryComponent.updateSecondaryColor(0xFF6666)  // Light red secondary geometries
+        // Add components using config values
+        entity.addComponent(new HealthComponent(config.health.maxHP))
+        entity.addComponent(new PositionComponent(config.position.x, config.position.y, config.position.z))
+        const geometryComponent = new GeometryComponent(
+            config.geometry.mainSphere.radius, 
+            config.geometry.mainSphere.segments, 
+            secondaryConfigs,
+            config.material
+        )
         
         entity.addComponent(geometryComponent)
-        entity.addComponent(new RotationComponent(0, 0.01, 0))
-        entity.addComponent(new BobAnimationComponent(bobAnimationSpeed, bobAmplitude, baseY))
+        entity.addComponent(new RotationComponent(config.rotation.x, config.rotation.y, config.rotation.z))
+        entity.addComponent(new BobAnimationComponent(
+            config.bobAnimation.speed, 
+            config.bobAnimation.amplitude, 
+            config.bobAnimation.baseY
+        ))
         
         // Add combat components
         entity.addComponent(new TeamComponent(TeamType.ENEMY))
-        entity.addComponent(new AttackComponent(5, 1.5, 1500)) // damage: 5, range: 1.5, cooldown: 1500ms
-        entity.addComponent(new TargetComponent(10.0)) // search range: 10.0
-        entity.addComponent(new AttackAnimationComponent(1.2, 200)) // scale multiplier: 1.2, duration: 200ms
+        entity.addComponent(new AttackComponent(
+            config.combat.attack.damage, 
+            config.combat.attack.range, 
+            config.combat.attack.cooldown
+        ))
+        entity.addComponent(new TargetComponent(config.combat.target.searchRange))
+        entity.addComponent(new AttackAnimationComponent(
+            config.combat.attackAnimation.scaleMultiplier, 
+            config.combat.attackAnimation.duration
+        ))
         
-        // Add movement component to make enemy move towards core entity (0, 0, 0)
-        // Configure with acceleration, deceleration, and deceleration distance
+        // Add movement component
         entity.addComponent(new MovementComponent(
-            new Vector3(0, 0, 0),  // Target position (core entity)
-            0.10,                  // Max speed (much faster)
-            0.001,                  // Target reached threshold
-            0.95,                  // Acceleration rate (much faster acceleration)
-            0.0025,                  // Deceleration rate (much faster deceleration)
-            3.0                    // Deceleration distance (start slowing down when 3 units away)
+            config.movement.targetPosition,
+            config.movement.maxSpeed,
+            config.movement.targetReachedThreshold,
+            config.movement.acceleration,
+            config.movement.deceleration,
+            config.movement.decelerationDistance
         ))
 
         // Set initial position of geometry group
-        geometryComponent.getGeometryGroup().position.set(position.x, position.y, position.z);
+        geometryComponent.getGeometryGroup().position.set(config.position.x, config.position.y, config.position.z);
 
         // Make entity geometry visible by adding to scene
         this.scene.add(geometryComponent.getGeometryGroup())
@@ -201,7 +178,7 @@ export class EntityFactory implements IEntityFactory {
         // Add entity to entities to expose to various entity systems
         this.entities.push(entity)
 
-        // We return the etity incase direct reference is required
+        // We return the entity in case direct reference is required
         return entity
     }
 }
