@@ -1,7 +1,20 @@
 import { IComponent } from './IComponent';
 
 export class Entity {
-    private components: IComponent[] = []; 
+    private components: IComponent[] = [];
+    private id: string;
+
+    constructor() {
+        this.id = crypto.randomUUID();
+    }
+
+    /**
+     * Get the unique ID of this entity
+     * @returns The unique ID string
+     */
+    public getId(): string {
+        return this.id;
+    }
     
     /**
      * Checks if this entity has a component of the specified type.

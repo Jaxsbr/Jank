@@ -1,0 +1,140 @@
+import { Entity } from '../../ecs/Entity';
+import { Event } from '../../systems/eventing/Event';
+import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventType } from '../../systems/eventing/EventType';
+import { IEventListener } from '../../systems/eventing/IEventListener';
+import { EntityFinder } from '../../utils/EntityFinder';
+import { GeometryComponent } from '../components/GeometryComponent';
+import { TeamComponent } from '../components/TeamComponent';
+
+interface DamageFlash {
+    entity: Entity;
+    originalMainColor: number;
+    originalSecondaryColor: number;
+    endTime: number;
+}
+
+export class DamageVisualSystem implements IEventListener {
+    private damageFlashes: DamageFlash[] = [];
+    private flashDuration: number = 200; // milliseconds
+    private entities: Entity[] = [];
+
+    constructor() {
+        // Register as event listener for damage events
+        GlobalEventDispatcher.registerListener('DamageVisualSystem', this);
+    }
+
+    /**
+     * Set the entities array reference for entity lookup
+     */
+    public setEntities(entities: Entity[]): void {
+        this.entities = entities;
+    }
+
+    /**
+     * Handle events from the event dispatcher
+     */
+    public onEvent(event: Event): void {
+        if (event.eventName === EventType.DamageTaken) {
+            this.handleDamageTaken(event);
+        }
+    }
+
+    /**
+     * Handle a damage taken event
+     */
+    private handleDamageTaken(event: Event): void {
+        const targetId = event.args['targetId'] as string;
+        if (!targetId) {
+            return;
+        }
+
+        // Find the entity by ID
+        const targetEntity = EntityFinder.findEntityById(this.entities, targetId);
+        if (!targetEntity) {
+            return;
+        }
+
+        this.flashEntity(targetEntity);
+    }
+
+    /**
+     * Flash an entity red to indicate damage
+     */
+    private flashEntity(entity: Entity): void {
+        const geometryComponent = entity.getComponent(GeometryComponent);
+        if (!geometryComponent) {
+            return;
+        }
+
+        // Determine original colors based on team type
+        const teamComponent = entity.getComponent(TeamComponent);
+        let originalMainColor: number;
+        let originalSecondaryColor: number;
+        
+        if (teamComponent && teamComponent.isEnemy()) {
+            // Enemy entity: red colors
+            originalMainColor = 0xFF0000;
+            originalSecondaryColor = 0xFF6666;
+        } else {
+            // Core entity: white colors
+            originalMainColor = 0xFFFFFF;
+            originalSecondaryColor = 0xFFFFFF;
+        }
+        
+        // Set flash color based on team type for better visibility
+        if (teamComponent && teamComponent.isEnemy()) {
+            // Flash enemy with bright white for visibility
+            geometryComponent.updateMainSphereColor(0xFFFFFF);
+            geometryComponent.updateSecondaryColor(0xFFFF00); // Bright yellow
+        } else {
+            // Flash core with red
+            geometryComponent.updateMainSphereColor(0xFF0000);
+            geometryComponent.updateSecondaryColor(0xFF6666);
+        }
+
+        // Schedule color restoration
+        const endTime = Date.now() + this.flashDuration;
+        this.damageFlashes.push({
+            entity,
+            originalMainColor,
+            originalSecondaryColor,
+            endTime
+        });
+    }
+
+    /**
+     * Update visual effects (should be called every frame)
+     */
+    public update(): void {
+        const currentTime = Date.now();
+        
+        // Process damage flashes
+        for (let i = this.damageFlashes.length - 1; i >= 0; i--) {
+            const flash = this.damageFlashes[i];
+            
+            if (!flash) {
+                continue;
+            }
+            
+            if (currentTime >= flash.endTime) {
+                // Restore original colors
+                const geometryComponent = flash.entity.getComponent(GeometryComponent);
+                if (geometryComponent) {
+                    geometryComponent.updateMainSphereColor(flash.originalMainColor);
+                    geometryComponent.updateSecondaryColor(flash.originalSecondaryColor);
+                }
+                
+                // Remove from array
+                this.damageFlashes.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * Clean up event listener
+     */
+    public destroy(): void {
+        GlobalEventDispatcher.deregisterListener('DamageVisualSystem');
+    }
+}

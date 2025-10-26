@@ -1,11 +1,15 @@
 import { Scene, Vector3 } from 'three';
 import { Entity } from '../ecs/Entity';
+import { AttackAnimationComponent } from './components/AttackAnimationComponent';
+import { AttackComponent } from './components/AttackComponent';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
 import { GeometryComponent, SecondaryGeometryConfig, SecondaryGeometryType } from './components/GeometryComponent';
 import { HealthComponent } from './components/HealthComponent';
 import { MovementComponent } from './components/MovementComponent';
 import { PositionComponent } from './components/PositionComponent';
 import { RotationComponent } from './components/RotationComponent';
+import { TargetComponent } from './components/TargetComponent';
+import { TeamComponent, TeamType } from './components/TeamComponent';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -84,6 +88,12 @@ export class EntityFactory implements IEntityFactory {
         entity.addComponent(geometryComponent)
         entity.addComponent(new RotationComponent(0, 0.01, 0))
         entity.addComponent(new BobAnimationComponent(bobAnimationSpeed, bobAmplitude, baseY))
+        
+        // Add combat components
+        entity.addComponent(new TeamComponent(TeamType.CORE))
+        entity.addComponent(new AttackComponent(10, 2.0, 1000)) // damage: 10, range: 2.0, cooldown: 1000ms
+        entity.addComponent(new TargetComponent(10.0)) // search range: 10.0
+        entity.addComponent(new AttackAnimationComponent(1.2, 200)) // scale multiplier: 1.2, duration: 200ms
 
         // Set initial position of geometry group
         geometryComponent.getGeometryGroup().position.set(position.x, position.y, position.z);
@@ -164,6 +174,12 @@ export class EntityFactory implements IEntityFactory {
         entity.addComponent(geometryComponent)
         entity.addComponent(new RotationComponent(0, 0.01, 0))
         entity.addComponent(new BobAnimationComponent(bobAnimationSpeed, bobAmplitude, baseY))
+        
+        // Add combat components
+        entity.addComponent(new TeamComponent(TeamType.ENEMY))
+        entity.addComponent(new AttackComponent(5, 1.5, 1500)) // damage: 5, range: 1.5, cooldown: 1500ms
+        entity.addComponent(new TargetComponent(10.0)) // search range: 10.0
+        entity.addComponent(new AttackAnimationComponent(1.2, 200)) // scale multiplier: 1.2, duration: 200ms
         
         // Add movement component to make enemy move towards core entity (0, 0, 0)
         // Configure with acceleration, deceleration, and deceleration distance

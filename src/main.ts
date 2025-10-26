@@ -1,9 +1,14 @@
 import * as THREE from 'three';
 import { EntityFactory } from './entities/EntityFactory';
+import { AttackAnimationSystem } from './entities/systems/AttackAnimationSystem';
 import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
+import { CombatSystem } from './entities/systems/CombatSystem';
+import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
+import { MeleeAttackSystem } from './entities/systems/MeleeAttackSystem';
 import { MovementSystem } from './entities/systems/MovementSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
 import { RotationSystem } from './entities/systems/RotationSystem';
+import { TargetingSystem } from './entities/systems/TargetingSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
 import { defaultEnvironment } from './environment/configs/defaultEnvironment';
 import './styles.css';
@@ -25,6 +30,11 @@ const renderSystem = new RenderSystem(renderer, scene)
 const bobAnimationSystem = new BobAnimationSystem()
 const movementSystem = new MovementSystem()
 const rotationSystem = new RotationSystem()
+const targetingSystem = new TargetingSystem()
+const meleeAttackSystem = new MeleeAttackSystem()
+const combatSystem = new CombatSystem(scene)
+const damageVisualSystem = new DamageVisualSystem()
+const attackAnimationSystem = new AttackAnimationSystem()
 const entityFactory = new EntityFactory(scene)
 
 // const tileAnimationSystem = new TileAnimationSystem(0.2);
@@ -50,6 +60,11 @@ entityFactory.createCoreEntity()
 // TMP: Test enemy
 entityFactory.createEnemyEntity()
 
+// Set entities reference for combat system
+combatSystem.setEntities([...entityFactory.getEntities()])
+attackAnimationSystem.setEntities([...entityFactory.getEntities()])
+damageVisualSystem.setEntities([...entityFactory.getEntities()])
+
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
@@ -64,6 +79,15 @@ function animate(): void {
     bobAnimationSystem.update(entities);
     movementSystem.update(entities);
     rotationSystem.update(entities);
+    
+    // Update combat systems
+    targetingSystem.update(entities);
+    meleeAttackSystem.update(entities);
+    
+    // Update visual effects
+    damageVisualSystem.update();
+    attackAnimationSystem.update();
+    
     const tileEntities = tileManager.getAllTiles()
     // tileAnimationSystem.update(tileEntities);
     tileEffectSystem.update(tileEntities);
