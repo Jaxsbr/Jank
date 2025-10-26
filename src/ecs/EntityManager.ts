@@ -81,7 +81,7 @@ export class EntityManager {
      * @returns The entity if found, null otherwise
      */
     public findEntityById(id: string): Entity | null {
-        return this.entities.find(entity => entity.getId() === id) || null;
+        return this.entities.find(entity => entity.getId() === id) ?? null;
     }
 
     /**

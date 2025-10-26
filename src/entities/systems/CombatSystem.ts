@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityManager } from '../../ecs/EntityManager';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
@@ -9,9 +10,9 @@ import { HealthComponent } from '../components/HealthComponent';
 export class CombatSystem implements IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
-    private entityManager: any; // Will be properly typed in Phase 2
+    private entityManager: EntityManager;
 
-    constructor(eventDispatcher: EventDispatcherSingleton, entityManager: any) {
+    constructor(eventDispatcher: EventDispatcherSingleton, entityManager: EntityManager) {
         this.eventDispatcher = eventDispatcher;
         this.entityManager = entityManager;
         // Register as event listener for combat events

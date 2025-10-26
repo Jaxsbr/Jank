@@ -38,7 +38,7 @@ const entityManager = new EntityManager(GlobalEventDispatcher)
 const combatSystem = new CombatSystem(GlobalEventDispatcher, entityManager)
 const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
 const attackAnimationSystem = new AttackAnimationSystem()
-const entityCleanupSystem = new EntityCleanupSystem(scene, GlobalEventDispatcher)
+new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
 
 // const tileAnimationSystem = new TileAnimationSystem(0.2);
