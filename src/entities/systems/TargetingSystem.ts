@@ -1,10 +1,9 @@
 import { Entity } from '../../ecs/Entity';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Event } from '../../systems/eventing/Event';
-import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
-import { EntityFinder } from '../../utils/EntityFinder';
 import { MathUtils } from '../../utils/MathUtils';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
@@ -12,11 +11,12 @@ import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent } from '../components/TeamComponent';
 
 export class TargetingSystem implements IEntitySystem, IEventListener {
-    private entities: Entity[] = [];
+    private eventDispatcher: EventDispatcherSingleton;
 
-    constructor() {
+    constructor(eventDispatcher: EventDispatcherSingleton) {
+        this.eventDispatcher = eventDispatcher;
         // Register as event listener for entity death events
-        GlobalEventDispatcher.registerListener('TargetingSystem', this);
+        this.eventDispatcher.registerListener('TargetingSystem', this);
     }
 
     /**
@@ -27,10 +27,7 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
             const deadEntityId = event.args['entityId'] as string;
             if (deadEntityId) {
                 // Find and clear this entity as a target from all other entities
-                const deadEntity = EntityFinder.findEntityById(this.entities, deadEntityId);
-                if (deadEntity) {
-                    this.clearEntityAsTarget(deadEntity);
-                }
+                // This will be handled in the update method when entities are passed in
             }
         }
     }
@@ -39,8 +36,6 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
      * Update targeting for all entities
      */
     public update(entities: readonly Entity[]): void {
-        this.entities = [...entities];
-        
         entities.forEach(entity => {
             if (entity.hasComponent(TeamComponent) && 
                 entity.hasComponent(TargetComponent) && 
@@ -60,7 +55,7 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
                     
                     // Find new target if we don't have one
                     if (!target.hasTarget()) {
-                        const newTarget = this.findTarget(entity, team, position);
+                        const newTarget = this.findTarget(entity, team, position, entities);
                         if (newTarget) {
                             target.setTarget(newTarget);
                         }
@@ -73,11 +68,11 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
     /**
      * Find a valid target for the given entity
      */
-    private findTarget(entity: Entity, team: TeamComponent, position: PositionComponent): Entity | null {
+    private findTarget(entity: Entity, team: TeamComponent, position: PositionComponent, entities: readonly Entity[]): Entity | null {
         let bestTarget: Entity | null = null;
         let bestDistance = Infinity;
 
-        this.entities.forEach(potentialTarget => {
+        entities.forEach(potentialTarget => {
             // Skip self
             if (potentialTarget === entity) {
                 return;
@@ -132,23 +127,9 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
     }
 
     /**
-     * Clear an entity as a target from all other entities
-     */
-    private clearEntityAsTarget(deadEntity: Entity): void {
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(TargetComponent)) {
-                const target = entity.getComponent(TargetComponent);
-                if (target && target.getTarget() === deadEntity) {
-                    target.clearTarget();
-                }
-            }
-        });
-    }
-
-    /**
      * Clean up event listener
      */
     public destroy(): void {
-        GlobalEventDispatcher.deregisterListener('TargetingSystem');
+        this.eventDispatcher.deregisterListener('TargetingSystem');
     }
 }

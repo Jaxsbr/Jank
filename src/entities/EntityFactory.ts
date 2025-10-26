@@ -1,5 +1,6 @@
 import { Scene, Vector3 } from 'three';
 import { Entity } from '../ecs/Entity';
+import { EntityManager } from '../ecs/EntityManager';
 import { AttackAnimationComponent } from './components/AttackAnimationComponent';
 import { AttackComponent } from './components/AttackComponent';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
@@ -19,18 +20,15 @@ export interface IEntityFactory {
 
 export class EntityFactory implements IEntityFactory {
     private scene: Scene;
-    private entities: Entity[] = []
+    private entityManager: EntityManager;
 
-    constructor(scene: Scene) {
-        this.scene = scene
-    }
-
-    getEntities(): readonly Entity[] {
-        return this.entities;
+    constructor(scene: Scene, entityManager: EntityManager) {
+        this.scene = scene;
+        this.entityManager = entityManager;
     }
 
     createCoreEntity(config: CoreEntityConfig = defaultCoreEntityConfig): Entity {
-        const entity = new Entity();
+        const entity = this.entityManager.createEntity();
         
         // Create secondary geometry configurations from config
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
@@ -93,15 +91,12 @@ export class EntityFactory implements IEntityFactory {
         // Make entity geometry visible by adding to scene
         this.scene.add(geometryComponent.getGeometryGroup())
 
-        // Add entity to entities to expose to various entity systems
-        this.entities.push(entity)
-
         // We return the entity in case direct reference is required
         return entity
     }
 
     createEnemyEntity(config: EnemyEntityConfig = defaultEnemyEntityConfig): Entity {
-        const entity = new Entity();
+        const entity = this.entityManager.createEntity();
         
         // Create secondary geometry configurations from config
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
@@ -174,9 +169,6 @@ export class EntityFactory implements IEntityFactory {
 
         // Make entity geometry visible by adding to scene
         this.scene.add(geometryComponent.getGeometryGroup())
-
-        // Add entity to entities to expose to various entity systems
-        this.entities.push(entity)
 
         // We return the entity in case direct reference is required
         return entity

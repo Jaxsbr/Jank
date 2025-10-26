@@ -4,5 +4,7 @@ export enum EventType {
     TileEffectTrigger,
     AttackExecuted,
     DamageTaken,
-    EntityDeath
+    EntityDeath,
+    EntityCreated,
+    EntityDestroyed
 }

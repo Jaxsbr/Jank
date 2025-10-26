@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { EntityManager } from './ecs/EntityManager';
 import { EntityFactory } from './entities/EntityFactory';
 import { AttackAnimationSystem } from './entities/systems/AttackAnimationSystem';
 import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
 import { CombatSystem } from './entities/systems/CombatSystem';
 import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
+import { EntityCleanupSystem } from './entities/systems/EntityCleanupSystem';
 import { MeleeAttackSystem } from './entities/systems/MeleeAttackSystem';
 import { MovementSystem } from './entities/systems/MovementSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
@@ -30,12 +32,14 @@ const renderSystem = new RenderSystem(renderer, scene)
 const bobAnimationSystem = new BobAnimationSystem()
 const movementSystem = new MovementSystem()
 const rotationSystem = new RotationSystem()
-const targetingSystem = new TargetingSystem()
+const targetingSystem = new TargetingSystem(GlobalEventDispatcher)
 const meleeAttackSystem = new MeleeAttackSystem()
-const combatSystem = new CombatSystem(scene)
-const damageVisualSystem = new DamageVisualSystem()
+const entityManager = new EntityManager(GlobalEventDispatcher)
+const combatSystem = new CombatSystem(GlobalEventDispatcher, entityManager)
+const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
 const attackAnimationSystem = new AttackAnimationSystem()
-const entityFactory = new EntityFactory(scene)
+const entityCleanupSystem = new EntityCleanupSystem(scene, GlobalEventDispatcher)
+const entityFactory = new EntityFactory(scene, entityManager)
 
 // const tileAnimationSystem = new TileAnimationSystem(0.2);
 const tileEffectSystem = new TileEffectSystem(15, 2);
@@ -60,10 +64,10 @@ entityFactory.createCoreEntity()
 // TMP: Test enemy
 entityFactory.createEnemyEntity()
 
-// Set entities reference for combat system
-combatSystem.setEntities([...entityFactory.getEntities()])
-attackAnimationSystem.setEntities([...entityFactory.getEntities()])
-damageVisualSystem.setEntities([...entityFactory.getEntities()])
+// Set entities reference for systems
+combatSystem.setEntities(entityManager.getEntities())
+attackAnimationSystem.setEntities([...entityManager.getEntities()])
+damageVisualSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
@@ -75,7 +79,7 @@ const triggerInterval = 2000 + Math.random() * 1000; // 2-3 seconds
 function animate(): void {
     requestAnimationFrame(animate);
 
-    const entities = entityFactory.getEntities();
+    const entities = entityManager.getEntities();
     bobAnimationSystem.update(entities);
     movementSystem.update(entities);
     rotationSystem.update(entities);

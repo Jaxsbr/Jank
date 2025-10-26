@@ -1,6 +1,6 @@
 import { Entity } from '../../ecs/Entity';
 import { Event } from '../../systems/eventing/Event';
-import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
@@ -18,18 +18,20 @@ interface DamageFlash {
 export class DamageVisualSystem implements IEventListener {
     private damageFlashes: DamageFlash[] = [];
     private config: DamageVisualConfig;
-    private entities: Entity[] = [];
+    private eventDispatcher: EventDispatcherSingleton;
+    private entities: readonly Entity[] = [];
 
-    constructor(config: DamageVisualConfig = defaultDamageVisualConfig) {
+    constructor(eventDispatcher: EventDispatcherSingleton, config: DamageVisualConfig = defaultDamageVisualConfig) {
+        this.eventDispatcher = eventDispatcher;
         this.config = config;
         // Register as event listener for damage events
-        GlobalEventDispatcher.registerListener('DamageVisualSystem', this);
+        this.eventDispatcher.registerListener('DamageVisualSystem', this);
     }
 
     /**
      * Set the entities array reference for entity lookup
      */
-    public setEntities(entities: Entity[]): void {
+    public setEntities(entities: readonly Entity[]): void {
         this.entities = entities;
     }
 
@@ -136,6 +138,6 @@ export class DamageVisualSystem implements IEventListener {
      * Clean up event listener
      */
     public destroy(): void {
-        GlobalEventDispatcher.deregisterListener('DamageVisualSystem');
+        this.eventDispatcher.deregisterListener('DamageVisualSystem');
     }
 }
