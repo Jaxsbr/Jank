@@ -12,6 +12,7 @@ import { TeamComponent } from '../components/TeamComponent';
 
 export class TargetingSystem implements IEntitySystem, IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
+    private deadEntityIds: string[] = [];
 
     constructor(eventDispatcher: EventDispatcherSingleton) {
         this.eventDispatcher = eventDispatcher;
@@ -26,8 +27,8 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
         if (event.eventName === EventType.EntityDeath) {
             const deadEntityId = event.args['entityId'] as string;
             if (deadEntityId) {
-                // Find and clear this entity as a target from all other entities
-                // This will be handled in the update method when entities are passed in
+                // Track this dead entity to clear it as target
+                this.deadEntityIds.push(deadEntityId);
             }
         }
     }
@@ -36,6 +37,20 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
      * Update targeting for all entities
      */
     public update(entities: readonly Entity[]): void {
+        // Clear targets pointing to dead entities
+        if (this.deadEntityIds.length > 0) {
+            entities.forEach(entity => {
+                const target = entity.getComponent(TargetComponent);
+                if (target && target.hasTarget()) {
+                    const targetEntity = target.getTarget();
+                    if (targetEntity && this.deadEntityIds.includes(targetEntity.getId())) {
+                        target.clearTarget();
+                    }
+                }
+            });
+            this.deadEntityIds = [];
+        }
+
         entities.forEach(entity => {
             if (entity.hasComponent(TeamComponent) && 
                 entity.hasComponent(TargetComponent) && 

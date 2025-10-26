@@ -1,5 +1,4 @@
 import { Entity } from '../../ecs/Entity';
-import { EntityManager } from '../../ecs/EntityManager';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
@@ -7,14 +6,16 @@ import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { HealthComponent } from '../components/HealthComponent';
 
+/**
+ * System responsible for applying damage and detecting entity death.
+ * Focuses solely on damage application and death detection - does not handle cleanup.
+ */
 export class CombatSystem implements IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
-    private entityManager: EntityManager;
 
-    constructor(eventDispatcher: EventDispatcherSingleton, entityManager: EntityManager) {
+    constructor(eventDispatcher: EventDispatcherSingleton) {
         this.eventDispatcher = eventDispatcher;
-        this.entityManager = entityManager;
         // Register as event listener for combat events
         this.eventDispatcher.registerListener('CombatSystem', this);
     }
@@ -37,6 +38,7 @@ export class CombatSystem implements IEventListener {
 
     /**
      * Handle an attack executed event
+     * Applies damage to the target and checks for death
      */
     private handleAttackExecuted(event: Event): void {
         const attackerId = event.args['attackerId'] as string;
@@ -72,14 +74,11 @@ export class CombatSystem implements IEventListener {
 
         // Check if target is dead
         if (!healthComponent.isAlive()) {
-            // Dispatch entity death event
+            // Dispatch entity death event (EntityManager will handle destruction and cleanup)
             const deathEvent = new Event(EventType.EntityDeath, {
                 entityId: targetId
             });
             this.eventDispatcher.dispatch(deathEvent);
-            
-            // Destroy the entity (this will trigger EntityDestroyed event for cleanup)
-            this.entityManager.destroyEntityById(targetId);
         }
     }
 

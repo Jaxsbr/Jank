@@ -7,8 +7,8 @@ import { IEventListener } from '../../systems/eventing/IEventListener';
 import { GeometryComponent } from '../components/GeometryComponent';
 
 /**
- * Temporary system to handle entity cleanup when entities are destroyed.
- * This will be refactored in Phase 2 to be more comprehensive.
+ * System responsible for cleaning up entity resources when entities are destroyed.
+ * Removes geometries from the scene and disposes of Three.js resources to prevent memory leaks.
  */
 export class EntityCleanupSystem implements IEventListener {
     private scene: Scene;
@@ -32,6 +32,7 @@ export class EntityCleanupSystem implements IEventListener {
 
     /**
      * Handle an entity destroyed event
+     * Removes the entity's geometry from the scene and disposes of Three.js resources
      */
     private handleEntityDestroyed(event: Event): void {
         const entity = event.args['entity'] as Entity;
@@ -39,11 +40,44 @@ export class EntityCleanupSystem implements IEventListener {
             return;
         }
 
-        // Remove entity from scene
+        // Remove entity from scene and dispose resources
         const geometryComponent = entity.getComponent(GeometryComponent);
         if (geometryComponent) {
-            this.scene.remove(geometryComponent.getGeometryGroup());
+            const group = geometryComponent.getGeometryGroup();
+            
+            // Remove from scene
+            this.scene.remove(group);
+            
+            // Dispose of geometries and materials
+            this.disposeGeometryComponent(geometryComponent);
         }
+    }
+
+    /**
+     * Dispose of all Three.js resources in a GeometryComponent
+     */
+    private disposeGeometryComponent(component: GeometryComponent): void {
+        // Dispose main sphere
+        const mainSphere = component.getMainSphere();
+        if (mainSphere.geometry) {
+            mainSphere.geometry.dispose();
+        }
+        
+        // Dispose main material
+        const mainMaterial = component.getMainMaterial();
+        mainMaterial.dispose();
+        
+        // Dispose secondary geometries
+        const secondaryGeometries = component.getAllSecondaryGeometries();
+        secondaryGeometries.forEach(mesh => {
+            if (mesh.geometry) {
+                mesh.geometry.dispose();
+            }
+        });
+        
+        // Dispose secondary material
+        const secondaryMaterial = component.getSecondaryMaterial();
+        secondaryMaterial.dispose();
     }
 
     /**

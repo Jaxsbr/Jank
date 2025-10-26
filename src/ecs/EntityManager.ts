@@ -1,19 +1,42 @@
 import { Event } from '../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../systems/eventing/EventDispatcher';
 import { EventType } from '../systems/eventing/EventType';
+import { IEventListener } from '../systems/eventing/IEventListener';
 import { Entity } from './Entity';
 
 /**
  * Centralized entity lifecycle management system.
  * Handles entity creation, destruction, and provides readonly access to entities.
  * Dispatches EntityCreated and EntityDestroyed events for other systems to react to.
+ * Listens for EntityDeath events to trigger entity destruction and cleanup.
  */
-export class EntityManager {
+export class EntityManager implements IEventListener {
     private entities: Entity[] = [];
     private eventDispatcher: EventDispatcherSingleton;
 
     constructor(eventDispatcher: EventDispatcherSingleton) {
         this.eventDispatcher = eventDispatcher;
+        // Register as event listener for entity death events
+        this.eventDispatcher.registerListener('EntityManager', this);
+    }
+
+    /**
+     * Handle events from the event dispatcher
+     */
+    public onEvent(event: Event): void {
+        if (event.eventName === EventType.EntityDeath) {
+            this.handleEntityDeath(event);
+        }
+    }
+
+    /**
+     * Handle entity death event by destroying the entity
+     */
+    private handleEntityDeath(event: Event): void {
+        const entityId = event.args['entityId'] as string;
+        if (entityId) {
+            this.destroyEntityById(entityId);
+        }
     }
 
     /**
@@ -103,5 +126,12 @@ export class EntityManager {
         entitiesToDestroy.forEach(entity => {
             this.destroyEntity(entity);
         });
+    }
+
+    /**
+     * Clean up event listener
+     */
+    public destroy(): void {
+        this.eventDispatcher.deregisterListener('EntityManager');
     }
 }
