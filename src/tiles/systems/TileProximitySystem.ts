@@ -73,7 +73,7 @@ export class TileProximitySystem implements IEntitySystem {
                     currentEntitiesInRange.add(entityId);
 
                     // Check if entity just entered range
-                    const previousEntitiesInRange = this.entityProximityMap.get(tileId) || new Set();
+                    const previousEntitiesInRange = this.entityProximityMap.get(tileId) ?? new Set();
                     if (!previousEntitiesInRange.has(entityId)) {
                         this.dispatchEntityEnteredTileRange(entity, tile);
                     }
@@ -81,7 +81,7 @@ export class TileProximitySystem implements IEntitySystem {
             });
 
             // Check for entities that left range
-            const previousEntitiesInRange = this.entityProximityMap.get(tileId) || new Set();
+            const previousEntitiesInRange = this.entityProximityMap.get(tileId) ?? new Set();
             previousEntitiesInRange.forEach(entityId => {
                 if (!currentEntitiesInRange.has(entityId)) {
                     const entity = enemyEntities.find(e => e.getId() === entityId);
