@@ -27,7 +27,7 @@ export class BobAnimationSystem implements IEntitySystem {
             })
             .execute()
             .forEach(({ entity, components }) => {
-                const [bobAnimation, geometry, health, position] = components;
+                const [bobAnimation, geometry, , position] = components;
                 
                 // Check if entity is in attack range for vibrate effect
                 this.updateAnimationSpeed(entity, bobAnimation);

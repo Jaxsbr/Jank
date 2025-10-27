@@ -57,7 +57,7 @@ export class AttackAnimationSystem implements IEventListener {
         EntityQuery.from(entities)
             .withComponents(AttackAnimationComponent, GeometryComponent)
             .execute()
-            .forEach(({ entity, components }) => {
+            .forEach(({ components }) => {
                 const [attackAnim, geometry] = components;
                 
                 // Get current scale multiplier

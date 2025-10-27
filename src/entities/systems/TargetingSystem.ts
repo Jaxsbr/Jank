@@ -43,7 +43,7 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
             EntityQuery.from(entities)
                 .withComponents(TargetComponent)
                 .execute()
-                .forEach(({ entity, components }) => {
+                .forEach(({ components }) => {
                     const [target] = components;
                     if (target.hasTarget()) {
                         const targetEntity = target.getTarget();
@@ -64,7 +64,7 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
             })
             .execute()
             .forEach(({ entity, components }) => {
-                const [team, target, position, health] = components;
+                const [team, target, position] = components;
                 
                 // Clear target if it's no longer valid
                 if (target.hasTarget() && !target.isTargetValid()) {
@@ -113,7 +113,7 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
             })
             .execute()
             .forEach(({ entity: potentialTarget, components }) => {
-                const [targetTeam, targetPosition, targetHealth] = components;
+                const [targetTeam, targetPosition] = components;
 
                 // Apply targeting rules
                 if (team.isCore()) {

@@ -26,7 +26,7 @@ export class MeleeAttackSystem implements IEntitySystem {
             })
             .execute()
             .forEach(({ entity, components }) => {
-                const [attack, target, position, health] = components;
+                const [attack, target, position] = components;
                 
                 // Check if we have a valid target
                 if (!target.hasTarget() || !target.isTargetValid()) {

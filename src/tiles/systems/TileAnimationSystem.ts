@@ -17,7 +17,7 @@ export class TileAnimationSystem implements IEntitySystem {
         EntityQuery.from(entities)
             .withComponents(TileVisualComponent)
             .execute()
-            .forEach(({ entity, components }) => {
+            .forEach(({ components }) => {
                 const [visualComponent] = components;
                 
                 // Update height animation

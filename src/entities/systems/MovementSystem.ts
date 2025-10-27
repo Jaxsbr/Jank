@@ -23,8 +23,8 @@ export class MovementSystem implements IEntitySystem {
                 return health.isAlive();
             })
             .execute()
-            .forEach(({ entity, components }) => {
-                const [movement, position, geometry, health] = components;
+            .forEach(({ components }) => {
+                const [movement, position, geometry] = components;
                 
                 // Skip movement if target is already reached
                 if (movement.isTargetReached()) {

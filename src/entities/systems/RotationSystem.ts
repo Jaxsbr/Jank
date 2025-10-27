@@ -15,8 +15,8 @@ export class RotationSystem implements IEntitySystem {
                 return health.isAlive();
             })
             .execute()
-            .forEach(({ entity, components }) => {
-                const [rotation, geometry, health, position] = components;
+            .forEach(({ components }) => {
+                const [rotation, geometry] = components;
                 
                 const geometryGroup = geometry.getGeometryGroup();
                 geometryGroup.rotation.x += rotation.getX();
