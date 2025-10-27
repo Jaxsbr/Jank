@@ -153,52 +153,52 @@
 
 ### Sub-tasks:
 
-- [ ] Extract geometry calculation into private method
-  - [ ] Create `createSecondaryGeometryConfigs(config: GeometryConfig): SecondaryGeometryConfig[]`
-  - [ ] Move lines 36-58 logic into this method
-  - [ ] Handle embed depth calculation
-  - [ ] Handle position normalization
-  - [ ] Return array of SecondaryGeometryConfig
+- [x] Extract geometry calculation into private method
+  - [x] Create `createSecondaryGeometryConfigs(config: GeometryConfig): SecondaryGeometryConfig[]`
+  - [x] Move lines 36-58 logic into this method
+  - [x] Handle embed depth calculation
+  - [x] Handle position normalization
+  - [x] Return array of SecondaryGeometryConfig
 
-- [ ] Extract common component creation
-  - [ ] Create `addBaseComponents(entity: Entity, config: BaseEntityConfig): void`
-  - [ ] Add HealthComponent
-  - [ ] Add PositionComponent
-  - [ ] Add GeometryComponent
-  - [ ] Add RotationComponent
-  - [ ] Add BobAnimationComponent
+- [x] Extract common component creation
+  - [x] Create `addBaseComponents(entity: Entity, config: BaseEntityConfig): void`
+  - [x] Add HealthComponent
+  - [x] Add PositionComponent
+  - [x] Add GeometryComponent
+  - [x] Add RotationComponent
+  - [x] Add BobAnimationComponent
 
-- [ ] Extract combat component creation
-  - [ ] Create `addCombatComponents(entity: Entity, config: CombatConfig, team: TeamType): void`
-  - [ ] Add TeamComponent
-  - [ ] Add AttackComponent
-  - [ ] Add TargetComponent
-  - [ ] Add AttackAnimationComponent
+- [x] Extract combat component creation
+  - [x] Create `addCombatComponents(entity: Entity, config: CombatConfig, team: TeamType): void`
+  - [x] Add TeamComponent
+  - [x] Add AttackComponent
+  - [x] Add TargetComponent
+  - [x] Add AttackAnimationComponent
 
-- [ ] Extract scene setup
-  - [ ] Create `addEntityToScene(entity: Entity, geometryComponent: GeometryComponent, position: Vector3): void`
-  - [ ] Set geometry group position
-  - [ ] Add to scene
+- [x] Extract scene setup
+  - [x] Create `addEntityToScene(entity: Entity, geometryComponent: GeometryComponent, position: Vector3): void`
+  - [x] Set geometry group position
+  - [x] Add to scene
 
-- [ ] Refactor `createCoreEntity()` to use extracted methods
-  - [ ] Call `createSecondaryGeometryConfigs()`
-  - [ ] Call `addBaseComponents()`
-  - [ ] Call `addCombatComponents()`
-  - [ ] Call `addEntityToScene()`
-  - [ ] Keep only core-specific logic
+- [x] Refactor `createCoreEntity()` to use extracted methods
+  - [x] Call `createSecondaryGeometryConfigs()`
+  - [x] Call `addBaseComponents()`
+  - [x] Call `addCombatComponents()`
+  - [x] Call `addEntityToScene()`
+  - [x] Keep only core-specific logic
 
-- [ ] Refactor `createEnemyEntity()` to use extracted methods
-  - [ ] Call `createSecondaryGeometryConfigs()`
-  - [ ] Call `addBaseComponents()`
-  - [ ] Call `addCombatComponents()`
-  - [ ] Add MovementComponent (enemy-specific)
-  - [ ] Call `addEntityToScene()`
-  - [ ] Keep only enemy-specific logic
+- [x] Refactor `createEnemyEntity()` to use extracted methods
+  - [x] Call `createSecondaryGeometryConfigs()`
+  - [x] Call `addBaseComponents()`
+  - [x] Call `addCombatComponents()`
+  - [x] Add MovementComponent (enemy-specific)
+  - [x] Call `addEntityToScene()`
+  - [x] Keep only enemy-specific logic
 
-- [ ] Create type definitions for shared config structure
-  - [ ] Define `BaseEntityConfig` interface
-  - [ ] Define `CombatConfig` interface
-  - [ ] Update existing config types to extend these
+- [x] Create type definitions for shared config structure
+  - [x] Define `BaseEntityConfig` interface
+  - [x] Define `CombatConfig` interface
+  - [x] Update existing config types to extend these
 
 **Regression Testing Checklist (USER MUST PERFORM):**
 - [ ] Core entity still renders with correct appearance
@@ -681,11 +681,12 @@ These can be addressed as needed, not necessarily in order:
 
 ## Progress Tracking
 
-**Current Phase:** Phase 2 Complete ✅
+**Current Phase:** Phase 3 Complete ✅
 
 **Completed Phases:**
 - Phase 1: Create EntityManager (Critical - Foundation) - COMPLETED ✅
 - Phase 2: Split CombatSystem Responsibilities (Critical - SRP) - COMPLETED ✅
+- Phase 3: Refactor EntityFactory (Important - DRY) - COMPLETED ✅
 
 **Date Started:** December 19, 2024
 **Last Updated:** December 19, 2024
