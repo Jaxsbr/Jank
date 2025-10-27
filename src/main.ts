@@ -25,6 +25,7 @@ import { TileEffectSystem } from './tiles/systems/TileEffectSystem';
 import { TileProximitySystem } from './tiles/systems/TileProximitySystem';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { DebugUI } from './ui/DebugUI';
+import { Time } from './utils/Time';
 
 const scene = new THREE.Scene();
 const renderer = new Renderer(window.innerWidth, window.innerHeight)
@@ -75,6 +76,9 @@ new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
 function animate(): void {
     requestAnimationFrame(animate);
+
+    // Update Time system at the start of each frame
+    Time.update(performance.now());
 
     const entities = entityManager.getEntities();
     bobAnimationSystem.update(entities);

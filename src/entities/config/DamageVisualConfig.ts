@@ -1,5 +1,5 @@
 export interface DamageVisualConfig {
-    flashDuration: number; // milliseconds
+    flashDuration: number; // seconds
     teamColors: {
         core: {
             original: {
@@ -25,7 +25,7 @@ export interface DamageVisualConfig {
 }
 
 export const defaultDamageVisualConfig: DamageVisualConfig = {
-    flashDuration: 200, // milliseconds
+    flashDuration: 0.2, // seconds (was 200ms)
     teamColors: {
         core: {
             original: {

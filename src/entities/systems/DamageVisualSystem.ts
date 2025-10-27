@@ -4,6 +4,7 @@ import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
+import { Time } from '../../utils/Time';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { TeamComponent } from '../components/TeamComponent';
 import { DamageVisualConfig, defaultDamageVisualConfig } from '../config/DamageVisualConfig';
@@ -97,7 +98,7 @@ export class DamageVisualSystem implements IEventListener {
         geometryComponent.updateSecondaryColor(flashSecondaryColor);
 
         // Schedule color restoration
-        const endTime = Date.now() + this.config.flashDuration;
+        const endTime = Time.now() + this.config.flashDuration;
         this.damageFlashes.push({
             entity,
             originalMainColor,
@@ -110,7 +111,7 @@ export class DamageVisualSystem implements IEventListener {
      * Update visual effects (should be called every frame)
      */
     public update(): void {
-        const currentTime = Date.now();
+        const currentTime = Time.now();
         
         // Process damage flashes
         for (let i = this.damageFlashes.length - 1; i >= 0; i--) {

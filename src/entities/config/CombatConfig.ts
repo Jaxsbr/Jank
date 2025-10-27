@@ -5,13 +5,13 @@ export interface CombatConfig {
     attack: {
         damage: number;
         range: number;
-        cooldown: number; // milliseconds
+        cooldown: number; // seconds
     };
     target: {
         searchRange: number;
     };
     attackAnimation: {
         scaleMultiplier: number;
-        duration: number; // milliseconds
+        duration: number; // seconds
     };
 }

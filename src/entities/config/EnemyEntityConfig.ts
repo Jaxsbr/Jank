@@ -23,14 +23,14 @@ export interface EnemyEntityConfig {
         attack: {
             damage: number;
             range: number;
-            cooldown: number; // milliseconds
+            cooldown: number; // seconds
         };
         target: {
             searchRange: number;
         };
         attackAnimation: {
             scaleMultiplier: number;
-            duration: number; // milliseconds
+            duration: number; // seconds
         };
     };
     movement: {
@@ -81,14 +81,14 @@ export const defaultEnemyEntityConfig: EnemyEntityConfig = {
         attack: {
             damage: 5,
             range: 1.5,
-            cooldown: 1500 // milliseconds
+            cooldown: 1.5 // seconds (was 1500ms)
         },
         target: {
             searchRange: 10.0
         },
         attackAnimation: {
             scaleMultiplier: 1.2,
-            duration: 200 // milliseconds
+            duration: 0.2 // seconds (was 200ms)
         }
     },
     movement: {

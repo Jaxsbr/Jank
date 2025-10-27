@@ -4,6 +4,7 @@ import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
+import { Time } from '../../utils/Time';
 import { EffectType } from '../EffectType';
 import { TileEffectType } from '../TileEffectType';
 import { TileComponent } from '../components/TileComponent';
@@ -32,7 +33,7 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
     public onEvent(event: Event): void {
         if (event.eventName === EventType.EntityEnteredTileRange) {
             const tile = event.args['tile'] as Entity;
-            const currentTime = performance.now() / 1000;
+            const currentTime = Time.now();
             
             if (tile) {
                 this.handleProximityTrigger(tile, currentTime);
@@ -49,7 +50,7 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
 
     update(entities: readonly Entity[]): void {
         this.tileEntities = entities;
-        const currentTime = performance.now() / 1000; // Convert to seconds
+        const currentTime = Time.now(); // Time is now in seconds
 
         entities.forEach(entity => {
             if (entity.hasComponent(TileComponent) && entity.hasComponent(TileEffectComponent)) {
@@ -111,7 +112,6 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         const pulseEffectConfig = effectComponent.getPulseEffectConfig()
         if (pulseEffectConfig && pulseEffectConfig.alwaysOn) {
             isActive = true
-            console.log(`Visual update: Overriding to alwaysOn for tile=${entity.getId()}`);
         }
         
         // Handle fade out completion
@@ -334,7 +334,7 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         if (triggerComponent && effectComponent && 
             triggerComponent.getTriggerType() === TileTriggerType.PROXIMITY) {
             // Start smooth fade out instead of immediate deactivation
-            const currentTime = performance.now() / 1000;
+            const currentTime = Time.now();
             effectComponent.startFadeOut(currentTime);
         }
     }

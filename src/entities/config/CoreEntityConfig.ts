@@ -23,14 +23,14 @@ export interface CoreEntityConfig {
         attack: {
             damage: number;
             range: number;
-            cooldown: number; // milliseconds
+            cooldown: number; // seconds
         };
         target: {
             searchRange: number;
         };
         attackAnimation: {
             scaleMultiplier: number;
-            duration: number; // milliseconds
+            duration: number; // seconds
         };
     };
     team: 'CORE';
@@ -57,14 +57,14 @@ export const defaultCoreEntityConfig: CoreEntityConfig = {
         attack: {
             damage: 10,
             range: 2.0,
-            cooldown: 1000 // milliseconds
+            cooldown: 1.0 // seconds (was 1000ms)
         },
         target: {
             searchRange: 10.0
         },
         attackAnimation: {
             scaleMultiplier: 1.2,
-            duration: 200 // milliseconds
+            duration: 0.2 // seconds (was 200ms)
         }
     },
     team: 'CORE'

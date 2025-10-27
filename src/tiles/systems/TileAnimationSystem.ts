@@ -1,5 +1,6 @@
 import { Entity } from '../../ecs/Entity';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
+import { Time } from '../../utils/Time';
 import { TileVisualComponent } from '../components/TileVisualComponent';
 
 export class TileAnimationSystem implements IEntitySystem {
@@ -10,8 +11,7 @@ export class TileAnimationSystem implements IEntitySystem {
     }
 
     update(entities: readonly Entity[]): void {
-        // const currentTime = performance.now() / 1000; // Convert to seconds
-        const deltaTime = 1/60; // Assume 60 FPS for now, could be improved with actual delta time
+        const deltaTime = Time.getDeltaTime(); // Use actual delta time from Time system
 
         entities.forEach(entity => {
             if (entity.hasComponent(TileVisualComponent)) {

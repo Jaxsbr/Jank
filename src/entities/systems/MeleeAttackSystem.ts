@@ -4,6 +4,7 @@ import { Event } from '../../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { MathUtils } from '../../utils/MathUtils';
+import { Time } from '../../utils/Time';
 import { AttackComponent } from '../components/AttackComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
@@ -14,7 +15,7 @@ export class MeleeAttackSystem implements IEntitySystem {
      * Update melee attacks for all entities
      */
     public update(entities: readonly Entity[]): void {
-        const currentTime = Date.now();
+        const currentTime = Time.now();
         
         entities.forEach(entity => {
             if (entity.hasComponent(AttackComponent) && 

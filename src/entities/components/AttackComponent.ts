@@ -3,7 +3,7 @@ import { IComponent } from '../../ecs/IComponent';
 export class AttackComponent implements IComponent {
     private damage: number;
     private range: number;
-    private cooldownDuration: number; // in milliseconds
+    private cooldownDuration: number; // in seconds
     private lastAttackTime: number;
 
     constructor(damage: number, range: number, cooldownDuration: number) {
@@ -46,7 +46,7 @@ export class AttackComponent implements IComponent {
     }
 
     /**
-     * Get the cooldown duration in milliseconds
+     * Get the cooldown duration in seconds
      * @returns The cooldown duration
      */
     public getCooldownDuration(): number {
@@ -55,7 +55,7 @@ export class AttackComponent implements IComponent {
 
     /**
      * Set the cooldown duration
-     * @param cooldownDuration - The new cooldown duration in milliseconds
+     * @param cooldownDuration - The new cooldown duration in seconds
      */
     public setCooldownDuration(cooldownDuration: number): void {
         this.cooldownDuration = cooldownDuration;
@@ -98,7 +98,7 @@ export class AttackComponent implements IComponent {
     /**
      * Get the time remaining until the next attack is available
      * @param currentTime - The current timestamp
-     * @returns The time remaining in milliseconds
+     * @returns The time remaining in seconds
      */
     public getTimeUntilNextAttack(currentTime: number): number {
         const timeSinceLastAttack = currentTime - this.lastAttackTime;

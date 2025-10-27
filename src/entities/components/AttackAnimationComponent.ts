@@ -1,15 +1,16 @@
 import { IComponent } from '../../ecs/IComponent';
+import { Time } from '../../utils/Time';
 
 export class AttackAnimationComponent implements IComponent {
     private isAttacking: boolean;
     private attackAnimationEndTime: number;
     private originalScale: number;
     private attackScaleMultiplier: number;
-    private attackAnimationDuration: number;
+    private attackAnimationDuration: number; // in seconds
 
     constructor(
         attackScaleMultiplier: number = 1.2,
-        attackAnimationDuration: number = 200
+        attackAnimationDuration: number = 0.2 // Default 200ms = 0.2s
     ) {
         this.isAttacking = false;
         this.attackAnimationEndTime = 0;
@@ -23,7 +24,7 @@ export class AttackAnimationComponent implements IComponent {
      */
     public startAttackAnimation(): void {
         this.isAttacking = true;
-        this.attackAnimationEndTime = Date.now() + this.attackAnimationDuration;
+        this.attackAnimationEndTime = Time.now() + this.attackAnimationDuration;
     }
 
     /**
@@ -31,7 +32,7 @@ export class AttackAnimationComponent implements IComponent {
      * @returns True if currently animating
      */
     public isAnimating(): boolean {
-        return this.isAttacking && Date.now() < this.attackAnimationEndTime;
+        return this.isAttacking && Time.now() < this.attackAnimationEndTime;
     }
 
     /**
@@ -43,7 +44,7 @@ export class AttackAnimationComponent implements IComponent {
             return this.originalScale;
         }
 
-        const currentTime = Date.now();
+        const currentTime = Time.now();
         const elapsed = currentTime - (this.attackAnimationEndTime - this.attackAnimationDuration);
         const progress = elapsed / this.attackAnimationDuration;
 
@@ -83,7 +84,7 @@ export class AttackAnimationComponent implements IComponent {
 
     /**
      * Get the attack animation duration
-     * @returns The attack animation duration in milliseconds
+     * @returns The attack animation duration in seconds
      */
     public getAttackAnimationDuration(): number {
         return this.attackAnimationDuration;
@@ -91,7 +92,7 @@ export class AttackAnimationComponent implements IComponent {
 
     /**
      * Set the attack animation duration
-     * @param duration - The new attack animation duration in milliseconds
+     * @param duration - The new attack animation duration in seconds
      */
     public setAttackAnimationDuration(duration: number): void {
         this.attackAnimationDuration = duration;

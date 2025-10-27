@@ -5,6 +5,7 @@ import { TeamComponent } from '../../entities/components/TeamComponent';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
+import { Time } from '../../utils/Time';
 import { TileComponent } from '../components/TileComponent';
 import { TileTriggerComponent, TileTriggerType } from '../components/TileTriggerComponent';
 import { TileVisualComponent } from '../components/TileVisualComponent';
@@ -148,7 +149,7 @@ export class TileProximitySystem implements IEntitySystem {
             tile: tile,
             tileId: tile.getId(),
             reason: 'no_enemies_in_range',
-            deactivationTime: performance.now() / 1000
+            deactivationTime: Time.now()
         }));
     }
 

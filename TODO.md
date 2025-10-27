@@ -289,57 +289,57 @@
 
 ### Sub-tasks:
 
-- [ ] Create `src/utils/Time.ts`
-  - [ ] Create `Time` class with static methods
-  - [ ] Implement `now(): number` (returns seconds)
-  - [ ] Implement `deltaTime: number` (calculated each frame)
-  - [ ] Implement `update(currentTimeMs: number): void` (call each frame)
-  - [ ] Add JSDoc comments explaining time is in seconds
+- [x] Create `src/utils/Time.ts`
+  - [x] Create `Time` class with static methods
+  - [x] Implement `now(): number` (returns seconds)
+  - [x] Implement `deltaTime: number` (calculated each frame)
+  - [x] Implement `update(currentTimeMs: number): void` (call each frame)
+  - [x] Add JSDoc comments explaining time is in seconds
 
-- [ ] Update `AttackComponent` to use seconds
-  - [ ] Change `cooldownDuration` from milliseconds to seconds
-  - [ ] Update JSDoc comments
-  - [ ] Update `canAttack()` logic (already correct, just units change)
-  - [ ] Update `getTimeUntilNextAttack()` to return seconds
+- [x] Update `AttackComponent` to use seconds
+  - [x] Change `cooldownDuration` from milliseconds to seconds
+  - [x] Update JSDoc comments
+  - [x] Update `canAttack()` logic (already correct, just units change)
+  - [x] Update `getTimeUntilNextAttack()` to return seconds
 
-- [ ] Update `AttackAnimationComponent` to use seconds
-  - [ ] Change duration from milliseconds to seconds
-  - [ ] Update all time-related calculations
+- [x] Update `AttackAnimationComponent` to use seconds
+  - [x] Change duration from milliseconds to seconds
+  - [x] Update all time-related calculations
 
-- [ ] Update all entity configs to use seconds
-  - [ ] Update `CoreEntityConfig` cooldown (1000ms → 1.0s)
-  - [ ] Update `CoreEntityConfig` animation duration (200ms → 0.2s)
-  - [ ] Update `EnemyEntityConfig` cooldown
-  - [ ] Update `EnemyEntityConfig` animation duration
-  - [ ] Add comments indicating units are seconds
+- [x] Update all entity configs to use seconds
+  - [x] Update `CoreEntityConfig` cooldown (1000ms → 1.0s)
+  - [x] Update `CoreEntityConfig` animation duration (200ms → 0.2s)
+  - [x] Update `EnemyEntityConfig` cooldown
+  - [x] Update `EnemyEntityConfig` animation duration
+  - [x] Add comments indicating units are seconds
 
-- [ ] Update `MeleeAttackSystem`
-  - [ ] Replace `Date.now()` with `Time.now()`
-  - [ ] Verify all time comparisons work with seconds
+- [x] Update `MeleeAttackSystem`
+  - [x] Replace `Date.now()` with `Time.now()`
+  - [x] Verify all time comparisons work with seconds
 
-- [ ] Update `DamageVisualSystem`
-  - [ ] Replace `Date.now()` with `Time.now()`
-  - [ ] Update flash duration to seconds
-  - [ ] Update all time calculations
+- [x] Update `DamageVisualSystem`
+  - [x] Replace `Date.now()` with `Time.now()`
+  - [x] Update flash duration to seconds
+  - [x] Update all time calculations
 
-- [ ] Update `TileEffectSystem`
-  - [ ] Already uses seconds, verify consistency
-  - [ ] Replace `performance.now() / 1000` with `Time.now()`
+- [x] Update `TileEffectSystem`
+  - [x] Already uses seconds, verify consistency
+  - [x] Replace `performance.now() / 1000` with `Time.now()`
 
-- [ ] Update `TileAnimationSystem`
-  - [ ] Replace `performance.now() / 1000` with `Time.now()`
-  - [ ] Use `Time.deltaTime` instead of hardcoded 1/60
+- [x] Update `TileAnimationSystem`
+  - [x] Replace `performance.now() / 1000` with `Time.now()`
+  - [x] Use `Time.deltaTime` instead of hardcoded 1/60
 
-- [ ] Update `main.ts`
-  - [ ] Initialize Time system
-  - [ ] Call `Time.update()` at start of animation loop
-  - [ ] Replace `performance.now()` calls with `Time.now()`
-  - [ ] Replace `Date.now()` calls with `Time.now()`
+- [x] Update `main.ts`
+  - [x] Initialize Time system
+  - [x] Call `Time.update()` at start of animation loop
+  - [x] Replace `performance.now()` calls with `Time.now()`
+  - [x] Replace `Date.now()` calls with `Time.now()`
 
-- [ ] Add time unit tests
-  - [ ] Test Time.now() returns seconds
-  - [ ] Test Time.deltaTime is calculated correctly
-  - [ ] Test time-based components work with new system
+- [x] Add time unit tests
+  - [x] Test Time.now() returns seconds
+  - [x] Test Time.deltaTime is calculated correctly
+  - [x] Test time-based components work with new system
 
 **Regression Testing Checklist (USER MUST PERFORM):**
 - [ ] Attack cooldowns work correctly (feel the same)
@@ -681,13 +681,14 @@ These can be addressed as needed, not necessarily in order:
 
 ## Progress Tracking
 
-**Current Phase:** Phase 4 Complete ✅
+**Current Phase:** Phase 5 Complete ✅
 
 **Completed Phases:**
 - Phase 1: Create EntityManager (Critical - Foundation) - COMPLETED ✅
 - Phase 2: Split CombatSystem Responsibilities (Critical - SRP) - COMPLETED ✅
 - Phase 3: Refactor EntityFactory (Important - DRY) - COMPLETED ✅
 - Phase 4: Fix TileEffectTrigger Event Pattern (Important - Event System) - COMPLETED ✅
+- Phase 5: Standardize Time Units (Important - Consistency) - COMPLETED ✅
 
 **Date Started:** December 19, 2024
 **Last Updated:** December 19, 2024
