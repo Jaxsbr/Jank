@@ -80,6 +80,7 @@ export class TileFactory {
 
         // Raise tile above the floor and set position
         worldPos.y = 0.1;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         visualComponent.setPosition(worldPos);
         
         // Add to scene

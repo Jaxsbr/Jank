@@ -5,7 +5,7 @@ import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
-import { MathUtils } from '../../utils/MathUtils';
+import { SpatialQuery } from '../../utils/SpatialQuery';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
@@ -85,11 +85,8 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
      * Find a valid target for the given entity
      */
     private findTarget(entity: Entity, team: TeamComponent, position: PositionComponent, entities: readonly Entity[]): Entity | null {
-        let bestTarget: Entity | null = null;
-        let bestDistance = Infinity;
-
-        // Query for potential targets with required components
-        EntityQuery.from(entities)
+        // Get all potential targets with required components
+        const potentialTargets = EntityQuery.from(entities)
             .withComponents(TeamComponent, PositionComponent, HealthComponent)
             .filter(({ entity: potentialTarget, components }) => {
                 const [targetTeam, , targetHealth] = components;
@@ -112,30 +109,31 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
                 return true;
             })
             .execute()
-            .forEach(({ entity: potentialTarget, components }) => {
-                const [targetTeam, targetPosition] = components;
+            .map(({ entity }) => entity);
 
-                // Apply targeting rules
-                if (team.isCore()) {
-                    // Core entity can target any enemy
-                    const distance = MathUtils.calculate2DDistance(position, targetPosition);
-                    if (distance < bestDistance) {
-                        bestTarget = potentialTarget;
-                        bestDistance = distance;
-                    }
-                } else if (team.isEnemy()) {
-                    // Enemies can only target the core entity
-                    if (targetTeam.isCore()) {
-                        const distance = MathUtils.calculate2DDistance(position, targetPosition);
-                        if (distance < bestDistance) {
-                            bestTarget = potentialTarget;
-                            bestDistance = distance;
-                        }
-                    }
-                }
+        if (potentialTargets.length === 0) {
+            return null;
+        }
+
+        const entityPosition = position.toVector3();
+
+        // Apply targeting rules
+        if (team.isCore()) {
+            // Core entity can target any enemy - find closest
+            return SpatialQuery.getClosestEntity2D(potentialTargets, entityPosition);
+        } else if (team.isEnemy()) {
+            // Enemies can only target the core entity
+            const coreTargets = potentialTargets.filter(target => {
+                const targetTeam = target.getComponent(TeamComponent);
+                return targetTeam && targetTeam.isCore();
             });
+            
+            if (coreTargets.length > 0) {
+                return SpatialQuery.getClosestEntity2D(coreTargets, entityPosition);
+            }
+        }
 
-        return bestTarget;
+        return null;
     }
 
     /**

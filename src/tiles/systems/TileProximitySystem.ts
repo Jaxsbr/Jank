@@ -5,6 +5,7 @@ import { TeamComponent } from '../../entities/components/TeamComponent';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
+import { SpatialQuery } from '../../utils/SpatialQuery';
 import { Time } from '../../utils/Time';
 import { TileComponent } from '../components/TileComponent';
 import { TileTriggerComponent, TileTriggerType } from '../components/TileTriggerComponent';
@@ -52,32 +53,41 @@ export class TileProximitySystem implements IEntitySystem {
 
             if (!tileComponent || !triggerComponent || !visualComponent) return;
 
+            // Type guard to ensure we have the correct component types
+            if (!(triggerComponent instanceof TileTriggerComponent) || 
+                !(visualComponent instanceof TileVisualComponent)) return;
+
+            // Cast to specific types after type guard
+            const typedTriggerComponent = triggerComponent as TileTriggerComponent;
+            const typedVisualComponent = visualComponent as TileVisualComponent;
+
             // Only check proximity for proximity-based triggers
-            if (triggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) return;
+            if (typedTriggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) return;
 
             const tileId = tile.getId();
-            const tilePosition = visualComponent.getPosition();
-            const proximityRadius = triggerComponent.getProximityRadius();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            const tilePosition = typedVisualComponent.getPosition();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            const proximityRadius = typedTriggerComponent.getProximityRadius();
 
-            // Get current enemy entities in range
+            // Use SpatialQuery to find entities in range
+            const entitiesInRange = SpatialQuery.getEntitiesInRadius(
+                enemyEntities,
+                tilePosition,
+                proximityRadius,
+                true // require PositionComponent
+            );
+
+            // Get current enemy entities in range (as Set of IDs)
             const currentEntitiesInRange = new Set<string>();
-            
-            enemyEntities.forEach(entity => {
-                const positionComponent = entity.getComponent(PositionComponent);
-                if (!positionComponent) return;
+            entitiesInRange.forEach(entity => {
+                const entityId = entity.getId();
+                currentEntitiesInRange.add(entityId);
 
-                const entityPosition = positionComponent.toVector3();
-                const distance = tilePosition.distanceTo(entityPosition);
-
-                if (distance <= proximityRadius) {
-                    const entityId = entity.getId();
-                    currentEntitiesInRange.add(entityId);
-
-                    // Check if entity just entered range
-                    const previousEntitiesInRange = this.entityProximityMap.get(tileId) ?? new Set();
-                    if (!previousEntitiesInRange.has(entityId)) {
-                        this.dispatchEntityEnteredTileRange(entity, tile);
-                    }
+                // Check if entity just entered range
+                const previousEntitiesInRange = this.entityProximityMap.get(tileId) ?? new Set();
+                if (!previousEntitiesInRange.has(entityId)) {
+                    this.dispatchEntityEnteredTileRange(entity, tile);
                 }
             });
 

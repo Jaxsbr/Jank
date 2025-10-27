@@ -42,6 +42,7 @@ export class BobAnimationSystem implements IEntitySystem {
                 const calculatedY = bobAnimation.getBaseY + bobOffset;
                 
                 // Only animate the Y position, preserve X and Z from initial positioning
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
                 geometry.setY(calculatedY);
                 
                 // Update the position component to reflect the animated Y position
