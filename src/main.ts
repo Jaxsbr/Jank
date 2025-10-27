@@ -68,7 +68,6 @@ entityFactory.createEnemyEntity()
 
 // Set entities reference for systems
 combatSystem.setEntities(entityManager.getEntities())
-attackAnimationSystem.setEntities([...entityManager.getEntities()])
 damageVisualSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
@@ -91,7 +90,7 @@ function animate(): void {
     
     // Update visual effects
     damageVisualSystem.update();
-    attackAnimationSystem.update();
+    attackAnimationSystem.update(entities);
     
     const tileEntities = tileManager.getAllTiles()
     // tileAnimationSystem.update(tileEntities);

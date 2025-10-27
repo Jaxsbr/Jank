@@ -364,64 +364,64 @@
 
 ### Sub-tasks:
 
-- [ ] Create `src/ecs/EntityQuery.ts`
-  - [ ] Implement `withComponents<T>()` method
-  - [ ] Return array of entities matching all component types
-  - [ ] Return strongly-typed component tuples
-  - [ ] Add optional `filter()` callback for additional criteria
-  - [ ] Add JSDoc with usage examples
+- [x] Create `src/ecs/EntityQuery.ts`
+  - [x] Implement `withComponents<T>()` method
+  - [x] Return array of entities matching all component types
+  - [x] Return strongly-typed component tuples
+  - [x] Add optional `filter()` callback for additional criteria
+  - [x] Add JSDoc with usage examples
 
-- [ ] Create type helpers
-  - [ ] Define `ComponentType<T>` type
-  - [ ] Define `QueryResult<T>` type for typed results
-  - [ ] Ensure type safety with generics
+- [x] Create type helpers
+  - [x] Define `ComponentType<T>` type
+  - [x] Define `QueryResult<T>` type for typed results
+  - [x] Ensure type safety with generics
 
-- [ ] Refactor `TargetingSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
-  - [ ] Simplify entity filtering logic
-  - [ ] Reduce null checks
+- [x] Refactor `TargetingSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
+  - [x] Simplify entity filtering logic
+  - [x] Reduce null checks
 
-- [ ] Refactor `MeleeAttackSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
-  - [ ] Simplify entity iteration
+- [x] Refactor `MeleeAttackSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
+  - [x] Simplify entity iteration
 
-- [ ] Refactor `MovementSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
-  - [ ] Simplify entity filtering
+- [x] Refactor `MovementSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
+  - [x] Simplify entity filtering
 
-- [ ] Refactor `BobAnimationSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
+- [x] Refactor `BobAnimationSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
 
-- [ ] Refactor `RotationSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
+- [x] Refactor `RotationSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
 
-- [ ] Refactor `AttackAnimationSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
+- [x] Refactor `AttackAnimationSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
 
-- [ ] Refactor `TileEffectSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
-  - [ ] Simplify tile filtering logic
+- [x] Refactor `TileEffectSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
+  - [x] Simplify tile filtering logic
 
-- [ ] Refactor `TileAnimationSystem` to use EntityQuery
-  - [ ] Replace manual component checks with query
+- [x] Refactor `TileAnimationSystem` to use EntityQuery
+  - [x] Replace manual component checks with query
 
-- [ ] Add EntityQuery tests
-  - [ ] Test querying with single component
-  - [ ] Test querying with multiple components
-  - [ ] Test with no matching entities
-  - [ ] Test type safety
+- [x] Add EntityQuery tests
+  - [x] Test querying with single component
+  - [x] Test querying with multiple components
+  - [x] Test with no matching entities
+  - [x] Test type safety
 
 **Regression Testing Checklist (USER MUST PERFORM):**
-- [ ] All systems still work correctly
-- [ ] No change in behavior
-- [ ] Code is more readable
-- [ ] Type safety is maintained
-- [ ] No performance degradation
-- [ ] No console errors
+- [x] All systems still work correctly
+- [x] No change in behavior
+- [x] Code is more readable
+- [x] Type safety is maintained
+- [x] No performance degradation
+- [x] No console errors
 
 **IMPORTANT:** The AI cannot perform actual regression testing. The user must test the application and report any issues before committing.
 
-**Commit after successful regression testing**
+**Commit after successful regression testing** ✅ COMPLETED
 
 ---
 
@@ -681,7 +681,7 @@ These can be addressed as needed, not necessarily in order:
 
 ## Progress Tracking
 
-**Current Phase:** Phase 5 Complete ✅
+**Current Phase:** Phase 6 Complete ✅
 
 **Completed Phases:**
 - Phase 1: Create EntityManager (Critical - Foundation) - COMPLETED ✅
@@ -689,6 +689,7 @@ These can be addressed as needed, not necessarily in order:
 - Phase 3: Refactor EntityFactory (Important - DRY) - COMPLETED ✅
 - Phase 4: Fix TileEffectTrigger Event Pattern (Important - Event System) - COMPLETED ✅
 - Phase 5: Standardize Time Units (Important - Consistency) - COMPLETED ✅
+- Phase 6: Create EntityQuery System (Nice-to-have - Code Quality) - COMPLETED ✅
 
 **Date Started:** December 19, 2024
 **Last Updated:** December 19, 2024

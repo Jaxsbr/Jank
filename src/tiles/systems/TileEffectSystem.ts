@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
@@ -52,40 +53,38 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         this.tileEntities = entities;
         const currentTime = Time.now(); // Time is now in seconds
 
-        entities.forEach(entity => {
-            if (entity.hasComponent(TileComponent) && entity.hasComponent(TileEffectComponent)) {
-                const tileComponent = entity.getComponent(TileComponent);
-                const effectComponent = entity.getComponent(TileEffectComponent);
+        EntityQuery.from(entities)
+            .withComponents(TileComponent, TileEffectComponent)
+            .execute()
+            .forEach(({ entity, components }) => {
+                const [, effectComponent] = components;
                 const triggerComponent = entity.getComponent(TileTriggerComponent);
                 const visualComponent = entity.getComponent(TileVisualComponent);
                 
-                if (tileComponent && effectComponent) {
-                    // Check if effect was active before update
-                    const wasActive = effectComponent.getIsActive();
-                    
-                    // Update effect state (but skip duration check for proximity triggers)
-                    if (!triggerComponent || triggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) {
-                        effectComponent.update(currentTime);
-                    }
-                    
-                    // Check if effect just deactivated
-                    if (wasActive && !effectComponent.getIsActive()) {
-                        this.eventDispatcher.dispatch(new Event(EventType.TileEffectDeactivated, {
-                            tile: entity,
-                            tileId: entity.getId(),
-                            effectType: effectComponent.getEffectType(),
-                            deactivationTime: currentTime
-                        }));
-                    }
-                    
-                    // Update visual effects based on effect type
-                    this.updateVisualEffects(visualComponent, effectComponent, currentTime, entity);
-                    
-                    // Handle automatic activation based on trigger type
-                    this.handleAutomaticActivation(entity, triggerComponent, effectComponent, currentTime);
+                // Check if effect was active before update
+                const wasActive = effectComponent.getIsActive();
+                
+                // Update effect state (but skip duration check for proximity triggers)
+                if (!triggerComponent || triggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) {
+                    effectComponent.update(currentTime);
                 }
-            }
-        });
+                
+                // Check if effect just deactivated
+                if (wasActive && !effectComponent.getIsActive()) {
+                    this.eventDispatcher.dispatch(new Event(EventType.TileEffectDeactivated, {
+                        tile: entity,
+                        tileId: entity.getId(),
+                        effectType: effectComponent.getEffectType(),
+                        deactivationTime: currentTime
+                    }));
+                }
+                
+                // Update visual effects based on effect type
+                this.updateVisualEffects(visualComponent, effectComponent, currentTime, entity);
+                
+                // Handle automatic activation based on trigger type
+                this.handleAutomaticActivation(entity, triggerComponent, effectComponent, currentTime);
+            });
     }
 
     /**

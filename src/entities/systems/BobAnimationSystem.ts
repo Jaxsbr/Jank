@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { MathUtils } from '../../utils/MathUtils';
 import { AttackComponent } from '../components/AttackComponent';
@@ -18,38 +19,35 @@ export class BobAnimationSystem implements IEntitySystem {
     }
 
     update(entities: readonly Entity[]): void {
-        entities.forEach(entity => {
-            if (entity.hasComponent(BobAnimationComponent) &&
-                entity.hasComponent(GeometryComponent) &&
-                entity.hasComponent(HealthComponent) &&
-                entity.hasComponent(PositionComponent)) {
-                const health = entity.getComponent(HealthComponent);
-                const position = entity.getComponent(PositionComponent);
-                const bobAnimation = entity.getComponent(BobAnimationComponent);
-                const geometry = entity.getComponent(GeometryComponent);
+        EntityQuery.from(entities)
+            .withComponents(BobAnimationComponent, GeometryComponent, HealthComponent, PositionComponent)
+            .filter(({ components }) => {
+                const [, , health] = components;
+                return health.isAlive();
+            })
+            .execute()
+            .forEach(({ entity, components }) => {
+                const [bobAnimation, geometry, health, position] = components;
                 
-                if (health && position && geometry && bobAnimation && health.isAlive()) {
-                    // Check if entity is in attack range for vibrate effect
-                    this.updateAnimationSpeed(entity, bobAnimation);
-                    
-                    // Update animation time
-                    const animationTime = bobAnimation.getAnimationTime;
-                    const animationSpeed = bobAnimation.getAnimationSpeed;
-                    bobAnimation.setAnimationTime = animationTime + animationSpeed
+                // Check if entity is in attack range for vibrate effect
+                this.updateAnimationSpeed(entity, bobAnimation);
+                
+                // Update animation time
+                const animationTime = bobAnimation.getAnimationTime;
+                const animationSpeed = bobAnimation.getAnimationSpeed;
+                bobAnimation.setAnimationTime = animationTime + animationSpeed
 
-                    // Update animation position (only Y axis for bob animation)
-                    const bobOffset = Math.sin(bobAnimation.getAnimationTime * this.config.bob.multiplier) * bobAnimation.getBobAmplitude;
-                    const calculatedY = bobAnimation.getBaseY + bobOffset
-                    const geometryGroup = geometry.getGeometryGroup();
-                    
-                    // Only animate the Y position, preserve X and Z from initial positioning
-                    geometryGroup.position.y = calculatedY;
-                    
-                    // Update the position component to reflect the animated Y position
-                    position.setY(calculatedY);
-                }
-            }
-        });
+                // Update animation position (only Y axis for bob animation)
+                const bobOffset = Math.sin(bobAnimation.getAnimationTime * this.config.bob.multiplier) * bobAnimation.getBobAmplitude;
+                const calculatedY = bobAnimation.getBaseY + bobOffset
+                const geometryGroup = geometry.getGeometryGroup();
+                
+                // Only animate the Y position, preserve X and Z from initial positioning
+                geometryGroup.position.y = calculatedY;
+                
+                // Update the position component to reflect the animated Y position
+                position.setY(calculatedY);
+            });
     }
 
     /**

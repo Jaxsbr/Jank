@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Time } from '../../utils/Time';
 import { TileVisualComponent } from '../components/TileVisualComponent';
@@ -13,22 +14,21 @@ export class TileAnimationSystem implements IEntitySystem {
     update(entities: readonly Entity[]): void {
         const deltaTime = Time.getDeltaTime(); // Use actual delta time from Time system
 
-        entities.forEach(entity => {
-            if (entity.hasComponent(TileVisualComponent)) {
-                const visualComponent = entity.getComponent(TileVisualComponent);
+        EntityQuery.from(entities)
+            .withComponents(TileVisualComponent)
+            .execute()
+            .forEach(({ entity, components }) => {
+                const [visualComponent] = components;
                 
-                if (visualComponent) {
-                    // Update height animation
-                    visualComponent.updateHeight(deltaTime, this.animationSpeed);
-                    
-                    // TODO: Add other tile animations like:
-                    // - Pulsing effects
-                    // - Rotation animations
-                    // - Scale animations
-                    // - Color transitions
-                }
-            }
-        });
+                // Update height animation
+                visualComponent.updateHeight(deltaTime, this.animationSpeed);
+                
+                // TODO: Add other tile animations like:
+                // - Pulsing effects
+                // - Rotation animations
+                // - Scale animations
+                // - Color transitions
+            });
     }
 
     /**

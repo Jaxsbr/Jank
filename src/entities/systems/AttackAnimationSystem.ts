@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityQuery } from '../../ecs/EntityQuery';
 import { Event } from '../../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
@@ -8,7 +9,7 @@ import { AttackAnimationComponent } from '../components/AttackAnimationComponent
 import { GeometryComponent } from '../components/GeometryComponent';
 
 export class AttackAnimationSystem implements IEventListener {
-    private entities: Entity[] = [];
+    private pendingAttackers: string[] = [];
 
     constructor() {
         // Register as event listener for attack events
@@ -25,55 +26,47 @@ export class AttackAnimationSystem implements IEventListener {
     }
 
     /**
-     * Set the entities array reference
-     */
-    public setEntities(entities: Entity[]): void {
-        this.entities = entities;
-    }
-
-    /**
      * Handle an attack executed event
      */
     private handleAttackExecuted(event: Event): void {
         const attackerId = event.args['attackerId'] as string;
-        if (!attackerId) {
-            return;
-        }
-
-        // Find the attacker entity
-        const attackerEntity = EntityFinder.findEntityById(this.entities, attackerId);
-        if (!attackerEntity) {
-            return;
-        }
-
-        // Start attack animation
-        const attackAnimComponent = attackerEntity.getComponent(AttackAnimationComponent);
-        if (attackAnimComponent) {
-            attackAnimComponent.startAttackAnimation();
+        if (attackerId) {
+            this.pendingAttackers.push(attackerId);
         }
     }
 
     /**
      * Update attack animations for all entities
      */
-    public update(): void {
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(AttackAnimationComponent) && 
-                entity.hasComponent(GeometryComponent)) {
-                
-                const attackAnim = entity.getComponent(AttackAnimationComponent);
-                const geometry = entity.getComponent(GeometryComponent);
-                
-                if (attackAnim && geometry) {
-                    // Get current scale multiplier
-                    const scaleMultiplier = attackAnim.getScaleMultiplier();
-                    
-                    // Apply scale to geometry group
-                    const geometryGroup = geometry.getGeometryGroup();
-                    geometryGroup.scale.setScalar(scaleMultiplier);
+    public update(entities: readonly Entity[]): void {
+        // Handle pending attackers
+        if (this.pendingAttackers.length > 0) {
+            this.pendingAttackers.forEach(attackerId => {
+                const attackerEntity = EntityFinder.findEntityById(entities, attackerId);
+                if (attackerEntity) {
+                    const attackAnimComponent = attackerEntity.getComponent(AttackAnimationComponent);
+                    if (attackAnimComponent) {
+                        attackAnimComponent.startAttackAnimation();
+                    }
                 }
-            }
-        });
+            });
+            this.pendingAttackers = [];
+        }
+
+        // Update all attack animations
+        EntityQuery.from(entities)
+            .withComponents(AttackAnimationComponent, GeometryComponent)
+            .execute()
+            .forEach(({ entity, components }) => {
+                const [attackAnim, geometry] = components;
+                
+                // Get current scale multiplier
+                const scaleMultiplier = attackAnim.getScaleMultiplier();
+                
+                // Apply scale to geometry group
+                const geometryGroup = geometry.getGeometryGroup();
+                geometryGroup.scale.setScalar(scaleMultiplier);
+            });
     }
 
     /**

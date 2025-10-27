@@ -1,4 +1,5 @@
 import { Entity } from '../../ecs/Entity';
+import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Event } from '../../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
@@ -17,50 +18,46 @@ export class MeleeAttackSystem implements IEntitySystem {
     public update(entities: readonly Entity[]): void {
         const currentTime = Time.now();
         
-        entities.forEach(entity => {
-            if (entity.hasComponent(AttackComponent) && 
-                entity.hasComponent(TargetComponent) && 
-                entity.hasComponent(PositionComponent) &&
-                entity.hasComponent(HealthComponent)) {
+        EntityQuery.from(entities)
+            .withComponents(AttackComponent, TargetComponent, PositionComponent, HealthComponent)
+            .filter(({ components }) => {
+                const [, , , health] = components;
+                return health.isAlive();
+            })
+            .execute()
+            .forEach(({ entity, components }) => {
+                const [attack, target, position, health] = components;
                 
-                const attack = entity.getComponent(AttackComponent);
-                const target = entity.getComponent(TargetComponent);
-                const position = entity.getComponent(PositionComponent);
-                const health = entity.getComponent(HealthComponent);
-                
-                if (attack && target && position && health && health.isAlive()) {
-                    // Check if we have a valid target
-                    if (!target.hasTarget() || !target.isTargetValid()) {
-                        return;
-                    }
-                    
-                    const targetEntity = target.getTarget();
-                    if (!targetEntity) {
-                        return;
-                    }
-                    
-                    // Check if target has position component
-                    const targetPosition = targetEntity.getComponent(PositionComponent);
-                    if (!targetPosition) {
-                        return;
-                    }
-                    
-                    // Check if we can attack (cooldown)
-                    if (!attack.canAttack(currentTime)) {
-                        return;
-                    }
-                    
-                    // Check if target is in range (2D distance ignoring Y position)
-                    const distance = MathUtils.calculate2DDistance(position, targetPosition);
-                    if (!attack.isInRange(distance)) {
-                        return;
-                    }
-                    
-                    // Perform the attack
-                    this.performAttack(entity, targetEntity, attack, currentTime);
+                // Check if we have a valid target
+                if (!target.hasTarget() || !target.isTargetValid()) {
+                    return;
                 }
-            }
-        });
+                
+                const targetEntity = target.getTarget();
+                if (!targetEntity) {
+                    return;
+                }
+                
+                // Check if target has position component
+                const targetPosition = targetEntity.getComponent(PositionComponent);
+                if (!targetPosition) {
+                    return;
+                }
+                
+                // Check if we can attack (cooldown)
+                if (!attack.canAttack(currentTime)) {
+                    return;
+                }
+                
+                // Check if target is in range (2D distance ignoring Y position)
+                const distance = MathUtils.calculate2DDistance(position, targetPosition);
+                if (!attack.isInRange(distance)) {
+                    return;
+                }
+                
+                // Perform the attack
+                this.performAttack(entity, targetEntity, attack, currentTime);
+            });
     }
 
     /**
