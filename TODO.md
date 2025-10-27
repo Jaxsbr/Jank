@@ -201,12 +201,12 @@
   - [x] Update existing config types to extend these
 
 **Regression Testing Checklist (USER MUST PERFORM):**
-- [ ] Core entity still renders with correct appearance
-- [ ] Enemy entity still renders with correct appearance
-- [ ] Both entities have all expected components
-- [ ] No visual differences from before refactor
-- [ ] No console errors
-- [ ] Code is more readable and maintainable
+- [x] Core entity still renders with correct appearance
+- [x] Enemy entity still renders with correct appearance
+- [x] Both entities have all expected components
+- [x] No visual differences from before refactor
+- [x] No console errors
+- [x] Code is more readable and maintainable
 
 **IMPORTANT:** The AI cannot perform actual regression testing. The user must test the application and report any issues before committing.
 
