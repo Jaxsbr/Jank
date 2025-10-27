@@ -110,7 +110,7 @@ export class EntityFactory implements IEntityFactory {
      */
     private addEntityToScene(entity: Entity, geometryComponent: GeometryComponent, position: Vector3): void {
         // Set initial position of geometry group
-        geometryComponent.getGeometryGroup().position.set(position.x, position.y, position.z);
+        geometryComponent.setPosition(position.x, position.y, position.z);
 
         // Make entity geometry visible by adding to scene
         this.scene.add(geometryComponent.getGeometryGroup());

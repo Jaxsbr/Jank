@@ -18,10 +18,7 @@ export class RotationSystem implements IEntitySystem {
             .forEach(({ components }) => {
                 const [rotation, geometry] = components;
                 
-                const geometryGroup = geometry.getGeometryGroup();
-                geometryGroup.rotation.x += rotation.getX();
-                geometryGroup.rotation.y += rotation.getY();
-                geometryGroup.rotation.z += rotation.getZ();
+                geometry.rotate(rotation.getX(), rotation.getY(), rotation.getZ());
             });
     }
 }

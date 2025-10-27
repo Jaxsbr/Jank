@@ -125,9 +125,24 @@ export class TileVisualComponent implements IComponent {
 
     /**
      * Get the tile mesh
+     * @internal Should only be used by TileFactory for adding to scene and cleanup
      */
     public getTileMesh(): THREE.Mesh {
         return this.tileMesh;
+    }
+
+    /**
+     * Get the current position of the tile
+     */
+    public getPosition(): THREE.Vector3 {
+        return this.tileMesh.position.clone();
+    }
+
+    /**
+     * Set the position of the tile
+     */
+    public setPosition(position: THREE.Vector3): void {
+        this.tileMesh.position.copy(position);
     }
 
     /**

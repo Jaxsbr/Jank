@@ -64,8 +64,7 @@ export class AttackAnimationSystem implements IEventListener {
                 const scaleMultiplier = attackAnim.getScaleMultiplier();
                 
                 // Apply scale to geometry group
-                const geometryGroup = geometry.getGeometryGroup();
-                geometryGroup.scale.setScalar(scaleMultiplier);
+                geometry.setScale(scaleMultiplier);
             });
     }
 

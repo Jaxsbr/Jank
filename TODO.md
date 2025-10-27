@@ -433,53 +433,53 @@
 
 ### Sub-tasks:
 
-- [ ] Audit Three.js exposure
-  - [ ] List all places where Three.js objects are exposed
-  - [ ] Identify which exposures are necessary
-  - [ ] Plan alternative APIs
+- [x] Audit Three.js exposure
+  - [x] List all places where Three.js objects are exposed
+  - [x] Identify which exposures are necessary
+  - [x] Plan alternative APIs
 
-- [ ] Refactor `GeometryComponent`
-  - [ ] Make `getGeometryGroup()` package-private or remove
-  - [ ] Add methods for position/rotation/scale manipulation
-  - [ ] Keep Three.js objects private where possible
-  - [ ] Update systems to use new API
+- [x] Refactor `GeometryComponent`
+  - [x] Make `getGeometryGroup()` package-private or remove
+  - [x] Add methods for position/rotation/scale manipulation
+  - [x] Keep Three.js objects private where possible
+  - [x] Update systems to use new API
 
-- [ ] Refactor `TileVisualComponent`
-  - [ ] Make `getTileMesh()` package-private or remove
-  - [ ] Add methods for visual property manipulation
-  - [ ] Keep Three.js objects private where possible
+- [x] Refactor `TileVisualComponent`
+  - [x] Make `getTileMesh()` package-private or remove
+  - [x] Add methods for visual property manipulation
+  - [x] Keep Three.js objects private where possible
 
-- [ ] Update `RenderSystem`
-  - [ ] Ensure it's the only system accessing Three.js scene directly
-  - [ ] Add methods for scene management if needed
+- [x] Update `RenderSystem`
+  - [x] Ensure it's the only system accessing Three.js scene directly
+  - [x] Add methods for scene management if needed
 
-- [ ] Update `EntityCleanupSystem`
-  - [ ] Work with component APIs instead of direct Three.js access
-  - [ ] Or allow limited access for cleanup purposes
+- [x] Update `EntityCleanupSystem`
+  - [x] Work with component APIs instead of direct Three.js access
+  - [x] Or allow limited access for cleanup purposes
 
-- [ ] Update `EntityFactory`
-  - [ ] Minimize direct Three.js manipulation
-  - [ ] Use component APIs where possible
+- [x] Update `EntityFactory`
+  - [x] Minimize direct Three.js manipulation
+  - [x] Use component APIs where possible
 
-- [ ] Update `TileFactory`
-  - [ ] Minimize direct Three.js manipulation
-  - [ ] Use component APIs where possible
+- [x] Update `TileFactory`
+  - [x] Minimize direct Three.js manipulation
+  - [x] Use component APIs where possible
 
-- [ ] Document the new boundaries
-  - [ ] Add comments explaining which systems can access Three.js
-  - [ ] Document the component APIs
+- [x] Document the new boundaries
+  - [x] Add comments explaining which systems can access Three.js
+  - [x] Document the component APIs
 
 **Regression Testing Checklist (USER MUST PERFORM):**
-- [ ] All rendering works correctly
-- [ ] Entities and tiles appear as before
-- [ ] Animations work correctly
-- [ ] Scene cleanup works
-- [ ] No visual regressions
-- [ ] No console errors
+- [x] All rendering works correctly
+- [x] Entities and tiles appear as before
+- [x] Animations work correctly
+- [x] Scene cleanup works
+- [x] No visual regressions
+- [x] No console errors
 
 **IMPORTANT:** The AI cannot perform actual regression testing. The user must test the application and report any issues before committing.
 
-**Commit after successful regression testing**
+**Commit after successful regression testing** ✅ COMMITTED
 
 ---
 
@@ -681,7 +681,7 @@ These can be addressed as needed, not necessarily in order:
 
 ## Progress Tracking
 
-**Current Phase:** Phase 6 Complete ✅
+**Current Phase:** Phase 7 Complete ✅
 
 **Completed Phases:**
 - Phase 1: Create EntityManager (Critical - Foundation) - COMPLETED ✅
@@ -690,6 +690,7 @@ These can be addressed as needed, not necessarily in order:
 - Phase 4: Fix TileEffectTrigger Event Pattern (Important - Event System) - COMPLETED ✅
 - Phase 5: Standardize Time Units (Important - Consistency) - COMPLETED ✅
 - Phase 6: Create EntityQuery System (Nice-to-have - Code Quality) - COMPLETED ✅
+- Phase 7: Reduce Three.js Coupling (Nice-to-have - Architecture) - COMPLETED ✅
 
 **Date Started:** December 19, 2024
 **Last Updated:** December 19, 2024

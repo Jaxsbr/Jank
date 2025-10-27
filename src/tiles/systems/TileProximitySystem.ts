@@ -56,7 +56,7 @@ export class TileProximitySystem implements IEntitySystem {
             if (triggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) return;
 
             const tileId = tile.getId();
-            const tilePosition = visualComponent.getTileMesh().position;
+            const tilePosition = visualComponent.getPosition();
             const proximityRadius = triggerComponent.getProximityRadius();
 
             // Get current enemy entities in range
@@ -66,7 +66,7 @@ export class TileProximitySystem implements IEntitySystem {
                 const positionComponent = entity.getComponent(PositionComponent);
                 if (!positionComponent) return;
 
-                const entityPosition = positionComponent.getPosition();
+                const entityPosition = positionComponent.toVector3();
                 const distance = tilePosition.distanceTo(entityPosition);
 
                 if (distance <= proximityRadius) {

@@ -77,10 +77,10 @@ export class TileFactory {
         
         // Position the tile in world space
         const worldPos = this.hexToWorldPosition(coordinate);
-        visualComponent.getTileMesh().position.copy(worldPos);
 
-        // Raise tile above the floor
-        visualComponent.getTileMesh().position.y = 0.1;
+        // Raise tile above the floor and set position
+        worldPos.y = 0.1;
+        visualComponent.setPosition(worldPos);
         
         // Add to scene
         this.scene.add(visualComponent.getTileMesh());

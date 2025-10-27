@@ -159,8 +159,53 @@ export class GeometryComponent implements IComponent {
         return [...this.secondaryGeometries];
     }
 
+    /**
+     * Get the Three.js group for internal use (should only be used by RenderSystem and EntityCleanupSystem)
+     * @internal
+     */
     public getGeometryGroup(): THREE.Group {
         return this.group;
+    }
+
+    // Position manipulation methods
+    public setPosition(x: number, y: number, z: number): void {
+        this.group.position.set(x, y, z);
+    }
+
+    public getPosition(): THREE.Vector3 {
+        return this.group.position.clone();
+    }
+
+    public setX(x: number): void {
+        this.group.position.x = x;
+    }
+
+    public setY(y: number): void {
+        this.group.position.y = y;
+    }
+
+    public setZ(z: number): void {
+        this.group.position.z = z;
+    }
+
+    // Rotation manipulation methods
+    public setRotation(x: number, y: number, z: number): void {
+        this.group.rotation.set(x, y, z);
+    }
+
+    public rotate(x: number, y: number, z: number): void {
+        this.group.rotation.x += x;
+        this.group.rotation.y += y;
+        this.group.rotation.z += z;
+    }
+
+    // Scale manipulation methods
+    public setScale(scale: number): void {
+        this.group.scale.setScalar(scale);
+    }
+
+    public setScaleXYZ(x: number, y: number, z: number): void {
+        this.group.scale.set(x, y, z);
     }
 
     // Material access

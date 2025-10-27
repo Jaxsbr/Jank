@@ -30,11 +30,10 @@ export class MovementSystem implements IEntitySystem {
                 if (movement.isTargetReached()) {
                     // TEMP: reset enemy pos once target is reached (create move reach loop)
                     // Use geometry group's Y position which is already bob-animated
-                    const geometryGroup = geometry.getGeometryGroup();
-                    const currentY = geometryGroup.position.y;
+                    const currentY = geometry.getPosition().y;
                     const respawnPos = this.enemyConfig.respawn.position;
                     position.setPosition(respawnPos.x, currentY, respawnPos.z);
-                    geometryGroup.position.set(respawnPos.x, currentY, respawnPos.z);
+                    geometry.setPosition(respawnPos.x, currentY, respawnPos.z);
                     movement.setTargetReached(false);
                     movement.setCurrentSpeed(0); // Reset speed for smooth restart
                     return;
@@ -83,8 +82,8 @@ export class MovementSystem implements IEntitySystem {
                 position.setPosition(newPosition.x, newPosition.y, newPosition.z);
                 
                 // Update geometry group position (preserving Y for bob animation)
-                const geometryGroup = geometry.getGeometryGroup();
-                geometryGroup.position.set(newPosition.x, geometryGroup.position.y, newPosition.z);
+                const currentY = geometry.getPosition().y;
+                geometry.setPosition(newPosition.x, currentY, newPosition.z);
             });
     }
 }

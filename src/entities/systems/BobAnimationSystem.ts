@@ -35,15 +35,14 @@ export class BobAnimationSystem implements IEntitySystem {
                 // Update animation time
                 const animationTime = bobAnimation.getAnimationTime;
                 const animationSpeed = bobAnimation.getAnimationSpeed;
-                bobAnimation.setAnimationTime = animationTime + animationSpeed
+                bobAnimation.setAnimationTime = animationTime + animationSpeed;
 
                 // Update animation position (only Y axis for bob animation)
                 const bobOffset = Math.sin(bobAnimation.getAnimationTime * this.config.bob.multiplier) * bobAnimation.getBobAmplitude;
-                const calculatedY = bobAnimation.getBaseY + bobOffset
-                const geometryGroup = geometry.getGeometryGroup();
+                const calculatedY = bobAnimation.getBaseY + bobOffset;
                 
                 // Only animate the Y position, preserve X and Z from initial positioning
-                geometryGroup.position.y = calculatedY;
+                geometry.setY(calculatedY);
                 
                 // Update the position component to reflect the animated Y position
                 position.setY(calculatedY);
