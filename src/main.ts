@@ -20,9 +20,9 @@ import { GlobalEventDispatcher } from './systems/eventing/EventDispatcher';
 import { EventType } from './systems/eventing/EventType';
 import { TileManager } from './tiles/TileManager';
 import { TileType } from './tiles/TileType';
-import { TileEffectComponent } from './tiles/components/TileEffectComponent';
 // import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
 import { TileEffectSystem } from './tiles/systems/TileEffectSystem';
+import { TileProximitySystem } from './tiles/systems/TileProximitySystem';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { DebugUI } from './ui/DebugUI';
 
@@ -42,7 +42,8 @@ new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
 
 // const tileAnimationSystem = new TileAnimationSystem(0.2);
-const tileEffectSystem = new TileEffectSystem(15, 2);
+const tileEffectSystem = new TileEffectSystem(GlobalEventDispatcher, 15, 2);
+const tileProximitySystem = new TileProximitySystem(GlobalEventDispatcher);
 // const tileHeightSystem = new TileHeightSystem(2, 3);
 const tileManager = new TileManager(scene);
 tileManager.initialize()
@@ -72,10 +73,6 @@ damageVisualSystem.setEntities(entityManager.getEntities())
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
-// Timer for random tile activation
-let lastTriggerTime = 0;
-const triggerInterval = 2000 + Math.random() * 1000; // 2-3 seconds
-
 function animate(): void {
     requestAnimationFrame(animate);
 
@@ -94,31 +91,10 @@ function animate(): void {
     
     const tileEntities = tileManager.getAllTiles()
     // tileAnimationSystem.update(tileEntities);
+    tileProximitySystem.update([...entities, ...tileEntities]); // Update proximity system with all entities
     tileEffectSystem.update(tileEntities);
     // tileHeightSystem.update(tileEntities);
     renderSystem.update();
-
-    // Trigger random tile effect
-    const currentTime = performance.now();
-    if (currentTime - lastTriggerTime >= triggerInterval) {
-        lastTriggerTime = currentTime;
-        
-        // Get all tiles with effect components
-        const tilesWithEffects = tileEntities.filter(tile => 
-            tile.hasComponent(TileEffectComponent)
-        );
-        
-        // Randomly select one tile to activate
-        if (tilesWithEffects.length > 0) {
-            const randomIndex = Math.floor(Math.random() * tilesWithEffects.length);
-            const currentTimeSeconds = currentTime / 1000;
-            
-            GlobalEventDispatcher.dispatch(new Event(EventType.TileEffectTrigger, {
-                entityIndex: randomIndex,
-                currentTime: currentTimeSeconds
-            }));
-        }
-    }
 }
 
 animate();

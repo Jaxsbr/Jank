@@ -13,6 +13,8 @@ export class TileEffectComponent implements IComponent {
     private cooldown: number;
     private lastActivation: number;
     private isActive: boolean;
+    private fadeOutStartTime: number;
+    private isFadingOut: boolean;
     
     // Effect configs
     private staticEffectConfig?: StaticEffectConfig;
@@ -35,6 +37,8 @@ export class TileEffectComponent implements IComponent {
         this.cooldown = 1.0; // 1 second cooldown by default
         this.lastActivation = 0;
         this.isActive = false;
+        this.fadeOutStartTime = 0;
+        this.isFadingOut = false;
         
         // Store effect configs
         this.staticEffectConfig = staticConfig;
@@ -52,6 +56,15 @@ export class TileEffectComponent implements IComponent {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Force activate the tile effect (bypass cooldown check)
+     */
+    public forceActivate(currentTime: number): boolean {
+        this.isActive = true;
+        this.lastActivation = currentTime;
+        return true;
     }
 
     /**
@@ -134,10 +147,49 @@ export class TileEffectComponent implements IComponent {
     }
 
     /**
+     * Set last activation time (for proximity triggers)
+     */
+    public setLastActivation(time: number): void {
+        this.lastActivation = time;
+    }
+
+    /**
      * Force deactivate the effect
      */
     public deactivate(): void {
         this.isActive = false;
+    }
+
+    /**
+     * Start fade out for proximity triggers
+     */
+    public startFadeOut(currentTime: number): void {
+        this.isFadingOut = true;
+        this.fadeOutStartTime = currentTime;
+    }
+
+    /**
+     * Check if effect is currently fading out
+     */
+    public getIsFadingOut(): boolean {
+        return this.isFadingOut;
+    }
+
+    /**
+     * Get fade out progress (0 = just started, 1 = complete)
+     */
+    public getFadeOutProgress(currentTime: number, fadeOutDuration: number): number {
+        if (!this.isFadingOut) return 0;
+        const elapsed = currentTime - this.fadeOutStartTime;
+        return Math.min(elapsed / fadeOutDuration, 1);
+    }
+
+    /**
+     * Complete fade out (call when fade out is done)
+     */
+    public completeFadeOut(): void {
+        this.isActive = false;
+        this.isFadingOut = false;
     }
 
     /**

@@ -1,46 +1,48 @@
 import { Entity } from '../../ecs/Entity';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Event } from '../../systems/eventing/Event';
-import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EffectType } from '../EffectType';
 import { TileEffectType } from '../TileEffectType';
 import { TileComponent } from '../components/TileComponent';
 import { TileEffectComponent } from '../components/TileEffectComponent';
+import { TileTriggerComponent, TileTriggerType } from '../components/TileTriggerComponent';
 import { TileVisualComponent } from '../components/TileVisualComponent';
 
 export class TileEffectSystem implements IEntitySystem, IEventListener {
     private effectRadius: number;
     private effectCooldown: number;
     private tileEntities: readonly Entity[] = [];
+    private eventDispatcher: EventDispatcherSingleton;
 
-    constructor(effectRadius: number = 2.0, effectCooldown: number = 1.0) {
+    constructor(eventDispatcher: EventDispatcherSingleton, effectRadius: number = 2.0, effectCooldown: number = 1.0) {
+        this.eventDispatcher = eventDispatcher;
         this.effectRadius = effectRadius;
         this.effectCooldown = effectCooldown;
         
         // Register as event listener
-        GlobalEventDispatcher.registerListener('TileEffectSystem', this);
+        this.eventDispatcher.registerListener('TileEffectSystem', this);
     }
 
     /**
      * Handle events from the event dispatcher
      */
     public onEvent(event: Event): void {
-        if (event.eventName === EventType.TileEffectTrigger) {
-            const entityIndex = event.args['entityIndex'] as number;
-            const currentTime = event.args['currentTime'] as number;
+        if (event.eventName === EventType.EntityEnteredTileRange) {
+            const tile = event.args['tile'] as Entity;
+            const currentTime = performance.now() / 1000;
             
-            // Get all tiles with effects to match the indexing from main.ts
-            const tilesWithEffects = this.tileEntities.filter(tile => 
-                tile.hasComponent(TileEffectComponent)
-            );
+            if (tile) {
+                this.handleProximityTrigger(tile, currentTime);
+            }
+        } else if (event.eventName === EventType.TileEffectDeactivated) {
+            const tile = event.args['tile'] as Entity;
+            const reason = event.args['reason'] as string;
             
-            if (typeof entityIndex === 'number' && typeof currentTime === 'number' && entityIndex >= 0 && entityIndex < tilesWithEffects.length) {
-                const entity = tilesWithEffects[entityIndex];
-                if (entity) {
-                    this.activateTileEffect(entity, currentTime);
-                }
+            if (tile && reason === 'no_enemies_in_range') {
+                this.handleProximityDeactivation(tile);
             }
         }
     }
@@ -53,17 +55,33 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
             if (entity.hasComponent(TileComponent) && entity.hasComponent(TileEffectComponent)) {
                 const tileComponent = entity.getComponent(TileComponent);
                 const effectComponent = entity.getComponent(TileEffectComponent);
+                const triggerComponent = entity.getComponent(TileTriggerComponent);
                 const visualComponent = entity.getComponent(TileVisualComponent);
                 
                 if (tileComponent && effectComponent) {
-                    // Update effect state
-                    effectComponent.update(currentTime);
+                    // Check if effect was active before update
+                    const wasActive = effectComponent.getIsActive();
+                    
+                    // Update effect state (but skip duration check for proximity triggers)
+                    if (!triggerComponent || triggerComponent.getTriggerType() !== TileTriggerType.PROXIMITY) {
+                        effectComponent.update(currentTime);
+                    }
+                    
+                    // Check if effect just deactivated
+                    if (wasActive && !effectComponent.getIsActive()) {
+                        this.eventDispatcher.dispatch(new Event(EventType.TileEffectDeactivated, {
+                            tile: entity,
+                            tileId: entity.getId(),
+                            effectType: effectComponent.getEffectType(),
+                            deactivationTime: currentTime
+                        }));
+                    }
                     
                     // Update visual effects based on effect type
-                    this.updateVisualEffects(visualComponent, effectComponent, currentTime);
+                    this.updateVisualEffects(visualComponent, effectComponent, currentTime, entity);
                     
-                    // Process effect activation
-                    this.processEffectActivation(tileComponent, effectComponent, currentTime);
+                    // Handle automatic activation based on trigger type
+                    this.handleAutomaticActivation(entity, triggerComponent, effectComponent, currentTime);
                 }
             }
         });
@@ -75,13 +93,16 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
     private updateVisualEffects(
         visualComponent: TileVisualComponent | null, 
         effectComponent: TileEffectComponent, 
-        currentTime: number
+        currentTime: number,
+        entity: Entity
     ): void {
         if (!visualComponent) return;
 
         const tileEffectType = effectComponent.getTileEffectType();
         const effectType = effectComponent.getEffectType();
         let isActive = effectComponent.getIsActive();
+        const isFadingOut = effectComponent.getIsFadingOut();
+        
         
         // Get base effect color based on effect type
         const effectColor = this.getEffectColor(effectType);
@@ -90,16 +111,26 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         const pulseEffectConfig = effectComponent.getPulseEffectConfig()
         if (pulseEffectConfig && pulseEffectConfig.alwaysOn) {
             isActive = true
+            console.log(`Visual update: Overriding to alwaysOn for tile=${entity.getId()}`);
+        }
+        
+        // Handle fade out completion
+        if (isFadingOut) {
+            const fadeOutProgress = effectComponent.getFadeOutProgress(currentTime, 1.0); // 1 second fade out
+            if (fadeOutProgress >= 1.0) {
+                effectComponent.completeFadeOut();
+                isActive = false;
+            }
         }
 
         // Update emissive color based on tile effect type
-        if (isActive) {
+        if (isActive || isFadingOut) {
             switch (tileEffectType) {
                 case TileEffectType.PULSE:
                     this.renderPulseEffect(visualComponent, effectComponent, currentTime, effectColor);
                     break;
                 case TileEffectType.STATIC:
-                    this.renderStaticEffect(visualComponent, effectComponent, currentTime, effectColor);
+                    this.renderStaticEffect(visualComponent, effectComponent, currentTime, effectColor, entity);
                     break;
                 case TileEffectType.COLOR_TRANSITION:
                     this.renderColorTransitionEffect(visualComponent, effectComponent, currentTime, effectColor);
@@ -150,10 +181,12 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         visualComponent: TileVisualComponent, 
         effectComponent: TileEffectComponent, 
         currentTime: number,
-        fallbackColor: number
+        fallbackColor: number,
+        entity?: Entity
     ): void {
         const config = effectComponent.getStaticEffectConfig();
         if (!config) {
+            console.log('Static effect: No config, using fallback color');
             visualComponent.setEmissive(fallbackColor, 0.5);
             return;
         }
@@ -162,17 +195,37 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
         const duration = effectComponent.getDuration();
         const remainingTime = duration - timeSinceActivation;
         
+        // Check if this is a proximity trigger (should stay active indefinitely)
+        const triggerComponent = entity?.getComponent(TileTriggerComponent);
+        const isProximityTrigger = triggerComponent?.getTriggerType() === TileTriggerType.PROXIMITY;
+        
+        
         let intensity = config.staticGlowIntensity;
         
-        // Fade in
-        if (timeSinceActivation < config.fadeInDuration) {
-            intensity = config.staticGlowIntensity * (timeSinceActivation / config.fadeInDuration);
+        if (isProximityTrigger) {
+            // For proximity triggers, only do fade in, then hold at full intensity
+            if (timeSinceActivation < config.fadeInDuration) {
+                intensity = config.staticGlowIntensity * (timeSinceActivation / config.fadeInDuration);
+            } else {
+                // Check if we're fading out
+                const isFadingOut = effectComponent.getIsFadingOut();
+                if (isFadingOut) {
+                    const fadeOutProgress = effectComponent.getFadeOutProgress(currentTime, 1.0); // 1 second fade out
+                    intensity = config.staticGlowIntensity * (1 - fadeOutProgress);
+                }
+            }
+        } else {
+            // For timed effects (AUTO triggers), use normal fade in/out
+            // Fade in
+            if (timeSinceActivation < config.fadeInDuration) {
+                intensity = config.staticGlowIntensity * (timeSinceActivation / config.fadeInDuration);
+            }
+            // Fade out (if within fadeOutDuration of end)
+            else if (remainingTime < config.fadeOutDuration) {
+                intensity = config.staticGlowIntensity * (remainingTime / config.fadeOutDuration);
+            }
+            // Hold at full intensity (default)
         }
-        // Fade out (if within fadeOutDuration of end)
-        else if (remainingTime < config.fadeOutDuration) {
-            intensity = config.staticGlowIntensity * (remainingTime / config.fadeOutDuration);
-        }
-        // Hold at full intensity (default)
         
         visualComponent.setEmissive(config.color, intensity);
     }
@@ -253,26 +306,68 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
     }
 
     /**
-     * Process effect activation logic
+     * Handle proximity-based trigger activation
      */
-    private processEffectActivation(
-        tileComponent: TileComponent, 
-        effectComponent: TileEffectComponent, 
+    private handleProximityTrigger(tile: Entity, currentTime: number): void {
+        const triggerComponent = tile.getComponent(TileTriggerComponent);
+        const effectComponent = tile.getComponent(TileEffectComponent);
+        
+        if (triggerComponent && effectComponent && 
+            triggerComponent.getTriggerType() === TileTriggerType.PROXIMITY) {
+            // For proximity triggers, force activation without cooldown check
+            if (!effectComponent.getIsActive()) {
+                effectComponent.forceActivate(currentTime);
+            } else {
+                // If already active, just update the activation time to prevent auto-deactivation
+                effectComponent.setLastActivation(currentTime);
+            }
+        }
+    }
+
+    /**
+     * Handle proximity-based deactivation when all enemies leave range
+     */
+    private handleProximityDeactivation(tile: Entity): void {
+        const triggerComponent = tile.getComponent(TileTriggerComponent);
+        const effectComponent = tile.getComponent(TileEffectComponent);
+        
+        if (triggerComponent && effectComponent && 
+            triggerComponent.getTriggerType() === TileTriggerType.PROXIMITY) {
+            // Start smooth fade out instead of immediate deactivation
+            const currentTime = performance.now() / 1000;
+            effectComponent.startFadeOut(currentTime);
+        }
+    }
+
+    /**
+     * Handle automatic activation based on trigger type
+     */
+    private handleAutomaticActivation(
+        entity: Entity,
+        triggerComponent: TileTriggerComponent | null,
+        effectComponent: TileEffectComponent,
         currentTime: number
     ): void {
-        // TODO: Implement effect activation logic
-        // This would handle:
-        // - Triggering effects on nearby entities
-        // - Managing effect cooldowns
-        // - Spawning projectiles for attack effects
-        // - Applying buffs to player
-        // - Healing player for heal effects
-        
-        // For now, just check if effect can be activated
-        if (effectComponent.canActivate(currentTime)) {
-            // Effect is ready to be activated
-            // In a real implementation, this would be triggered by player actions
-            // or automatic activation based on game rules
+        if (!triggerComponent) return;
+
+        switch (triggerComponent.getTriggerType()) {
+            case TileTriggerType.AUTO:
+                if (triggerComponent.canAutoActivate(currentTime) && 
+                    effectComponent.canActivate(currentTime)) {
+                    this.activateTileEffect(entity, currentTime);
+                    triggerComponent.markAutoActivated(currentTime);
+                }
+                break;
+            case TileTriggerType.ALWAYS_ON:
+                // Always-on effects are handled in updateVisualEffects
+                // No need to activate/deactivate them
+                break;
+            case TileTriggerType.PROXIMITY:
+                // Proximity triggers are handled via events
+                break;
+            case TileTriggerType.MANUAL:
+                // Manual triggers are not implemented yet
+                break;
         }
     }
 
@@ -281,8 +376,15 @@ export class TileEffectSystem implements IEntitySystem, IEventListener {
      */
     public activateTileEffect(entity: Entity, currentTime: number): boolean {
         const effectComponent = entity.getComponent(TileEffectComponent);
-        if (effectComponent) {
-            return effectComponent.activate(currentTime);
+        if (effectComponent && effectComponent.activate(currentTime)) {
+            // Dispatch TileEffectActivated event
+            this.eventDispatcher.dispatch(new Event(EventType.TileEffectActivated, {
+                tile: entity,
+                tileId: entity.getId(),
+                effectType: effectComponent.getEffectType(),
+                activationTime: currentTime
+            }));
+            return true;
         }
         return false;
     }

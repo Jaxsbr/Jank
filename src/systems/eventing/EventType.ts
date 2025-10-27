@@ -1,7 +1,10 @@
 export enum EventType {
     WindowResize,
     CameraZoomChanged,
-    TileEffectTrigger,
+    EntityEnteredTileRange,
+    EntityExitedTileRange,
+    TileEffectActivated,
+    TileEffectDeactivated,
     AttackExecuted,
     DamageTaken,
     EntityDeath,

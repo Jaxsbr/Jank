@@ -6,6 +6,7 @@ import { TileEffectType } from './TileEffectType';
 import { TileType } from './TileType';
 import { TileComponent } from './components/TileComponent';
 import { TileEffectComponent } from './components/TileEffectComponent';
+import { TileTriggerComponent, TileTriggerType } from './components/TileTriggerComponent';
 import { TileMaterial, TileVisualComponent } from './components/TileVisualComponent';
 import { defaultColorTransitionEffectConfig } from './configs/ColorTransitionEffectConfig';
 import { defaultPulseEffectConfig } from './configs/PulseEffectConfig';
@@ -40,6 +41,10 @@ export class TileFactory {
             entity.addComponent(effectComponent);
         }
 
+        // Add trigger component for center tile (always on)
+        const triggerComponent = new TileTriggerComponent(TileTriggerType.ALWAYS_ON);
+        entity.addComponent(triggerComponent);
+
         // Add to scene
         this.scene.add(visualComponent.getTileMesh());
         
@@ -66,6 +71,10 @@ export class TileFactory {
             entity.addComponent(effectComponent);
         }
         
+        // Add trigger component based on tile type
+        const triggerComponent = this.createTriggerComponent(tileType);
+        entity.addComponent(triggerComponent);
+        
         // Position the tile in world space
         const worldPos = this.hexToWorldPosition(coordinate);
         visualComponent.getTileMesh().position.copy(worldPos);
@@ -77,6 +86,24 @@ export class TileFactory {
         this.scene.add(visualComponent.getTileMesh());
         
         return entity;
+    }
+
+    /**
+     * Create trigger component based on tile type
+     */
+    private createTriggerComponent(tileType: TileType): TileTriggerComponent {
+        switch (tileType) {
+            case TileType.CENTER:
+                return new TileTriggerComponent(TileTriggerType.ALWAYS_ON);
+            case TileType.ONE:
+                return new TileTriggerComponent(TileTriggerType.AUTO, 2.0, 3.0); // 3 second cooldown
+            case TileType.TWO:
+                return new TileTriggerComponent(TileTriggerType.PROXIMITY, 5.0); // Increased to 5.0 unit radius
+            case TileType.THREE:
+                return new TileTriggerComponent(TileTriggerType.AUTO, 2.0, 4.0); // 4 second cooldown
+            default:
+                return new TileTriggerComponent(TileTriggerType.AUTO); // Default to auto
+        }
     }
 
     /**
