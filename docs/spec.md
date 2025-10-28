@@ -66,7 +66,22 @@ You are the Core: a sentient defense construct. You don’t move; you dominate. 
 - MVP: core combat + waves + hive VFX + meta points earn/spend.
 - Post‑MVP: elites/bosses, more enemy roles, unlock trees, difficulty modes, cosmetics.
 
+## Player agency & engagement
+**Core question**: What does the player actively do during combat?
+
+**Current approach**: Minimal active input - core auto-attacks, player watches and upgrades between runs.
+
+**Potential active elements** (choose 1-2 for MVP):
+- **Timing-based**: Press/hold to "overcharge" attacks (higher damage, longer cooldown)
+- **Targeting**: Click to prioritize specific enemies (overrides auto-targeting)
+- **Abilities**: Activate special attacks on cooldown (area damage, shield, etc.)
+- **Resource management**: Spend energy for enhanced attacks or defensive abilities
+
+**Design principle**: Keep active elements simple and impactful. The core should feel powerful even with minimal input.
+
 ## Open questions
-- Meta economy pacing: how many points per wave and target run count per unlock?
-- Boss cadence and unique mechanics.
-- Long‑term cosmetics/FX unlocks tied to achievements.
+- **Player agency**: What active input does the player have during combat?
+- **Meta economy pacing**: How many points per wave and target run count per unlock?
+- **Boss cadence and unique mechanics**: What makes bosses special beyond higher stats?
+- **Long‑term progression**: Cosmetics/FX unlocks tied to achievements vs pure meta upgrades?
+- **Difficulty curve**: How does the game teach players to optimize their core builds?
