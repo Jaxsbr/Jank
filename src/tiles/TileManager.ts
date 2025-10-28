@@ -3,7 +3,6 @@ import { Entity } from '../ecs/Entity';
 import { HexCoordinate } from './HexCoordinate';
 import { TileFactory } from './TileFactory';
 import { TileGrid } from './TileGrid';
-import { TileType } from './TileType';
 
 export class TileManager {
     private tileGrid: TileGrid;
@@ -28,8 +27,8 @@ export class TileManager {
     /**
      * Add a tile at the specified hex coordinates
      */
-    public addTile(coordinate: HexCoordinate, tileType: TileType = TileType.ONE): Entity | null {
-        const tile = this.tileFactory.createTile(tileType, coordinate);
+    public addTile(coordinate: HexCoordinate): Entity | null {
+        const tile = this.tileFactory.createTile(coordinate);
         if (tile) {
             this.tileGrid.addTile(tile, coordinate);
             // this.updateCenterTileHeight();
@@ -91,5 +90,47 @@ export class TileManager {
      */
     public getTileGrid(): TileGrid {
         return this.tileGrid;
+    }
+
+    /**
+     * Expand the grid by adding a new ring of tiles
+     */
+    public expandByRings(rings: number = 1): Entity[] {
+        const newTiles: Entity[] = [];
+        const currentRadius = this.tileGrid.getCurrentRadius();
+        
+        for (let ring = currentRadius + 1; ring <= currentRadius + rings; ring++) {
+            const ringCoordinates = this.tileGrid.getRingCoordinates(ring);
+            
+            ringCoordinates.forEach(coordinate => {
+                // Skip if coordinate is already occupied
+                if (this.tileGrid.isCoordinateOccupied(coordinate)) {
+                    return;
+                }
+                
+                // Create tile at this coordinate
+                const tile = this.tileFactory.createTile(coordinate);
+                if (tile) {
+                    this.tileGrid.addTile(tile, coordinate);
+                    newTiles.push(tile);
+                }
+            });
+        }
+        
+        return newTiles;
+    }
+
+    /**
+     * Unlock the next ring of tiles
+     */
+    public unlockNextRing(): Entity[] {
+        return this.expandByRings(1);
+    }
+
+    /**
+     * Get the current grid radius
+     */
+    public getCurrentRadius(): number {
+        return this.tileGrid.getCurrentRadius();
     }
 }

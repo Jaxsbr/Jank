@@ -2,6 +2,12 @@
 
 TypeScript skeleton project with Vite, Three.js, Jest, and GitHub Pages deployment.
 
+## Demo
+
+Animated preview (GIF): `docs/media/demo.gif`
+
+Add your own by following `docs/media/README.md` (record short screen capture and convert to GIF).
+
 ## Setup
 
 ```bash
@@ -48,15 +54,14 @@ Navigate to `http://localhost:5173/`
       RotationSystem.ts
       ...
     EntityFactory.ts
-  /tiles            # Hexagonal tile system
+  /tiles            # Hexagonal tile visual hive
     /components
       TileComponent.ts
       TileVisualComponent.ts
-      TileEffectComponent.ts
     /systems
       TileAnimationSystem.ts
-      TileHeightSystem.ts
-      ...
+    CoreEnemyVFXBridge.ts
+    TileVFXController.ts
     TileFactory.ts
     TileGrid.ts
     TileManager.ts
@@ -83,4 +88,9 @@ Run `./scripts/pre-commit.sh` to execute linting and tests before committing.
 - **Jest** (unit testing)
 - **ESLint** (code linting)
 - **GitHub Actions** (CI/CD)
+
+## Documentation
+
+- Hive Tiles overview: `docs/hive-tiles.md`
+- Game Spec (draft): `docs/spec.md`
 

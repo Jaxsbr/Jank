@@ -67,6 +67,53 @@ export class TileGrid {
     }
 
     /**
+     * Get the current grid radius (distance from center to furthest tile)
+     */
+    public getCurrentRadius(): number {
+        let maxRadius = 0;
+        for (const [key, tile] of this.tiles) {
+            const tileComponent = tile.getComponent(TileComponent);
+            if (tileComponent && !tileComponent.isCenterTile()) {
+                const distance = tileComponent.getDistanceFromCenter();
+                maxRadius = Math.max(maxRadius, distance);
+            }
+        }
+        return maxRadius;
+    }
+
+    /**
+     * Get all coordinates in a ring around the center
+     */
+    public getRingCoordinates(ring: number): HexCoordinate[] {
+        if (ring === 0) {
+            return [{ q: 0, r: 0 }];
+        }
+
+        const coordinates: HexCoordinate[] = [];
+        
+        // Generate coordinates for the ring
+        for (let q = -ring; q <= ring; q++) {
+            for (let r = Math.max(-ring, -q - ring); r <= Math.min(ring, -q + ring); r++) {
+                // Only add coordinates that are exactly on the ring
+                const distance = (Math.abs(q) + Math.abs(q + r) + Math.abs(r)) / 2;
+                if (distance === ring) {
+                    coordinates.push({ q, r });
+                }
+            }
+        }
+        
+        return coordinates;
+    }
+
+    /**
+     * Check if a coordinate is already occupied
+     */
+    public isCoordinateOccupied(coordinate: HexCoordinate): boolean {
+        const key = this.coordinateToKey(coordinate);
+        return this.tiles.has(key);
+    }
+
+    /**
      * Convert hex coordinates to a string key
      */
     private coordinateToKey(coordinate: HexCoordinate): string {

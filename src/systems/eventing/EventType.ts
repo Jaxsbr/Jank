@@ -9,5 +9,12 @@ export enum EventType {
     DamageTaken,
     EntityDeath,
     EntityCreated,
-    EntityDestroyed
+    EntityDestroyed,
+    EffectApplied,
+    EffectRemoved,
+    EffectExpired,
+    EffectTick,
+    CoreSpecialAttack,
+    CoreHit,
+    EnemyMoved
 }

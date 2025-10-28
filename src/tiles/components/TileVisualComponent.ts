@@ -13,11 +13,19 @@ export class TileVisualComponent implements IComponent {
     private baseHeight: number;
     private currentHeight: number;
     private targetHeight: number;
+    private glowIntensity: number;
+    private targetGlowIntensity: number;
+    private idleEmissiveColor: number;
+    private baseEmissiveIntensity: number;
 
     constructor(tileSize: number, materialConfig: TileMaterial) {
         this.baseHeight = 0.1;
         this.currentHeight = this.baseHeight;
         this.targetHeight = this.baseHeight;
+        this.glowIntensity = 0;
+        this.targetGlowIntensity = 0;
+        this.idleEmissiveColor = 0x88ccff;
+        this.baseEmissiveIntensity = 0.3;
 
         // Create hexagon geometry
         const geometry = this.createHexagonGeometry(tileSize);
@@ -28,6 +36,8 @@ export class TileVisualComponent implements IComponent {
             roughness: materialConfig.roughness,
             metalness: materialConfig.metalness
         });
+        // Ensure emissive color is set for idle heartbeat visibility
+        this.material.emissive = new THREE.Color(this.idleEmissiveColor);
         
 
         // Create mesh
@@ -166,5 +176,69 @@ export class TileVisualComponent implements IComponent {
         return Math.abs(this.targetHeight - this.currentHeight) < 0.001;
     }
 
+    /**
+     * Set target glow intensity (0-1)
+     */
+    public setTargetGlowIntensity(intensity: number): void {
+        this.targetGlowIntensity = Math.max(0, Math.min(1, intensity));
+    }
+
+    /**
+     * Get current glow intensity
+     */
+    public getGlowIntensity(): number {
+        return this.glowIntensity;
+    }
+
+    /**
+     * Get target glow intensity
+     */
+    public getTargetGlowIntensity(): number {
+        return this.targetGlowIntensity;
+    }
+
+    /**
+     * Update glow intensity with interpolation
+     */
+    public updateGlowIntensity(deltaTime: number, decayRate: number = 2.0): void {
+        const intensityDiff = this.targetGlowIntensity - this.glowIntensity;
+        if (Math.abs(intensityDiff) > 0.001) {
+            this.glowIntensity += intensityDiff * decayRate * deltaTime;
+        }
+        
+        // Apply glow to material
+        this.material.emissiveIntensity = this.glowIntensity;
+    }
+
+    /**
+     * Check if glow animation is complete
+     */
+    public isGlowAnimationComplete(): boolean {
+        return Math.abs(this.targetGlowIntensity - this.glowIntensity) < 0.001;
+    }
+
+    /**
+     * Set idle emissive color
+     */
+    public setIdleEmissiveColor(color: number): void {
+        this.idleEmissiveColor = color;
+        this.material.emissive.setHex(color);
+    }
+
+    /**
+     * Set base emissive intensity for idle state
+     */
+    public setBaseEmissiveIntensity(intensity: number): void {
+        this.baseEmissiveIntensity = Math.max(0, intensity);
+    }
+
+    /**
+     * Update idle heartbeat modulation
+     */
+    public updateIdleHeartbeat(time: number, amplitude: number = 0.25, frequency: number = 1.0): void {
+        const heartbeatOffset = Math.sin(time * frequency) * amplitude;
+        const totalIntensity = this.baseEmissiveIntensity + heartbeatOffset + this.glowIntensity;
+        this.material.emissiveIntensity = Math.max(0, totalIntensity);
+    }
 
 }

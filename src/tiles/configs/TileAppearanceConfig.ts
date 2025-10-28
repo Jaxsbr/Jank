@@ -1,42 +1,17 @@
-import { TileType } from '../TileType';
+// Note: TileType removed; visuals are unified
 
 export const TileAppearanceConfig = {
-    tileSize: 0.85,
-    materials: {
-        center: {
-            color: 0xffffff, // White
-            roughness: 0.9,
-            metalness: 0.1
-        },
-        [TileType.ONE]: {
-            color: 0xff0000, // Red
-            roughness: 0.8,
-            metalness: 0.1
-        },
-        [TileType.TWO]: {
-            color: 0x0000ff, // Blue
-            roughness: 0.6,
-            metalness: 0.1
-        },
-        [TileType.THREE]: {
-            color: 0xffff00, // Yellow
-            roughness: 0.5,
-            metalness: 0.3
-        },
-        [TileType.FOUR]: {
-            color: 0xff00ff, // Magenta
-            roughness: 0.7,
-            metalness: 0.2
-        },
-        [TileType.FIVE]: {
-            color: 0x00ffff, // Cyan
-            roughness: 0.4,
-            metalness: 0.4
-        },
-        [TileType.SIX]: {
-            color: 0xff8800, // Orange
-            roughness: 0.9,
-            metalness: 0.1
-        }
-    }
+    // Visual hex size (geometry). Smaller than spacing to create gaps
+    tileSize: 0.6,
+    // Logical spacing used to place tiles on the grid
+    tileSpacing: 0.8,
+    // Unified sterile lab-like material for all tiles
+    defaultMaterial: {
+        color: 0xe6eef2, // Cool white
+        roughness: 0.35,
+        metalness: 0.15
+    },
+    // Idle emissive color for heartbeat effect
+    idleEmissiveColor: 0x88ccff,
+    // Legacy per-type materials removed
 };
