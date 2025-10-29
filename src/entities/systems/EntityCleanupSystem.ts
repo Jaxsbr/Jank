@@ -40,7 +40,7 @@ export class EntityCleanupSystem implements IEventListener {
             return;
         }
 
-        // Remove entity from scene and dispose resources
+        // Remove entity main geometry from scene and dispose resources
         const geometryComponent = entity.getComponent(GeometryComponent);
         if (geometryComponent) {
             const group = geometryComponent.getGeometryGroup();
@@ -51,6 +51,8 @@ export class EntityCleanupSystem implements IEventListener {
             // Dispose of geometries and materials
             this.disposeGeometryComponent(geometryComponent);
         }
+
+        // If any auxiliary visuals were attached, they should be removed by their own systems
     }
 
     /**

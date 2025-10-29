@@ -19,6 +19,8 @@ export class Renderer implements IEventListener {
         this.renderer.setClearColor(0x1a1a1a);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Allow multi-pass rendering (world then UI overlay)
+        this.renderer.autoClear = false;
 
         const app = document.getElementById('app');
         if (app) {
@@ -42,6 +44,18 @@ export class Renderer implements IEventListener {
     }
 
     public update(scene: THREE.Scene): void {
+        // Clear once per frame, then render world
+        this.renderer.clear();
         this.renderer.render(scene, this.camera);
+    }
+
+    public renderOverlay(uiScene: THREE.Scene, uiCamera: THREE.Camera): void {
+        // Preserve color, clear depth to render overlay on top
+        this.renderer.clearDepth();
+        this.renderer.render(uiScene, uiCamera);
+    }
+
+    public getCamera(): THREE.Camera {
+        return this.camera;
     }
 }

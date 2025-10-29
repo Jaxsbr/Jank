@@ -23,6 +23,8 @@ import { CoreEnemyVFXBridge } from './tiles/CoreEnemyVFXBridge';
 import { TileManager } from './tiles/TileManager';
 import { TileVFXController } from './tiles/TileVFXController';
 import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
+import { CoreHPBarSystem } from './ui/CoreHPBarSystem';
+import { CoreHPHUD } from './ui/CoreHPHUD';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { DebugUI } from './ui/DebugUI';
 import { Time } from './utils/Time';
@@ -51,6 +53,10 @@ new CoreEnemyVFXBridge(GlobalEventDispatcher, tileVFXController);
 // const tileHeightSystem = new TileHeightSystem(2, 3);
 const tileManager = new TileManager(scene);
 tileManager.initialize()
+
+// Create HP HUD (screen-space) and systems
+const coreHPHUD = new CoreHPHUD(window.innerWidth, window.innerHeight);
+const coreHPBarSystem = new CoreHPBarSystem(coreHPHUD as unknown as any, entityManager);
 
 // Create a larger uniform grid for demo
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -112,6 +118,9 @@ function animate(): void {
     damageVisualSystem.update();
     attackAnimationSystem.update(entities);
     
+    // Update HP bar systems
+    coreHPBarSystem.update();
+    
     // Update effect systems
     effectTickSystem.update(entities);
     
@@ -122,6 +131,8 @@ function animate(): void {
     tileVFXController.update(Time.getDeltaTime());
     // tileHeightSystem.update(tileEntities);
     renderSystem.update();
+    // Render HUD overlay
+    renderer.renderOverlay(coreHPHUD.getUIScene(), coreHPHUD.getUICamera());
 }
 
 animate();
@@ -133,4 +144,5 @@ window.addEventListener('resize', () => {
             width: window.innerWidth,
             height: window.innerHeight
         }));
+    coreHPHUD.onResize(window.innerWidth, window.innerHeight);
 });
