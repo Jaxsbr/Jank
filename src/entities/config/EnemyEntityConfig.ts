@@ -93,7 +93,7 @@ export const defaultEnemyEntityConfig: EnemyEntityConfig = {
     },
     movement: {
         targetPosition: new Vector3(0, 0, 0), // Core entity position
-        maxSpeed: 0.10,
+        maxSpeed: 0.02,
         targetReachedThreshold: 0.001,
         acceleration: 0.95,
         deceleration: 0.0025,

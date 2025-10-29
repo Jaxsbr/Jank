@@ -7,6 +7,8 @@ import { CombatSystem } from './entities/systems/CombatSystem';
 import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
 import { EffectTickSystem } from './entities/systems/EffectTickSystem';
 import { EntityCleanupSystem } from './entities/systems/EntityCleanupSystem';
+import { HitParticleSystem } from './entities/systems/HitParticleSystem';
+import { KnockbackOnHitSystem } from './entities/systems/KnockbackOnHitSystem';
 import { MeleeAttackSystem } from './entities/systems/MeleeAttackSystem';
 import { MovementSystem } from './entities/systems/MovementSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
@@ -22,10 +24,13 @@ import { EventType } from './systems/eventing/EventType';
 import { CoreEnemyVFXBridge } from './tiles/CoreEnemyVFXBridge';
 import { TileManager } from './tiles/TileManager';
 import { TileVFXController } from './tiles/TileVFXController';
+import { defaultTileAnimationConfig } from './tiles/configs/TileAnimationConfig';
 import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
 import { CoreHPBarSystem } from './ui/CoreHPBarSystem';
 import { CoreHPHUD } from './ui/CoreHPHUD';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
+import { defaultEffectTickConfig } from './entities/config/EffectTickConfig';
+import { defaultKnockbackConfig } from './entities/config/KnockbackConfig';
 import { DebugUI } from './ui/DebugUI';
 import { Time } from './utils/Time';
 
@@ -40,12 +45,14 @@ const meleeAttackSystem = new MeleeAttackSystem()
 const entityManager = new EntityManager(GlobalEventDispatcher)
 const combatSystem = new CombatSystem(GlobalEventDispatcher)
 const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
-const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, 1.0)
+const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffectTickConfig.intervalSeconds)
 const attackAnimationSystem = new AttackAnimationSystem()
+const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, defaultKnockbackConfig)
+const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher)
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
 
-const tileAnimationSystem = new TileAnimationSystem(0.2);
+const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig.speed);
 const tileVFXController = new TileVFXController(GlobalEventDispatcher);
 // Bridge listens on global dispatcher; instance retained for lifecycle
 // Instantiate bridge (no direct usage needed)
@@ -95,6 +102,8 @@ setTimeout(() => {
 // Set entities reference for systems
 combatSystem.setEntities(entityManager.getEntities())
 damageVisualSystem.setEntities(entityManager.getEntities())
+knockbackOnHitSystem.setEntities(entityManager.getEntities())
+hitParticleSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
@@ -107,6 +116,8 @@ function animate(): void {
 
     const entities = entityManager.getEntities();
     bobAnimationSystem.update(entities);
+    // Apply knockback velocities before steering/movement so movement can react
+    knockbackOnHitSystem.update(entities);
     movementSystem.update(entities);
     rotationSystem.update(entities);
     
@@ -116,6 +127,7 @@ function animate(): void {
     
     // Update visual effects
     damageVisualSystem.update();
+    hitParticleSystem.update();
     attackAnimationSystem.update(entities);
     
     // Update HP bar systems
