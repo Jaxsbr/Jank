@@ -76,15 +76,18 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
     }
 
     private spawnParticle(entity: Entity, geometry: GeometryComponent): void {
-        const effectToSpawn: HitFXKind = this.config.mode === 'random'
-            ? (Math.random() < 0.5 ? 'shards' : 'fluffy')
-            : this.config.mode;
+        this.spawnFluffy(entity, geometry);
 
-        if (effectToSpawn === 'fluffy') {
-            this.spawnFluffy(entity, geometry);
-        } else {
-            this.spawnShards(entity, geometry);
-        }
+        // ENABLE to spawn effect variations
+        // const effectToSpawn: HitFXKind = this.config.mode === 'random'
+        //     ? (Math.random() < 0.5 ? 'shards' : 'fluffy')
+        //     : this.config.mode;
+
+        // if (effectToSpawn === 'fluffy') {
+        //     this.spawnFluffy(entity, geometry);
+        // } else {
+        //     this.spawnShards(entity, geometry);
+        // }
     }
 
     private spawnShards(entity: Entity, geometry: GeometryComponent): void {

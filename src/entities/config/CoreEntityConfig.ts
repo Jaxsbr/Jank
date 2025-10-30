@@ -50,8 +50,8 @@ export const defaultCoreEntityConfig: CoreEntityConfig = {
     },
     bobAnimation: {
         speed: 0.02,
-        amplitude: 0.5,
-        baseY: 1.5
+        amplitude: 0.1,
+        baseY: 1.6
     },
     combat: {
         attack: {
