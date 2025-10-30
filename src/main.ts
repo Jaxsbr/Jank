@@ -119,45 +119,63 @@ hitParticleSystem.setEntities(entityManager.getEntities())
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
 
+// Fixed timestep game loop with rAF rendering
+let lastNow = performance.now();
+let accumulator = 0;
+const FIXED_DT = 1 / 60; // seconds per tick
+const MAX_STEPS = 5;
+
 function animate(): void {
     requestAnimationFrame(animate);
 
-    // Update Time system at the start of each frame
-    Time.update(performance.now());
+    const now = performance.now();
+    let frameDelta = (now - lastNow) / 1000;
+    lastNow = now;
+    // Avoid spiral of death
+    if (frameDelta > 0.25) frameDelta = 0.25;
+    accumulator += frameDelta;
 
+    // Fixed-step simulation updates
+    let steps = 0;
+    while (accumulator >= FIXED_DT && steps < MAX_STEPS) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        Time.advanceFixed(FIXED_DT);
+        const entities = entityManager.getEntities();
+
+        // Gameplay-affecting systems (order matters)
+        knockbackOnHitSystem.update(entities);
+        movementSystem.update(entities);
+        rotationSystem.update(entities);
+        targetingSystem.update(entities);
+        meleeAttackSystem.update(entities);
+        effectTickSystem.update(entities);
+        enemySpawner.update(FIXED_DT);
+
+        steps++;
+        accumulator -= FIXED_DT;
+    }
+
+    // Frame-based visuals (use actual frame delta for smoothness)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    Time.setDeltaForFrame(frameDelta);
     const entities = entityManager.getEntities();
     bobAnimationSystem.update(entities);
-    // Apply knockback velocities before steering/movement so movement can react
-    knockbackOnHitSystem.update(entities);
-    movementSystem.update(entities);
-    rotationSystem.update(entities);
-    
-    // Update combat systems
-    targetingSystem.update(entities);
-    meleeAttackSystem.update(entities);
-    
-    // Update visual effects
     damageVisualSystem.update();
     hitParticleSystem.update();
     deathEffectSystem.update();
     attackAnimationSystem.update(entities);
-    
-    // Update HP bar systems
-    coreHPBarSystem.update();
-    
-    // Update effect systems
-    effectTickSystem.update(entities);
-    // Update enemy spawner
-    enemySpawner.update(Time.getDeltaTime());
-    
-    const tileEntities = tileManager.getAllTiles()
+
+    const tileEntities = tileManager.getAllTiles();
     tileVFXController.setTiles(tileEntities);
     tileVFXController.setCenterFromGrid(tileManager.getTileGrid());
     tileAnimationSystem.update(tileEntities);
-    tileVFXController.update(Time.getDeltaTime());
-    // tileHeightSystem.update(tileEntities);
+    tileVFXController.update(frameDelta);
+
+    // UI
+    coreHPBarSystem.update();
+
+    // Render
     renderSystem.update();
-    // Render HUD overlay
     renderer.renderOverlay(coreHPHUD.getUIScene(), coreHPHUD.getUICamera());
 }
 

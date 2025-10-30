@@ -1,6 +1,7 @@
 import { Entity } from '../../ecs/Entity';
 import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
+import { Time } from '../../utils/Time';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
@@ -17,8 +18,12 @@ export class RotationSystem implements IEntitySystem {
             .execute()
             .forEach(({ components }) => {
                 const [rotation, geometry] = components;
-                
-                geometry.rotate(rotation.getX(), rotation.getY(), rotation.getZ());
+                const dt = Time.getDeltaTime();
+                // Back-compat: rotation values were tuned as per-frame deltas; convert to per second
+                const rx = rotation.getX() * 60;
+                const ry = rotation.getY() * 60;
+                const rz = rotation.getZ() * 60;
+                geometry.rotate(rx * dt, ry * dt, rz * dt);
             });
     }
 }

@@ -34,6 +34,23 @@ export class Time {
     }
 
     /**
+     * Advance the simulation time by a fixed delta (seconds) and set deltaTime to that value.
+     * Use this inside a fixed-timestep simulation loop.
+     */
+    public static advanceFixed(dtSeconds: number): void {
+        this.deltaTime = dtSeconds;
+        this.currentTime += dtSeconds;
+    }
+
+    /**
+     * Set the delta time for the current frame without advancing current time.
+     * Useful to provide visual systems the real frame delta after fixed updates.
+     */
+    public static setDeltaForFrame(dtSeconds: number): void {
+        this.deltaTime = dtSeconds;
+    }
+
+    /**
      * Convert milliseconds to seconds
      * @param milliseconds Time in milliseconds
      * @returns Time in seconds

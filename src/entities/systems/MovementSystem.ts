@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from '../../ecs/Entity';
 import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
+import { Time } from '../../utils/Time';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { MovementComponent } from '../components/MovementComponent';
@@ -56,12 +57,14 @@ export class MovementSystem implements IEntitySystem {
                 this.lastDirection2DByEntityId.set(entityId, steeredDir.clone());
                 
                 // Constant speed movement (no acceleration/deceleration)
-                const newSpeed = movement.getMaxSpeed();
+                // Back-compat: maxSpeed was tuned as units per frame; convert to units per second
+                const newSpeedPerSecond = movement.getMaxSpeed() * 60;
                 
-                movement.setCurrentSpeed(newSpeed);
+                movement.setCurrentSpeed(newSpeedPerSecond);
                 
-                // Calculate movement delta for this frame using current speed, don't cross stop radius
-                const movementDelta = Math.min(newSpeed, distanceToStop);
+                // Calculate movement delta for this frame using current speed scaled by dt, don't cross stop radius
+                const dt = Time.getDeltaTime();
+                const movementDelta = Math.min(newSpeedPerSecond * dt, distanceToStop);
                 
                 // Calculate new position (2D movement, preserve Y)
                 const movementVector2D = steeredDir.multiplyScalar(movementDelta);

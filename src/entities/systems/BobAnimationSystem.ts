@@ -2,6 +2,7 @@ import { Entity } from '../../ecs/Entity';
 import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { MathUtils } from '../../utils/MathUtils';
+import { Time } from '../../utils/Time';
 import { AttackComponent } from '../components/AttackComponent';
 import { BobAnimationComponent } from '../components/BobAnimationComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
@@ -32,10 +33,12 @@ export class BobAnimationSystem implements IEntitySystem {
                 // Check if entity is in attack range for vibrate effect
                 this.updateAnimationSpeed(entity, bobAnimation);
                 
-                // Update animation time
+                // Update animation time using frame delta for framerate independence
+                const dt = Time.getDeltaTime();
                 const animationTime = bobAnimation.getAnimationTime;
-                const animationSpeed = bobAnimation.getAnimationSpeed;
-                bobAnimation.setAnimationTime = animationTime + animationSpeed;
+                // Back-compat: animationSpeed was tuned as delta per frame; convert to per second
+                const animationSpeedPerSecond = bobAnimation.getAnimationSpeed * 60;
+                bobAnimation.setAnimationTime = animationTime + animationSpeedPerSecond * dt;
 
                 // Update animation position (only Y axis for bob animation)
                 const bobOffset = Math.sin(bobAnimation.getAnimationTime * this.config.bob.multiplier) * bobAnimation.getBobAmplitude;
