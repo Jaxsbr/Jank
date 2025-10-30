@@ -1,4 +1,4 @@
-export type HitFXKind = 'shards' | 'fluffy';
+export type HitFXKind = 'shards' | 'fluffy' | 'arcs';
 
 export interface ShardFXConfig {
     opacity: number;
@@ -29,6 +29,17 @@ export interface FluffyFXConfig {
     velocityRandom: number;
 }
 
+export interface ArcFXConfig {
+    color: number;
+    opacity: number;
+    count: number;
+    segments: number;
+    radiusStart: number;
+    radiusEnd: number;
+    jitter: number;
+    midpointYOffset: number;
+}
+
 export interface HitParticleConfig {
     mode: 'random' | HitFXKind;
     lifetime: number;
@@ -36,6 +47,7 @@ export interface HitParticleConfig {
     endScale: number;
     shards: ShardFXConfig;
     fluffy: FluffyFXConfig;
+    arcs: ArcFXConfig;
 }
 
 export const defaultHitParticleConfig: HitParticleConfig = {
@@ -69,6 +81,16 @@ export const defaultHitParticleConfig: HitParticleConfig = {
         midpointYOffset: 0.35,
         upwardRandom: 0.4,
         velocityRandom: 0.6
+    },
+    arcs: {
+        color: 0x00e5ff,
+        opacity: 0.95,
+        count: 6,
+        segments: 10,
+        radiusStart: 0.2,
+        radiusEnd: 0.9,
+        jitter: 0.35,
+        midpointYOffset: 0.35
     }
 };
 

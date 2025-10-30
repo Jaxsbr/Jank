@@ -8,12 +8,12 @@ export interface DeathEffectConfig {
 }
 
 export const defaultDeathEffectConfig: DeathEffectConfig = {
-    durationSeconds: 0.3,
+    durationSeconds: 0.35,
     startRadius: 0.2,
-    endRadius: 1.4,
+    endRadius: 1.7,
     sphereColor: 0x66ccff,
     arcColor: 0xaaddee,
-    arcCount: 5
+    arcCount: 15
 };
 
 

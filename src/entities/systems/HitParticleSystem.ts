@@ -9,7 +9,7 @@ import { EntityFinder } from '../../utils/EntityFinder';
 import { Time } from '../../utils/Time';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { TeamComponent } from '../components/TeamComponent';
-import { HitFXKind, HitParticleConfig, defaultHitParticleConfig } from '../config/HitParticleConfig';
+import { ArcFXConfig, HitFXKind, HitParticleConfig, defaultHitParticleConfig } from '../config/HitParticleConfig';
 
 interface BaseFX {
     kind: HitFXKind;
@@ -38,20 +38,29 @@ interface FluffyFX extends BaseFX {
     particles: FluffyParticle[];
 }
 
+interface ArcFX extends BaseFX {
+    kind: 'arcs';
+    lines: THREE.Line[];
+    material: THREE.LineBasicMaterial;
+}
+
 /**
  * Spawns small transient puffs on enemy melee hits.
  */
 export class HitParticleSystem implements IEventListener, IEntitySystem {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
-    private particles: Array<ShardFX | FluffyFX> = [];
+    private particles: Array<ShardFX | FluffyFX | ArcFX> = [];
     private config: HitParticleConfig;
     private scene: THREE.Scene | null = null;
+    private arcConfigRef: ArcFXConfig;
 
     constructor(eventDispatcher: EventDispatcherSingleton, scene?: THREE.Scene, config: HitParticleConfig = defaultHitParticleConfig) {
         this.eventDispatcher = eventDispatcher;
         this.config = config;
         this.scene = scene ?? null;
+        // Cache arc config reference to avoid repeated unsafe accesses on dynamic config
+        this.arcConfigRef = (config as HitParticleConfig).arcs as ArcFXConfig;
         this.eventDispatcher.registerListener('HitParticleSystem', this);
     }
 
@@ -78,7 +87,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
     }
 
     private spawnParticle(entity: Entity | null, geometry: GeometryComponent | null, providedPos?: THREE.Vector3): void {
-        this.spawnFluffy(entity, geometry, providedPos);
+        this.spawnArcs(entity, geometry, providedPos);
 
         // ENABLE to spawn effect variations
         // const effectToSpawn: HitFXKind = this.config.mode === 'random'
@@ -266,6 +275,88 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
         this.particles.push(fx);
     }
 
+    private spawnArcs(entity: Entity | null, geometry: GeometryComponent | null, providedPos?: THREE.Vector3): void {
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+        const group = new THREE.Group();
+
+        const arcConf = this.arcConfigRef;
+        const material = new THREE.LineBasicMaterial({
+            color: arcConf.color,
+            transparent: true,
+            opacity: arcConf.opacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const lines: THREE.Line[] = [];
+
+        // Determine world midpoint (same approach as other effects)
+        let worldMidpoint: THREE.Vector3 | null = null;
+        try {
+            if (providedPos) {
+                worldMidpoint = providedPos.clone();
+            }
+            const core = this.entities.find((e: Entity) => {
+                const t = e.getComponent(TeamComponent) as TeamComponent | undefined;
+                return !!t && t.isCore();
+            });
+            const enemyGeom = entity ? entity.getComponent(GeometryComponent) as GeometryComponent | undefined : geometry;
+            if (!worldMidpoint && core && enemyGeom) {
+                const coreGeom = core.getComponent(GeometryComponent) as GeometryComponent | undefined;
+                if (coreGeom) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+                    const enemyPos = enemyGeom.getPosition();
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+                    const corePos = coreGeom.getPosition();
+                    const enemyV = enemyPos as THREE.Vector3;
+                    const coreV = corePos as THREE.Vector3;
+                    worldMidpoint = new THREE.Vector3(
+                        (enemyV.x + coreV.x) * 0.5,
+                        Math.max(enemyV.y, coreV.y) + arcConf.midpointYOffset,
+                        (enemyV.z + coreV.z) * 0.5
+                    );
+                }
+            }
+        } catch {
+            // ignore
+        }
+
+        if (!this.scene) return;
+        if (worldMidpoint) {
+            group.position.copy(worldMidpoint);
+        } else if (geometry) {
+            const enemyGroup = geometry.getGeometryGroup();
+            group.position.copy(enemyGroup.getWorldPosition(new THREE.Vector3()));
+            group.position.y += arcConf.midpointYOffset;
+        }
+
+        // Create electric arc lines that jitter each frame
+        const lineCount = arcConf.count;
+        const segments = arcConf.segments;
+        for (let i = 0; i < lineCount; i++) {
+            const positions = new Float32Array(segments * 3);
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const line = new THREE.Line(geometry, material);
+            group.add(line);
+            lines.push(line);
+        }
+
+        this.scene.add(group);
+
+        const fx: ArcFX = {
+            kind: 'arcs',
+            parentEntityId: entity ? entity.getId() : 'unknown',
+            group,
+            material,
+            lines,
+            startTime: Time.now(),
+            lifetime: this.config.lifetime
+        };
+        this.particles.push(fx);
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+    }
+
     public update(): void {
         if (this.particles.length === 0) return;
         const now = Time.now();
@@ -284,8 +375,15 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                 // dispose materials based on kind
                 if (p.kind === 'shards') {
                     (p as ShardFX).material.dispose();
-                } else {
+                } else if (p.kind === 'fluffy') {
                     (p as FluffyFX).material.dispose();
+                } else {
+                    // arcs
+                    const a = p as ArcFX;
+                    a.material.dispose();
+                    for (const line of a.lines) {
+                        (line.geometry as THREE.BufferGeometry).dispose();
+                    }
                 }
                 this.particles.splice(i, 1);
                 continue;
@@ -296,7 +394,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                 const scale = s.startScale + (s.endScale - s.startScale) * t;
                 s.group.scale.setScalar(scale);
                 s.material.opacity = this.config.shards.opacity * (1 - t);
-            } else {
+            } else if (p.kind === 'fluffy') {
                 const f = p as FluffyFX;
                 const dt = Math.max(0.001, Time.getDeltaTime());
                 const gravity = this.config.fluffy.gravity; // mild gravity
@@ -306,6 +404,27 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                     part.mesh.position.addScaledVector(part.velocity, dt);
                 }
                 f.material.opacity = this.config.fluffy.opacity * (1 - t);
+            } else {
+                const a = p as ArcFX;
+                // ease radius for arcs outward over life
+                const eased = 1 - Math.pow(1 - t, 2);
+                const arcConf = this.arcConfigRef;
+                const radius = THREE.MathUtils.lerp(arcConf.radiusStart, arcConf.radiusEnd, eased);
+                const jitter = arcConf.jitter;
+                for (const line of a.lines) {
+                    const positions = ((line.geometry as THREE.BufferGeometry).attributes['position']) as THREE.BufferAttribute;
+                    const segs = positions.count;
+                    for (let s = 0; s < segs; s++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const r = radius * (0.75 + Math.random() * 0.5);
+                        const y = (Math.random() - 0.5) * radius * 0.5;
+                        const jx = (Math.random() - 0.5) * jitter;
+                        const jz = (Math.random() - 0.5) * jitter;
+                        positions.setXYZ(s, Math.cos(angle) * r + jx, y, Math.sin(angle) * r + jz);
+                    }
+                    positions.needsUpdate = true;
+                }
+                a.material.opacity = this.arcConfigRef.opacity * (1 - t);
             }
         }
     }
@@ -317,7 +436,17 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             if (!p) continue;
             if (p.group.parent) p.group.parent.remove(p.group);
             p.group.clear();
-            p.material.dispose();
+            if ((p as ShardFX).kind === 'shards') {
+                (p as ShardFX).material.dispose();
+            } else if ((p as FluffyFX).kind === 'fluffy') {
+                (p as FluffyFX).material.dispose();
+            } else {
+                const a = p as ArcFX;
+                a.material.dispose();
+                for (const line of a.lines) {
+                    (line.geometry as THREE.BufferGeometry).dispose();
+                }
+            }
         }
         this.particles = [];
     }
