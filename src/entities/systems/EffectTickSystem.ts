@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Entity } from '../../ecs/Entity';
 import { EntityQuery } from '../../ecs/EntityQuery';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
@@ -7,7 +8,9 @@ import { EventType } from '../../systems/eventing/EventType';
 import { Time } from '../../utils/Time';
 import { EffectType } from '../EffectType';
 import { ActiveEffect, EffectComponent } from '../components/EffectComponent';
+import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
+import { PositionComponent } from '../components/PositionComponent';
 
 /**
  * System that updates active effects on entities each frame
@@ -115,9 +118,21 @@ export class EffectTickSystem implements IEntitySystem {
 
         // Check if entity died
         if (!healthComponent.isAlive()) {
+            const position = new THREE.Vector3();
+            const posComp = entity.getComponent(PositionComponent);
+            if (posComp) {
+                const p = posComp.getPosition();
+                position.set(p.x, p.y, p.z);
+            } else {
+                const geom = entity.getComponent(GeometryComponent);
+                if (geom) {
+                    geom.getGeometryGroup().getWorldPosition(position);
+                }
+            }
             this.eventDispatcher.dispatch(new Event(EventType.EntityDeath, {
                 entity: entity,
                 entityId: entity.getId(),
+                position,
                 deathTime: currentTime,
                 deathCause: 'effect',
                 effectType: effect.effectType,

@@ -30,8 +30,10 @@ import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
 import { CoreHPBarSystem } from './ui/CoreHPBarSystem';
 import { CoreHPHUD } from './ui/CoreHPHUD';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
+import { defaultDeathEffectConfig } from './entities/config/DeathEffectConfig';
 import { defaultEffectTickConfig } from './entities/config/EffectTickConfig';
 import { defaultKnockbackConfig } from './entities/config/KnockbackConfig';
+import { DeathEffectSystem } from './entities/systems/DeathEffectSystem';
 import { DebugUI } from './ui/DebugUI';
 import { Time } from './utils/Time';
 
@@ -50,6 +52,7 @@ const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffe
 const attackAnimationSystem = new AttackAnimationSystem()
 const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, defaultKnockbackConfig)
 const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher)
+const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
 const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
@@ -111,6 +114,7 @@ combatSystem.setEntities(entityManager.getEntities())
 damageVisualSystem.setEntities(entityManager.getEntities())
 knockbackOnHitSystem.setEntities(entityManager.getEntities())
 hitParticleSystem.setEntities(entityManager.getEntities())
+deathEffectSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
@@ -135,6 +139,7 @@ function animate(): void {
     // Update visual effects
     damageVisualSystem.update();
     hitParticleSystem.update();
+    deathEffectSystem.update();
     attackAnimationSystem.update(entities);
     
     // Update HP bar systems

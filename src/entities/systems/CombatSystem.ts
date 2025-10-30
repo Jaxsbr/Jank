@@ -1,10 +1,13 @@
+import * as THREE from 'three';
 import { Entity } from '../../ecs/Entity';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
+import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
+import { PositionComponent } from '../components/PositionComponent';
 
 /**
  * System responsible for applying damage and detecting entity death.
@@ -74,9 +77,23 @@ export class CombatSystem implements IEventListener {
 
         // Check if target is dead
         if (!healthComponent.isAlive()) {
+            // Capture position at death time before destruction
+            const position = new THREE.Vector3();
+            const posComp = targetEntity.getComponent(PositionComponent);
+            if (posComp) {
+                const p = posComp.getPosition();
+                position.set(p.x, p.y, p.z);
+            } else {
+                const geom = targetEntity.getComponent(GeometryComponent);
+                if (geom) {
+                    geom.getGeometryGroup().getWorldPosition(position);
+                }
+            }
+
             // Dispatch entity death event (EntityManager will handle destruction and cleanup)
             const deathEvent = new Event(EventType.EntityDeath, {
-                entityId: targetId
+                entityId: targetId,
+                position
             });
             this.eventDispatcher.dispatch(deathEvent);
         }
