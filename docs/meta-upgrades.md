@@ -31,6 +31,8 @@ This document defines current MVP meta upgrades and serves as a backlog for futu
 - core regen out of combat
 - crit chance/damage mechanics
 - on-kill explosion with radius scaling by rings
+ - Core upgrade levelup: large step-change to core base stats (speed, HP, energy) and visual form (size, extra geometry). May also intensify select hive VFX. Gated to unlock only after certain other metas are acquired (TBD).
+ - Core melee attack speed increase: multi-level upgrade that reduces melee attack cooldown (e.g., -0.05s per level) to increase attack frequency.
 
 ## Removal Path
 - Delete `MetaProgressionSystem` and its test config when real meta UI/persistence lands.

@@ -17,6 +17,7 @@ export class TileVisualComponent implements IComponent {
     private targetGlowIntensity: number;
     private idleEmissiveColor: number;
     private baseEmissiveIntensity: number;
+    private rangeOverlayIntensity: number;
 
     constructor(tileSize: number, materialConfig: TileMaterial) {
         this.baseHeight = 0.1;
@@ -26,6 +27,7 @@ export class TileVisualComponent implements IComponent {
         this.targetGlowIntensity = 0;
         this.idleEmissiveColor = 0x88ccff;
         this.baseEmissiveIntensity = 0.3;
+        this.rangeOverlayIntensity = 0;
 
         // Create hexagon geometry
         const geometry = this.createHexagonGeometry(tileSize);
@@ -233,11 +235,18 @@ export class TileVisualComponent implements IComponent {
     }
 
     /**
+     * Set persistent range ring overlay intensity (0-1)
+     */
+    public setRangeOverlayIntensity(intensity: number): void {
+        this.rangeOverlayIntensity = Math.max(0, Math.min(1, intensity));
+    }
+
+    /**
      * Update idle heartbeat modulation
      */
     public updateIdleHeartbeat(time: number, amplitude: number = 0.25, frequency: number = 1.0): void {
         const heartbeatOffset = Math.sin(time * frequency) * amplitude;
-        const totalIntensity = this.baseEmissiveIntensity + heartbeatOffset + this.glowIntensity;
+        const totalIntensity = this.baseEmissiveIntensity + heartbeatOffset + this.rangeOverlayIntensity + this.glowIntensity;
         this.material.emissiveIntensity = Math.max(0, totalIntensity);
     }
 

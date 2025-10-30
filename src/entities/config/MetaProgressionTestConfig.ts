@@ -1,4 +1,4 @@
-export type TestAward = 'multiMelee' | 'ring2MeleeRange';
+export type TestAward = 'multiMelee' | 'ring2MeleeRange' | 'ring3MeleeRange';
 
 export interface MetaProgressionTestConfig {
     killMilestones: number[];
@@ -6,8 +6,8 @@ export interface MetaProgressionTestConfig {
 }
 
 export const defaultMetaProgressionTestConfig: MetaProgressionTestConfig = {
-    killMilestones: [10, 20],
-    awards: ['multiMelee', 'ring2MeleeRange'],
+    killMilestones: [5, 10, 15],
+    awards: ['ring2MeleeRange', 'ring3MeleeRange', 'multiMelee'],
 };
 
 

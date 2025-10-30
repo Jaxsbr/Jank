@@ -33,11 +33,12 @@ export class MetaProgressionSystem implements IEventListener {
 
     private handleEnemyKilled(): void {
         this.killCount += 1;
-        if (this.nextMilestoneIndex >= this.config.killMilestones.length) return;
+        const index = this.nextMilestoneIndex;
+        if (index >= this.config.killMilestones.length || index >= this.config.awards.length) return;
 
-        const milestone = this.config.killMilestones[this.nextMilestoneIndex];
+        const milestone = this.config.killMilestones[index]!;
         if (this.killCount >= milestone) {
-            const award = this.config.awards[this.nextMilestoneIndex];
+            const award = this.config.awards[index]!;
             this.applyAward(award);
             this.nextMilestoneIndex += 1;
         }
@@ -64,6 +65,8 @@ export class MetaProgressionSystem implements IEventListener {
             meta.setExtraMeleeTargets(newValue);
         } else if (award === 'ring2MeleeRange') {
             meta.setMeleeRangeRings(Math.min(2, defaultMetaUpgradeConfig.maxMeleeRangeRings));
+        } else if (award === 'ring3MeleeRange') {
+            meta.setMeleeRangeRings(Math.min(3, defaultMetaUpgradeConfig.maxMeleeRangeRings));
         }
     }
 

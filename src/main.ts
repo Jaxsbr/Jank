@@ -27,6 +27,7 @@ import { TileManager } from './tiles/TileManager';
 import { TileVFXController } from './tiles/TileVFXController';
 import { defaultTileAnimationConfig } from './tiles/configs/TileAnimationConfig';
 import { TileAnimationSystem } from './tiles/systems/TileAnimationSystem';
+import { TileRangeRingSystem } from './tiles/systems/TileRangeRingSystem';
 import { CoreHPBarSystem } from './ui/CoreHPBarSystem';
 import { CoreHPHUD } from './ui/CoreHPHUD';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
@@ -66,6 +67,7 @@ const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
 })
 
 const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig.speed);
+const tileRangeRingSystem = new TileRangeRingSystem();
 const tileVFXController = new TileVFXController(GlobalEventDispatcher);
 // Bridge listens on global dispatcher; instance retained for lifecycle
 // Instantiate bridge (no direct usage needed)
@@ -171,6 +173,8 @@ function animate(): void {
     const tileEntities = tileManager.getAllTiles();
     tileVFXController.setTiles(tileEntities);
     tileVFXController.setCenterFromGrid(tileManager.getTileGrid());
+    // Apply range ring overlays before idle heartbeat/glow calculations
+    tileRangeRingSystem.update(tileEntities, entities);
     tileAnimationSystem.update(tileEntities);
     tileVFXController.update(frameDelta);
 
