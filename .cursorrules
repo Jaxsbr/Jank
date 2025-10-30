@@ -14,3 +14,6 @@ Cursor Rules
   - Create typed config files for all tunable values (damage, speeds, visuals, spawn rates, etc.).
   - Place configs under relevant `configs` folders and inject via constructors or factories.
   - Prefer named constants and config objects over inline literals.
+
+- @docs/meta-upgrades.md
+  - Definitions and rules for meta upgrades (MVP + backlog). Use as reference.

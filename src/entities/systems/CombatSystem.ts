@@ -8,6 +8,7 @@ import { EntityFinder } from '../../utils/EntityFinder';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
+import { TeamComponent } from '../components/TeamComponent';
 
 /**
  * System responsible for applying damage and detecting entity death.
@@ -16,6 +17,7 @@ import { PositionComponent } from '../components/PositionComponent';
 export class CombatSystem implements IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
+    private reportedEnemyKills: Set<string> = new Set();
 
     constructor(eventDispatcher: EventDispatcherSingleton) {
         this.eventDispatcher = eventDispatcher;
@@ -91,6 +93,14 @@ export class CombatSystem implements IEventListener {
 
         // Check if target is dead
         if (!healthComponent.isAlive()) {
+            const team = targetEntity.getComponent(TeamComponent);
+            if (team && team.isEnemy() && !this.reportedEnemyKills.has(targetId)) {
+                this.reportedEnemyKills.add(targetId);
+                const enemyKilledEvent = new Event(EventType.EnemyKilled, {
+                    entityId: targetId,
+                });
+                this.eventDispatcher.dispatch(enemyKilledEvent);
+            }
             // Capture position at death time before destruction
             const position = new THREE.Vector3();
             const posComp = targetEntity.getComponent(PositionComponent);

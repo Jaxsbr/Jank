@@ -16,5 +16,6 @@ export enum EventType {
     EffectTick,
     CoreSpecialAttack,
     CoreHit,
-    EnemyMoved
+    EnemyMoved,
+    EnemyKilled
 }

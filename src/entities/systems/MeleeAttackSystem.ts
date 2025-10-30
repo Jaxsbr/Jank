@@ -5,11 +5,15 @@ import { Event } from '../../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { MathUtils } from '../../utils/MathUtils';
+import { SpatialQuery } from '../../utils/SpatialQuery';
 import { Time } from '../../utils/Time';
 import { AttackComponent } from '../components/AttackComponent';
 import { HealthComponent } from '../components/HealthComponent';
+import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
+import { TeamComponent, TeamType } from '../components/TeamComponent';
+import { defaultMetaUpgradeConfig } from '../config/MetaUpgradeConfig';
 
 export class MeleeAttackSystem implements IEntitySystem {
     /**
@@ -49,14 +53,44 @@ export class MeleeAttackSystem implements IEntitySystem {
                     return;
                 }
                 
+                // Determine effective melee range with meta upgrades (core only)
+                const team = entity.getComponent(TeamComponent);
+                const meta = team && team.isCore() ? (entity.getComponent(MetaUpgradeComponent) ?? null) : null;
+                const meleeRings = Math.min(
+                    meta?.getMeleeRangeRings() ?? defaultMetaUpgradeConfig.defaultMeleeRangeRings,
+                    defaultMetaUpgradeConfig.maxMeleeRangeRings
+                );
+                const effectiveRange = attack.getRange() * Math.max(1, meleeRings);
+
                 // Check if target is in range (2D distance ignoring Y position)
                 const distance = MathUtils.calculate2DDistance(position, targetPosition);
-                if (!attack.isInRange(distance)) {
+                if (distance > effectiveRange) {
                     return;
                 }
                 
                 // Perform the attack
                 this.performAttack(entity, targetEntity, attack, currentTime);
+
+                // If core has multi-melee, attempt to hit additional nearest enemies in range
+                if (team && team.getTeamType() === TeamType.CORE && meta) {
+                    const extraTargets = Math.min(
+                        meta.getExtraMeleeTargets(),
+                        defaultMetaUpgradeConfig.maxExtraMeleeTargets
+                    );
+                    if (extraTargets > 0) {
+                        const origin = position.toVector3();
+                        const candidates = SpatialQuery.getEntitiesInRadius2D(entities, origin, effectiveRange)
+                            .filter(e => e !== targetEntity && e !== entity)
+                            .filter(e => {
+                                const t = e.getComponent(TeamComponent);
+                                return !!t && t.isEnemy();
+                            })
+                            .slice(0, extraTargets);
+                        candidates.forEach(candidate => {
+                            this.performAttack(entity, candidate, attack, currentTime);
+                        });
+                    }
+                }
             });
     }
 

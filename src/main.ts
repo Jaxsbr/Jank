@@ -34,6 +34,7 @@ import { defaultDeathEffectConfig } from './entities/config/DeathEffectConfig';
 import { defaultEffectTickConfig } from './entities/config/EffectTickConfig';
 import { defaultKnockbackConfig } from './entities/config/KnockbackConfig';
 import { DeathEffectSystem } from './entities/systems/DeathEffectSystem';
+import { MetaProgressionSystem } from './entities/systems/MetaProgressionSystem';
 import { DebugUI } from './ui/DebugUI';
 import { Time } from './utils/Time';
 
@@ -47,6 +48,7 @@ const targetingSystem = new TargetingSystem(GlobalEventDispatcher)
 const meleeAttackSystem = new MeleeAttackSystem()
 const entityManager = new EntityManager(GlobalEventDispatcher)
 const combatSystem = new CombatSystem(GlobalEventDispatcher)
+const metaProgressionSystem = new MetaProgressionSystem(GlobalEventDispatcher)
 const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
 const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffectTickConfig.intervalSeconds)
 const attackAnimationSystem = new AttackAnimationSystem()
@@ -58,7 +60,7 @@ const entityFactory = new EntityFactory(scene, entityManager)
 const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
     innerRadius: 6,
     outerRadius: 12,
-    intervalSeconds: 5,
+    intervalSeconds: 4,
     maxActive: 30,
     spawnImmediately: true,
 })
@@ -115,6 +117,7 @@ combatSystem.setEntities(entityManager.getEntities())
 damageVisualSystem.setEntities(entityManager.getEntities())
 knockbackOnHitSystem.setEntities(entityManager.getEntities())
 hitParticleSystem.setEntities(entityManager.getEntities())
+metaProgressionSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());
