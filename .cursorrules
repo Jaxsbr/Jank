@@ -1,0 +1,16 @@
+Cursor Rules
+
+- @docs/spec.md
+  - Source of truth for high-level vision, scope, and constraints. Keep changes aligned with this spec.
+
+- @docs/hive-tiles.md
+  - Follow the visual-only tile system. Tiles must not impact gameplay; treat them as VFX driven by events.
+
+- ECS architecture (see README for directory structure)
+  - Use Entity-Component-System patterns as organized in `src/ecs` and related folders.
+  - Keep logic in Systems, data in Components, identities in Entities. Avoid cross-coupling.
+
+- Configuration (no magic numbers / no hardcoding)
+  - Create typed config files for all tunable values (damage, speeds, visuals, spawn rates, etc.).
+  - Place configs under relevant `configs` folders and inject via constructors or factories.
+  - Prefer named constants and config objects over inline literals.
