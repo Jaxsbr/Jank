@@ -46,10 +46,12 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
     private entities: readonly Entity[] = [];
     private particles: Array<ShardFX | FluffyFX> = [];
     private config: HitParticleConfig;
+    private scene: THREE.Scene | null = null;
 
-    constructor(eventDispatcher: EventDispatcherSingleton, config: HitParticleConfig = defaultHitParticleConfig) {
+    constructor(eventDispatcher: EventDispatcherSingleton, scene?: THREE.Scene, config: HitParticleConfig = defaultHitParticleConfig) {
         this.eventDispatcher = eventDispatcher;
         this.config = config;
+        this.scene = scene ?? null;
         this.eventDispatcher.registerListener('HitParticleSystem', this);
     }
 
@@ -62,21 +64,21 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
         const targetId = event.args['targetId'] as string;
         if (!targetId) return;
 
+        const providedPos = (event.args['position'] as THREE.Vector3) || undefined;
         const entity = EntityFinder.findEntityById(this.entities, targetId);
-        if (!entity) return;
+        if (!entity && !providedPos) return;
 
-        const team = entity.getComponent(TeamComponent);
-        const geometry = entity.getComponent(GeometryComponent);
-        if (!geometry) return;
+        const team = entity ? entity.getComponent(TeamComponent) : undefined;
+        const geometry = entity ? entity.getComponent(GeometryComponent) : undefined;
 
         // Prefer to show on enemies, but if no team component, still show
         if (team && !team.isEnemy()) return;
 
-        this.spawnParticle(entity, geometry);
+        this.spawnParticle(entity ?? null, geometry ?? null, providedPos);
     }
 
-    private spawnParticle(entity: Entity, geometry: GeometryComponent): void {
-        this.spawnFluffy(entity, geometry);
+    private spawnParticle(entity: Entity | null, geometry: GeometryComponent | null, providedPos?: THREE.Vector3): void {
+        this.spawnFluffy(entity, geometry, providedPos);
 
         // ENABLE to spawn effect variations
         // const effectToSpawn: HitFXKind = this.config.mode === 'random'
@@ -90,7 +92,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
         // }
     }
 
-    private spawnShards(entity: Entity, geometry: GeometryComponent): void {
+    private spawnShards(entity: Entity | null, geometry: GeometryComponent | null, providedPos?: THREE.Vector3): void {
         const group = new THREE.Group();
 
         // Additive shard quads for a crisp hit burst
@@ -118,16 +120,20 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             group.add(shard);
         }
 
-        // Position burst between core and enemy in WORLD space, then convert to enemy LOCAL space
+        // Position burst between core and enemy in WORLD space
         let worldMidpoint: THREE.Vector3 | null = null;
         try {
+            // If position provided, use that as world midpoint directly
+            if (providedPos) {
+                worldMidpoint = providedPos.clone();
+            }
             // Find core entity position (first CORE entity)
             const core = this.entities.find((e: Entity) => {
                 const t = e.getComponent(TeamComponent) as TeamComponent | undefined;
                 return !!t && t.isCore();
             });
-            const enemyGeom = entity.getComponent(GeometryComponent) as GeometryComponent | undefined;
-            if (core && enemyGeom) {
+            const enemyGeom = entity ? entity.getComponent(GeometryComponent) as GeometryComponent | undefined : geometry;
+            if (!worldMidpoint && core && enemyGeom) {
                 const coreGeom = core.getComponent(GeometryComponent) as GeometryComponent | undefined;
                 if (coreGeom) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -148,21 +154,20 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             // Fallback keeps default offset
         }
 
-        // Attach to enemy group and set local position based on world midpoint
-        const enemyGroup = geometry.getGeometryGroup();
+        // Place group in world space
+        if (!this.scene) return;
         if (worldMidpoint) {
-            // Convert world midpoint to enemy group's local space so rotation doesn't skew placement
-            const localPoint = enemyGroup.worldToLocal(worldMidpoint.clone());
-            group.position.copy(localPoint);
-        } else {
-            // Reasonable default if midpoint failed
-            group.position.set(0, this.config.shards.yOffset, 0);
+            group.position.copy(worldMidpoint);
+        } else if (geometry) {
+            const enemyGroup = geometry.getGeometryGroup();
+            group.position.copy(enemyGroup.getWorldPosition(new THREE.Vector3()));
+            group.position.y += this.config.shards.yOffset;
         }
-        enemyGroup.add(group);
+        this.scene.add(group);
 
         const fx: ShardFX = {
             kind: 'shards',
-            parentEntityId: entity.getId(),
+            parentEntityId: entity ? entity.getId() : 'unknown',
             group,
             material,
             shards,
@@ -174,7 +179,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
         this.particles.push(fx);
     }
 
-    private spawnFluffy(entity: Entity, geometry: GeometryComponent): void {
+    private spawnFluffy(entity: Entity | null, geometry: GeometryComponent | null, providedPos?: THREE.Vector3): void {
         const group = new THREE.Group();
 
         // Additive small spheres with outward velocity and gravity
@@ -208,15 +213,18 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             particles.push({ mesh, velocity: v });
         }
 
-        // Place group at correct local point between enemy and core (reuse midpoint logic)
+        // Place group at correct world point between enemy and core (reuse midpoint logic)
         let worldMidpoint: THREE.Vector3 | null = null;
         try {
+            if (providedPos) {
+                worldMidpoint = providedPos.clone();
+            }
             const core = this.entities.find((e: Entity) => {
                 const t = e.getComponent(TeamComponent) as TeamComponent | undefined;
                 return !!t && t.isCore();
             });
-            const enemyGeom = entity.getComponent(GeometryComponent) as GeometryComponent | undefined;
-            if (core && enemyGeom) {
+            const enemyGeom = entity ? entity.getComponent(GeometryComponent) as GeometryComponent | undefined : geometry;
+            if (!worldMidpoint && core && enemyGeom) {
                 const coreGeom = core.getComponent(GeometryComponent) as GeometryComponent | undefined;
                 if (coreGeom) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -236,18 +244,19 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             // ignore
         }
 
-        const enemyGroup = geometry.getGeometryGroup();
+        if (!this.scene) return;
         if (worldMidpoint) {
-            const localPoint = enemyGroup.worldToLocal(worldMidpoint.clone());
-            group.position.copy(localPoint);
-        } else {
-            group.position.set(0, this.config.fluffy.yOffset, 0);
+            group.position.copy(worldMidpoint);
+        } else if (geometry) {
+            const enemyGroup = geometry.getGeometryGroup();
+            group.position.copy(enemyGroup.getWorldPosition(new THREE.Vector3()));
+            group.position.y += this.config.fluffy.yOffset;
         }
-        enemyGroup.add(group);
+        this.scene.add(group);
 
         const fx: FluffyFX = {
             kind: 'fluffy',
-            parentEntityId: entity.getId(),
+            parentEntityId: entity ? entity.getId() : 'unknown',
             group,
             material,
             particles,
@@ -268,8 +277,8 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
 
             if (t >= 1) {
                 // Cleanup
-                if (p.group.parent) {
-                    p.group.parent.remove(p.group);
+                if (this.scene) {
+                    this.scene.remove(p.group);
                 }
                 p.group.clear();
                 // dispose materials based on kind

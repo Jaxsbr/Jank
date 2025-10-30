@@ -47,8 +47,7 @@ export class CoreEnemyVFXBridge implements IEventListener {
         
         if (!attackerTeam || !attackerPosition) return;
 
-        // Get attacker world position
-        const attackerWorldPos = attackerPosition.toVector3();
+        // Attacker world position not needed here currently
 
         if (attackerTeam.getTeamType() === TeamType.CORE) {
             // Core attack - emit ripple from center

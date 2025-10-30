@@ -51,7 +51,7 @@ const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
 const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffectTickConfig.intervalSeconds)
 const attackAnimationSystem = new AttackAnimationSystem()
 const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, defaultKnockbackConfig)
-const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher)
+const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher, scene)
 const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
@@ -74,6 +74,7 @@ tileManager.initialize()
 
 // Create HP HUD (screen-space) and systems
 const coreHPHUD = new CoreHPHUD(window.innerWidth, window.innerHeight);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const coreHPBarSystem = new CoreHPBarSystem(coreHPHUD as unknown as any, entityManager);
 
 // Create a larger uniform grid for demo
@@ -114,7 +115,6 @@ combatSystem.setEntities(entityManager.getEntities())
 damageVisualSystem.setEntities(entityManager.getEntities())
 knockbackOnHitSystem.setEntities(entityManager.getEntities())
 hitParticleSystem.setEntities(entityManager.getEntities())
-deathEffectSystem.setEntities(entityManager.getEntities())
 
 // Create the UI
 new DebugUI(environmentManager.getFloorComponent().getFloorGroup());

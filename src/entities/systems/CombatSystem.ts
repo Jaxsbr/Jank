@@ -67,11 +67,25 @@ export class CombatSystem implements IEventListener {
         // Apply damage
         healthComponent.removeHP(damage);
 
+        // Capture target position for hit VFX
+        const hitPosition = new THREE.Vector3();
+        const posComp = targetEntity.getComponent(PositionComponent);
+        if (posComp) {
+            const p = posComp.getPosition();
+            hitPosition.set(p.x, p.y, p.z);
+        } else {
+            const geom = targetEntity.getComponent(GeometryComponent);
+            if (geom) {
+                geom.getGeometryGroup().getWorldPosition(hitPosition);
+            }
+        }
+
         // Dispatch damage taken event for visual feedback
         const damageEvent = new Event(EventType.DamageTaken, {
             targetId: targetId,
             damage: damage,
-            newHP: healthComponent.getHP()
+            newHP: healthComponent.getHP(),
+            position: hitPosition
         });
         this.eventDispatcher.dispatch(damageEvent);
 

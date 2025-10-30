@@ -5,11 +5,8 @@ import { IEntitySystem } from '../../ecs/IEntitySystem';
 import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
-import { EntityFinder } from '../../utils/EntityFinder';
 import { Time } from '../../utils/Time';
 import { DeathEffectComponent } from '../components/DeathEffectComponent';
-import { GeometryComponent } from '../components/GeometryComponent';
-import { PositionComponent } from '../components/PositionComponent';
 import { DeathEffectConfig, defaultDeathEffectConfig } from '../config/DeathEffectConfig';
 
 interface ActiveDeathEffect {
@@ -25,7 +22,6 @@ export class DeathEffectSystem implements IEntitySystem {
     private readonly entityManager: EntityManager;
     private readonly eventDispatcher: EventDispatcherSingleton;
     private readonly config: DeathEffectConfig;
-    private entities: readonly Entity[] = [];
     private active: ActiveDeathEffect[] = [];
 
     constructor(scene: THREE.Scene, entityManager: EntityManager, eventDispatcher: EventDispatcherSingleton, config: DeathEffectConfig = defaultDeathEffectConfig) {
@@ -41,17 +37,9 @@ export class DeathEffectSystem implements IEntitySystem {
                         this.spawnEffectAtPosition(providedPos);
                         return;
                     }
-                    const entityId = (event.args['entityId'] as string) || undefined;
-                    if (entityId) {
-                        this.spawnEffectAtEntity(entityId);
-                    }
                 }
             }
         });
-    }
-
-    public setEntities(entities: readonly Entity[]): void {
-        this.entities = entities;
     }
 
     public update(): void {
@@ -97,25 +85,6 @@ export class DeathEffectSystem implements IEntitySystem {
                 lm.transparent = true;
             }
         }
-    }
-
-    private spawnEffectAtEntity(entityId: string): void {
-        const target = EntityFinder.findEntityById(this.entities, entityId);
-        if (!target) return;
-
-        let position = new THREE.Vector3(0, 0, 0);
-        const posComp = target.getComponent(PositionComponent);
-        if (posComp) {
-            const p = posComp.getPosition();
-            position.set(p.x, p.y, p.z);
-        } else {
-            const geom = target.getComponent(GeometryComponent);
-            if (geom) {
-                geom.getGeometryGroup().getWorldPosition(position);
-            }
-        }
-
-        this.spawnEffectAtPosition(position);
     }
 
     private spawnEffectAtPosition(position: THREE.Vector3): void {

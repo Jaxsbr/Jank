@@ -61,7 +61,7 @@ export class EffectComponent implements IComponent {
     ): boolean {
         const effectId = this.generateEffectId(effectType, source);
         const existingEffect = this.activeEffects.get(effectId);
-        const stackBehavior = this.effectStackBehavior.get(effectType) || EffectStackBehavior.REPLACE;
+        const stackBehavior = this.effectStackBehavior.get(effectType) ?? EffectStackBehavior.REPLACE;
 
         switch (stackBehavior) {
             case EffectStackBehavior.REPLACE:
@@ -80,7 +80,7 @@ export class EffectComponent implements IComponent {
             case EffectStackBehavior.STACK:
                 if (existingEffect) {
                     // Check if we can stack more
-                    const maxStacks = existingEffect.maxStacks || 3;
+                    const maxStacks = existingEffect.maxStacks ?? 3;
                     const currentStacks = this.getEffectStacks(effectType);
                     if (currentStacks >= maxStacks) {
                         return false; // Can't stack more

@@ -105,14 +105,28 @@ export class EffectTickSystem implements IEntitySystem {
         // Apply damage
         healthComponent.removeHP(effect.strength);
 
+        // Capture position for VFX
+        const position = new THREE.Vector3();
+        const posComp = entity.getComponent(PositionComponent);
+        if (posComp) {
+            const p = posComp.getPosition();
+            position.set(p.x, p.y, p.z);
+        } else {
+            const geom = entity.getComponent(GeometryComponent);
+            if (geom) {
+                geom.getGeometryGroup().getWorldPosition(position);
+            }
+        }
+
         // Dispatch damage taken event
         this.eventDispatcher.dispatch(new Event(EventType.DamageTaken, {
             entity: entity,
             entityId: entity.getId(),
+            position,
             damage: effect.strength,
             damageType: 'effect',
             effectType: effect.effectType,
-            effectSource: effect.source || 'unknown',
+            effectSource: effect.source ?? 'unknown',
             damageTime: currentTime
         }));
 
@@ -136,7 +150,7 @@ export class EffectTickSystem implements IEntitySystem {
                 deathTime: currentTime,
                 deathCause: 'effect',
                 effectType: effect.effectType,
-                effectSource: effect.source || 'unknown'
+                effectSource: effect.source ?? 'unknown'
             }));
         }
     }
@@ -162,7 +176,7 @@ export class EffectTickSystem implements IEntitySystem {
             entityId: entity.getId(),
             effectType: effect.effectType,
             effectStrength: effect.strength,
-            effectSource: effect.source || 'unknown',
+            effectSource: effect.source ?? 'unknown',
             tickTime: currentTime
         }));
     }
@@ -186,7 +200,7 @@ export class EffectTickSystem implements IEntitySystem {
                         entity: entity,
                         entityId: entity.getId(),
                         effectType: expiredEffect.effectType,
-                        effectSource: expiredEffect.source || 'unknown',
+                        effectSource: expiredEffect.source ?? 'unknown',
                         expirationTime: currentTime
                     }));
                 }

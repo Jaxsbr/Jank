@@ -71,7 +71,7 @@ export class TileGrid {
      */
     public getCurrentRadius(): number {
         let maxRadius = 0;
-        for (const [key, tile] of this.tiles) {
+        for (const tile of this.tiles.values()) {
             const tileComponent = tile.getComponent(TileComponent);
             if (tileComponent && !tileComponent.isCenterTile()) {
                 const distance = tileComponent.getDistanceFromCenter();
