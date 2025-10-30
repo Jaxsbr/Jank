@@ -6,6 +6,7 @@ import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
 import { CombatSystem } from './entities/systems/CombatSystem';
 import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
 import { EffectTickSystem } from './entities/systems/EffectTickSystem';
+import { EnemySpawnerSystem } from './entities/systems/EnemySpawnerSystem';
 import { EntityCleanupSystem } from './entities/systems/EntityCleanupSystem';
 import { HitParticleSystem } from './entities/systems/HitParticleSystem';
 import { KnockbackOnHitSystem } from './entities/systems/KnockbackOnHitSystem';
@@ -51,6 +52,13 @@ const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, def
 const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher)
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
+const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
+    innerRadius: 6,
+    outerRadius: 12,
+    intervalSeconds: 5,
+    maxActive: 30,
+    spawnImmediately: true,
+})
 
 const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig.speed);
 const tileVFXController = new TileVFXController(GlobalEventDispatcher);
@@ -79,8 +87,7 @@ const environmentManager = new EnvironmentManager(scene, defaultEnvironment);
 // Create the game core
 entityFactory.createCoreEntity()
 
-// TMP: Test enemy
-entityFactory.createEnemyEntity()
+
 
 // Test VFX effects after a short delay
 setTimeout(() => {
@@ -135,6 +142,8 @@ function animate(): void {
     
     // Update effect systems
     effectTickSystem.update(entities);
+    // Update enemy spawner
+    enemySpawner.update(Time.getDeltaTime());
     
     const tileEntities = tileManager.getAllTiles()
     tileVFXController.setTiles(tileEntities);

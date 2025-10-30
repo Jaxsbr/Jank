@@ -67,6 +67,9 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         const dir = t2.clone().sub(a2);
         if (dir.lengthSq() === 0) return;
         dir.normalize();
+        // Apply slight random jitter (+/-5 degrees) around Y axis for organic knockback variation
+        const jitter = THREE.MathUtils.degToRad((Math.random() * 10) - 25);
+        dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), jitter);
 
         // Apply knockback as initial velocity (XZ only), let update() apply and decay it for smoothness
         const velocity = dir.clone().multiplyScalar(this.config.initialSpeed);

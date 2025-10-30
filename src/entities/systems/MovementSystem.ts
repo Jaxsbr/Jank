@@ -28,7 +28,7 @@ export class MovementSystem implements IEntitySystem {
                 return health.isAlive();
             })
             .execute()
-            .forEach(({ components }) => {
+            .forEach(({ entity, components }) => {
                 const [movement, position, geometry] = components;
                 
                 
@@ -50,7 +50,7 @@ export class MovementSystem implements IEntitySystem {
                 // Calculate desired movement direction (2D only)
                 const desiredDirection2D = targetPosition2D.clone().sub(currentPosition2D).normalize();
                 // Blend with last direction for steering smoothness
-                const entityId = (position as unknown as { entityId?: string }).entityId ?? '';
+                const entityId = entity.getId();
                 const previousDir = this.lastDirection2DByEntityId.get(entityId) ?? desiredDirection2D.clone();
                 const steeredDir = previousDir.clone().lerp(desiredDirection2D, this.movementConfig.steeringLerp).normalize();
                 this.lastDirection2DByEntityId.set(entityId, steeredDir.clone());
