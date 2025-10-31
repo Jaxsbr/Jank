@@ -15,6 +15,8 @@ export class DebugUI {
     private ring2Checkbox!: HTMLInputElement;
     private ring3Checkbox!: HTMLInputElement;
     private multiMeleeCheckbox!: HTMLInputElement;
+    private stunPulse1Checkbox!: HTMLInputElement;
+    private stunPulse2Checkbox!: HTMLInputElement;
 
     constructor(entityManager: EntityManager) {
         this.entityManager = entityManager;
@@ -287,6 +289,66 @@ export class DebugUI {
         multiMeleeContainer.appendChild(this.multiMeleeCheckbox);
         multiMeleeContainer.appendChild(multiMeleeLabel);
         this.container.appendChild(multiMeleeContainer);
+
+        // Stun Pulse Level 1
+        const stunPulse1Container = document.createElement('div');
+        stunPulse1Container.style.cssText = `
+            margin-top: 10px;
+            margin-bottom: 5px;
+        `;
+
+        this.stunPulse1Checkbox = document.createElement('input');
+        this.stunPulse1Checkbox.type = 'checkbox';
+        this.stunPulse1Checkbox.id = 'stun-pulse-1-checkbox';
+        this.stunPulse1Checkbox.style.cssText = `
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        `;
+        this.stunPulse1Checkbox.addEventListener('change', () => this.handleMetaUpgradeChange());
+
+        const stunPulse1Label = document.createElement('label');
+        stunPulse1Label.htmlFor = 'stun-pulse-1-checkbox';
+        stunPulse1Label.textContent = 'Stun Pulse Level 1';
+        stunPulse1Label.style.cssText = `
+            font-size: 24px;
+            cursor: pointer;
+        `;
+
+        stunPulse1Container.appendChild(this.stunPulse1Checkbox);
+        stunPulse1Container.appendChild(stunPulse1Label);
+        this.container.appendChild(stunPulse1Container);
+
+        // Stun Pulse Level 2
+        const stunPulse2Container = document.createElement('div');
+        stunPulse2Container.style.cssText = `
+            margin-top: 10px;
+            margin-bottom: 5px;
+        `;
+
+        this.stunPulse2Checkbox = document.createElement('input');
+        this.stunPulse2Checkbox.type = 'checkbox';
+        this.stunPulse2Checkbox.id = 'stun-pulse-2-checkbox';
+        this.stunPulse2Checkbox.style.cssText = `
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        `;
+        this.stunPulse2Checkbox.addEventListener('change', () => this.handleMetaUpgradeChange());
+
+        const stunPulse2Label = document.createElement('label');
+        stunPulse2Label.htmlFor = 'stun-pulse-2-checkbox';
+        stunPulse2Label.textContent = 'Stun Pulse Level 2';
+        stunPulse2Label.style.cssText = `
+            font-size: 24px;
+            cursor: pointer;
+        `;
+
+        stunPulse2Container.appendChild(this.stunPulse2Checkbox);
+        stunPulse2Container.appendChild(stunPulse2Label);
+        this.container.appendChild(stunPulse2Container);
     }
 
     private findCoreEntity(): Entity | null {
@@ -302,7 +364,8 @@ export class DebugUI {
         if (!meta) {
             meta = new MetaUpgradeComponent(
                 defaultMetaUpgradeConfig.defaultExtraMeleeTargets,
-                defaultMetaUpgradeConfig.defaultMeleeRangeRings
+                defaultMetaUpgradeConfig.defaultMeleeRangeRings,
+                defaultMetaUpgradeConfig.defaultStunPulseLevel
             );
             entity.addComponent(meta);
         }
@@ -316,16 +379,20 @@ export class DebugUI {
         const meta = core.getComponent(MetaUpgradeComponent);
         const rings = meta ? meta.getMeleeRangeRings() : 0;
         const extraTargets = meta ? meta.getExtraMeleeTargets() : 0;
+        const stunPulseLevel = meta ? meta.getStunPulseLevel() : 0;
 
         // Update checkboxes
         this.ring1Checkbox.checked = rings >= 1;
         this.ring2Checkbox.checked = rings >= 2;
         this.ring3Checkbox.checked = rings >= 3;
         this.multiMeleeCheckbox.checked = extraTargets >= 1;
+        this.stunPulse1Checkbox.checked = stunPulseLevel >= 1;
+        this.stunPulse2Checkbox.checked = stunPulseLevel >= 2;
 
         // Update disabled states for level-based upgrades
         this.ring2Checkbox.disabled = rings < 1;
         this.ring3Checkbox.disabled = rings < 2;
+        this.stunPulse2Checkbox.disabled = stunPulseLevel < 1;
     }
 
     private handleMetaUpgradeChange(): void {
@@ -364,6 +431,24 @@ export class DebugUI {
         const targetExtraTargets = this.multiMeleeCheckbox.checked ? 1 : 0;
         const clampedExtraTargets = Math.min(targetExtraTargets, defaultMetaUpgradeConfig.maxExtraMeleeTargets);
         meta.setExtraMeleeTargets(clampedExtraTargets);
+
+        // Handle stun pulse upgrades (level-based with validation)
+        let targetStunPulseLevel = 0;
+        if (this.stunPulse2Checkbox.checked) {
+            targetStunPulseLevel = 2;
+            // Ensure previous level is checked
+            this.stunPulse1Checkbox.checked = true;
+        } else if (this.stunPulse1Checkbox.checked) {
+            targetStunPulseLevel = 1;
+            // Cascade down: disable higher levels
+            this.stunPulse2Checkbox.checked = false;
+        } else {
+            targetStunPulseLevel = 0;
+        }
+
+        // Clamp to config max
+        const clampedStunPulseLevel = Math.min(targetStunPulseLevel, defaultMetaUpgradeConfig.maxStunPulseLevel);
+        meta.setStunPulseLevel(clampedStunPulseLevel);
 
         // Update disabled states after changes
         this.updateUpgradeState();

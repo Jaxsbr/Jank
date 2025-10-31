@@ -18,6 +18,7 @@ export class TileVisualComponent implements IComponent {
     private idleEmissiveColor: number;
     private baseEmissiveIntensity: number;
     private rangeOverlayIntensity: number;
+    private tempGlowColor: number | null = null;
 
     constructor(tileSize: number, materialConfig: TileMaterial) {
         this.baseHeight = 0.1;
@@ -210,6 +211,20 @@ export class TileVisualComponent implements IComponent {
         
         // Apply glow to material
         this.material.emissiveIntensity = this.glowIntensity;
+        
+        // Reset color back to idle when glow fades
+        if (this.glowIntensity < 0.01 && this.tempGlowColor !== null) {
+            this.material.emissive.setHex(this.idleEmissiveColor);
+            this.tempGlowColor = null;
+        }
+    }
+
+    /**
+     * Set temporary glow color for effects
+     */
+    public setTempGlowColor(color: number): void {
+        this.tempGlowColor = color;
+        this.material.emissive.setHex(color);
     }
 
     /**

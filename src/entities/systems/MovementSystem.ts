@@ -7,6 +7,7 @@ import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { MovementComponent } from '../components/MovementComponent';
 import { PositionComponent } from '../components/PositionComponent';
+import { StunComponent } from '../components/StunComponent';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from '../config/EnemyEntityConfig';
 import { MovementSystemConfig, defaultMovementSystemConfig } from '../config/MovementSystemConfig';
 
@@ -32,6 +33,12 @@ export class MovementSystem implements IEntitySystem {
             .forEach(({ entity, components }) => {
                 const [movement, position, geometry] = components;
                 
+                // Check if entity is stunned - if so, skip movement entirely
+                const stunComp = entity.getComponent(StunComponent);
+                if (stunComp && stunComp.isStunned(Time.now())) {
+                    movement.setCurrentSpeed(0);
+                    return;
+                }
                 
                 // Get current position (ignore Y for movement calculations)
                 const currentPosition = position.toVector3();

@@ -1,21 +1,25 @@
 import { Scene, Vector3 } from 'three';
 import { Entity } from '../ecs/Entity';
 import { EntityManager } from '../ecs/EntityManager';
+import { AbilityComponent } from './components/AbilityComponent';
 import { AttackAnimationComponent } from './components/AttackAnimationComponent';
 import { AttackComponent } from './components/AttackComponent';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
 import { GeometryComponent, SecondaryGeometryConfig, SecondaryGeometryType } from './components/GeometryComponent';
 import { HealthComponent } from './components/HealthComponent';
+import { MetaUpgradeComponent } from './components/MetaUpgradeComponent';
 import { MovementComponent } from './components/MovementComponent';
 import { PositionComponent } from './components/PositionComponent';
 import { RotationComponent } from './components/RotationComponent';
 import { TargetComponent } from './components/TargetComponent';
 import { TeamComponent, TeamType } from './components/TeamComponent';
+import { abilityConfigByLevel } from './config/AbilityConfig';
 import { BaseEntityConfig } from './config/BaseEntityConfig';
 import { CombatConfig } from './config/CombatConfig';
 import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityConfig';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
 import { GeometryConfig } from './config/GeometryConfig';
+import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -124,6 +128,18 @@ export class EntityFactory implements IEntityFactory {
         
         // Add combat components
         this.addCombatComponents(entity, config.combat, TeamType.CORE);
+        
+        // Add ability component with default config
+        const defaultAbilityConfig = abilityConfigByLevel[1];
+        const cooldown = defaultAbilityConfig?.cooldownDuration ?? 8;
+        entity.addComponent(new AbilityComponent(cooldown));
+        
+        // Add meta upgrade component with default values
+        entity.addComponent(new MetaUpgradeComponent(
+            defaultMetaUpgradeConfig.defaultExtraMeleeTargets,
+            defaultMetaUpgradeConfig.defaultMeleeRangeRings,
+            defaultMetaUpgradeConfig.defaultStunPulseLevel
+        ));
         
         // Set up entity in scene
         this.addEntityToScene(entity, geometryComponent, config.position);

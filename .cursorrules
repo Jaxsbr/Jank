@@ -17,3 +17,9 @@ Cursor Rules
 
 - @docs/meta-upgrades.md
   - Definitions and rules for meta upgrades (MVP + backlog). Use as reference.
+
+- Documentation updates
+  - When adding new meta upgrades, abilities, or gameplay systems, update the relevant docs in `docs/` directory.
+  - @docs/meta-upgrades.md: Document all new meta upgrades with mechanics, runtime behavior, and testing info.
+  - @docs/spec.md: Update core vision/scope when gameplay fundamentals change.
+  - Keep documentation in sync with implementation.
