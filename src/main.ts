@@ -118,6 +118,7 @@ const abilityButton = new AbilityButton(entityManager, {
 
 // Game state
 let gameState: 'playing' | 'paused' | 'gameOver' = 'playing';
+const KILLS_PER_WAVE = 10; // Advance wave every N kills
 
 // Create the game core
 entityFactory.createCoreEntity()
@@ -137,6 +138,7 @@ function initializeGame(): void {
     stunPulseVFXSystem.setEntities(entityManager.getEntities());
     
     gameStatsHUD.reset();
+    gameStatsHUD.setWave(1); // Start at wave 1
 }
 
 // Game restart
@@ -164,15 +166,20 @@ function restartGame(): void {
 // Listen for entity death events to track kills and game over
 GlobalEventDispatcher.registerListener('MainGame', {
     onEvent: (event: Event) => {
-        if (event.eventName === EventType.EntityDeath) {
+        if (event.eventName === EventType.EnemyKilled) {
+            gameStatsHUD.addKill();
+            // Advance wave every N kills
+            const kills = gameStatsHUD.getKills();
+            if (kills % KILLS_PER_WAVE === 0) {
+                gameStatsHUD.setWave(gameStatsHUD.getWave() + 1);
+            }
+        } else if (event.eventName === EventType.EntityDeath) {
             const entityId = event.args['entityId'] as string;
             const entity = entityManager.findEntityById(entityId);
             
             if (entity) {
                 const team = entity.getComponent(TeamComponent);
-                if (team?.isEnemy()) {
-                    gameStatsHUD.addKill();
-                } else if (team?.isCore()) {
+                if (team?.isCore()) {
                     // Core died - game over
                     if (gameState === 'playing') {
                         gameState = 'gameOver';
@@ -255,7 +262,7 @@ function animate(): void {
     coreHPBarSystem.update();
     abilityButton.update();
     
-    // Update enemy count
+    // Update enemy count and check for wave progression
     if (gameState === 'playing') {
         let enemyCount = 0;
         entities.forEach(entity => {
