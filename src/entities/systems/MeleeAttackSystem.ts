@@ -60,7 +60,8 @@ export class MeleeAttackSystem implements IEntitySystem {
                     meta?.getMeleeRangeRings() ?? defaultMetaUpgradeConfig.defaultMeleeRangeRings,
                     defaultMetaUpgradeConfig.maxMeleeRangeRings
                 );
-                const effectiveRange = attack.getRange() * Math.max(1, meleeRings);
+                // 0 rings = base range only (very close), 1+ rings = base range * ring count
+                const effectiveRange = meleeRings === 0 ? attack.getRange() : attack.getRange() * meleeRings;
 
                 // Check if target is in range (2D distance ignoring Y position)
                 const distance = MathUtils.calculate2DDistance(position, targetPosition);

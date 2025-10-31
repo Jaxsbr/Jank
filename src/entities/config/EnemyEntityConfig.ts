@@ -80,7 +80,7 @@ export const defaultEnemyEntityConfig: EnemyEntityConfig = {
     combat: {
         attack: {
             damage: 5,
-            range: 1.5,
+            range: 1.2,
             cooldown: 1.5 // seconds (was 1500ms)
         },
         target: {

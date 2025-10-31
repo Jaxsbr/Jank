@@ -9,7 +9,6 @@ export interface EnemySpawnerConfig {
     innerRadius: number;
     outerRadius: number;
     intervalSeconds: number;
-    maxActive: number;
     spawnImmediately?: boolean;
 }
 
@@ -19,11 +18,14 @@ export class EnemySpawnerSystem {
     private readonly config: EnemySpawnerConfig;
     private elapsedSeconds: number = 0;
     private hasSpawnedInitial: boolean = false;
+    private totalSpawned: number = 0;
+    private currentIntervalSeconds: number;
 
     constructor(entityFactory: EntityFactory, entityManager: EntityManager, config: EnemySpawnerConfig) {
         this.entityFactory = entityFactory;
         this.entityManager = entityManager;
         this.config = config;
+        this.currentIntervalSeconds = config.intervalSeconds;
     }
 
     public update(deltaSeconds: number): void {
@@ -34,7 +36,7 @@ export class EnemySpawnerSystem {
         }
 
         this.elapsedSeconds += deltaSeconds;
-        if (this.elapsedSeconds < this.config.intervalSeconds) {
+        if (this.elapsedSeconds < this.currentIntervalSeconds) {
             return;
         }
 
@@ -43,10 +45,6 @@ export class EnemySpawnerSystem {
     }
 
     private trySpawn(): void {
-        if (this.getActiveEnemyCount() >= this.config.maxActive) {
-            return;
-        }
-
         const corePos = this.getCorePosition();
         const spawnPos = this.randomPointInRing(corePos, this.config.innerRadius, this.config.outerRadius);
 
@@ -63,6 +61,13 @@ export class EnemySpawnerSystem {
         } as EnemyEntityConfig;
 
         this.entityFactory.createEnemyEntity(cfg);
+        
+        // Track spawns and reduce interval after every 10th enemy (increase intensity)
+        this.totalSpawned += 1;
+        if (this.totalSpawned % 10 === 0) {
+            // Reduce spawn interval by 10% (caps at minimum of 0.5 seconds)
+            this.currentIntervalSeconds = Math.max(0.5, this.currentIntervalSeconds * 0.9);
+        }
     }
 
     private getActiveEnemyCount(): number {

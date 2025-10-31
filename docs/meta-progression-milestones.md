@@ -1,6 +1,14 @@
 # Meta Progression – Milestones to Test Full Loop
 
-Goal: enable a repeatable loop in one session – play → die → upgrade → play again → progress further – without full persistence/UI scope creep.
+**Current Status**: This document describes planned future work. The current implementation uses a temporary debug UI for testing upgrades (see `src/ui/DebugUI.ts`).
+
+**Current Implementation**:
+- `DebugUI`: Manual checkbox controls for testing meta upgrades (Ring 1/2/3 melee range, multi-melee)
+- Upgrades are applied manually via debug UI (press 'D' to open)
+- No automatic kill-based progression system
+- No game over screen, no upgrade points, no upgrade menu between runs
+
+**Roadmap** (not yet implemented):
 
 ## Milestone 1: Game Over + Restart (Run-only)
 - Add game over state when core dies (listen for `EntityDeath` where entity is core).
@@ -48,8 +56,7 @@ Acceptance:
 
 ## Configs (all typed, no magic numbers)
 - `MetaUpgradeConfig`: caps/defaults (existing).
-- `MetaProgressionTestConfig`: milestone awards (existing; can be disabled when points loop is on).
-- `MetaPointsConfig`: point awards per kill and/or per run, costs for upgrades.
+- `MetaPointsConfig`: point awards per kill and/or per run, costs for upgrades (to be created).
 
 ## Technical Notes
 - Keep tiles VFX-only per `docs/hive-tiles.md`.
@@ -58,3 +65,12 @@ Acceptance:
 
 ## Done Definition (end-to-end test)
 - I can play, die, see points earned, buy an upgrade, restart, observe stronger core, repeat, and progress further — all without reloading the page.
+
+## Current State (Temporary Debug Implementation)
+
+As of now, meta upgrades can be tested manually via the Debug UI (press 'D' to open):
+- Checkboxes for Ring 1/2/3 melee range (level-based, sequential validation)
+- Checkbox for multi-melee (independent)
+- Changes apply immediately to the core entity during gameplay
+
+This debug implementation is temporary and will be replaced by the proper milestone system above.

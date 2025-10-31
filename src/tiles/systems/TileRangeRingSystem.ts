@@ -14,12 +14,12 @@ export class TileRangeRingSystem {
 
     public update(tileEntities: readonly Entity[], allEntities: readonly Entity[]): void {
         const core = allEntities.find((e) => e.getComponent(TeamComponent)?.isCore());
-        let meleeRings = 1;
+        let meleeRings = 0;
 
         if (core) {
             const meta = core.getComponent(MetaUpgradeComponent);
             if (meta) {
-                meleeRings = Math.max(1, Math.min(this.config.maxRings, meta.getMeleeRangeRings()));
+                meleeRings = Math.max(0, Math.min(this.config.maxRings, meta.getMeleeRangeRings()));
             }
         }
 
