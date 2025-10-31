@@ -4,10 +4,12 @@ import { Event } from '../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../systems/eventing/EventDispatcher';
 import { EventType } from '../systems/eventing/EventType';
 import { IEventListener } from '../systems/eventing/IEventListener';
-import { TileGrid } from './TileGrid';
 import { TileComponent } from './components/TileComponent';
 import { TileVisualComponent } from './components/TileVisualComponent';
+import { defaultTileVFXConfig, TileVFXConfig } from './configs/TileVFXConfig';
+import { TileGrid } from './TileGrid';
 
+// Deprecated in favor of TileVFXConfig; retained for backward compatibility of constructor signature
 export interface VFXConfig {
     pulseStrength: number;
     pulseFalloff: number;
@@ -18,7 +20,7 @@ export interface VFXConfig {
 }
 
 export interface ActiveWave {
-    kind: 'ripple' | 'shock' | 'burst';
+    kind: 'ripple' | 'shock' | 'burst' | 'stunpulse';
     origin: THREE.Vector3;
     radius: number;
     speed: number;
@@ -31,20 +33,26 @@ export interface ActiveWave {
 export class TileVFXController implements IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
     private tiles: Entity[] = [];
-    private config: VFXConfig;
+    private config: TileVFXConfig;
     private centerPosition: THREE.Vector3;
     private activeWaves: ActiveWave[] = [];
 
     constructor(eventDispatcher: EventDispatcherSingleton, config?: Partial<VFXConfig>) {
         this.eventDispatcher = eventDispatcher;
+        // Map legacy VFXConfig into TileVFXConfig defaults if provided
         this.config = {
-            pulseStrength: 2.0,
-            pulseFalloff: 0.6,
-            pulseDecayPerSecond: 3.0,
-            shockwaveStrength: 1.8,
-            shockwaveRadius: 10.0,
-            shockwaveDecayPerSecond: 2.0,
-            ...config
+            ...defaultTileVFXConfig,
+            ...(config ? {
+                pulseStrength: config.pulseStrength ?? defaultTileVFXConfig.pulseStrength,
+                pulseFalloff: config.pulseFalloff ?? defaultTileVFXConfig.pulseFalloff,
+                pulseDecayPerSecond: config.pulseDecayPerSecond ?? defaultTileVFXConfig.pulseDecayPerSecond,
+                shockwaveStrength: config.shockwaveStrength ?? defaultTileVFXConfig.shockwaveStrength,
+                shockwaveRadius: config.shockwaveRadius ?? defaultTileVFXConfig.shockwaveRadius,
+                shockwaveDecayPerSecond: config.shockwaveDecayPerSecond ?? defaultTileVFXConfig.shockwaveDecayPerSecond,
+                waveWidth: defaultTileVFXConfig.waveWidth,
+                intensityMultipliers: defaultTileVFXConfig.intensityMultipliers,
+                stunPulseLevels: defaultTileVFXConfig.stunPulseLevels,
+            } : defaultTileVFXConfig)
         };
         this.centerPosition = new THREE.Vector3(0, 0, 0);
 
@@ -142,6 +150,23 @@ export class TileVFXController implements IEventListener {
     }
 
     /**
+     * Emit a stun pulse shockwave effect from the center
+     */
+    public emitStunPulse(strength: number = 2.5, speed: number = 20.0, radius: number = 12.0): void {
+        const wave: ActiveWave = {
+            kind: 'stunpulse',
+            origin: this.centerPosition.clone(),
+            radius: 0,
+            speed: speed,
+            strength: strength,
+            falloff: 0.7,
+            alive: true,
+            maxRadius: radius
+        };
+        this.activeWaves.push(wave);
+    }
+
+    /**
      * Handle dispatched events
      */
     public onEvent(event: Event): void {
@@ -156,6 +181,18 @@ export class TileVFXController implements IEventListener {
             const strength = (event.args['strength'] as number) || this.config.shockwaveStrength;
             if (position) {
                 this.emitShockwave(position, strength, this.config.shockwaveRadius, 8.0);
+            }
+        } else if (event.eventName === EventType.StunPulseActivated) {
+            const stunLevel = event.args['stunLevel'] as number;
+            if (stunLevel) {
+                const cfg = stunLevel === 2 ? this.config.stunPulseLevels.level2 : this.config.stunPulseLevels.level1;
+                this.emitStunPulse(cfg.strength, cfg.speed, cfg.radius);
+                if (stunLevel === 2) {
+                    setTimeout(() => {
+                        const sec = this.config.stunPulseLevels.level2.secondaryRing;
+                        this.emitStunPulse(sec.strength, sec.speed, sec.radius);
+                    }, this.config.stunPulseLevels.level2.secondaryRingDelayMs);
+                }
             }
         }
     }
@@ -229,7 +266,7 @@ export class TileVFXController implements IEventListener {
      * Calculate wave intensity based on wavefront distance
      */
     private calculateWaveIntensity(wave: ActiveWave, wavefrontDistance: number): number {
-        const waveWidth = 2.0; // Width of the wave effect
+        const waveWidth = this.config.waveWidth; // Width of the wave effect
         if (wavefrontDistance > waveWidth) return 0;
         
         const normalizedDistance = wavefrontDistance / waveWidth;
@@ -238,11 +275,13 @@ export class TileVFXController implements IEventListener {
         // Add some variation based on wave type
         switch (wave.kind) {
             case 'ripple':
-                return baseIntensity * 1.5; // Stronger ripple
+                return baseIntensity * this.config.intensityMultipliers.ripple; // Stronger ripple
             case 'shock':
-                return baseIntensity * 2.0; // Much stronger shockwave
+                return baseIntensity * this.config.intensityMultipliers.shock; // Much stronger shockwave
             case 'burst':
-                return baseIntensity * 1.8; // Stronger burst
+                return baseIntensity * this.config.intensityMultipliers.burst; // Stronger burst
+            case 'stunpulse':
+                return baseIntensity * this.config.intensityMultipliers.stunpulse; // Very strong stun pulse
             default:
                 return baseIntensity;
         }
@@ -251,14 +290,14 @@ export class TileVFXController implements IEventListener {
     /**
      * Set VFX configuration
      */
-    public setConfig(config: Partial<VFXConfig>): void {
+    public setConfig(config: Partial<TileVFXConfig>): void {
         this.config = { ...this.config, ...config };
     }
 
     /**
      * Get current VFX configuration
      */
-    public getConfig(): VFXConfig {
+    public getConfig(): TileVFXConfig {
         return { ...this.config };
     }
 }

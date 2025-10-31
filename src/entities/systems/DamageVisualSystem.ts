@@ -27,9 +27,18 @@ interface EffectVisual {
     duration: number;
 }
 
+interface StunVisual {
+    entity: Entity;
+    originalMainColor: number;
+    originalSecondaryColor: number;
+    startTime: number;
+    duration: number;
+}
+
 export class DamageVisualSystem implements IEventListener {
     private damageFlashes: DamageFlash[] = [];
     private effectVisuals: EffectVisual[] = [];
+    private stunVisuals: StunVisual[] = [];
     private config: DamageVisualConfig;
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
@@ -60,6 +69,8 @@ export class DamageVisualSystem implements IEventListener {
             this.handleEffectRemoved(event);
         } else if (event.eventName === EventType.EffectExpired) {
             this.handleEffectExpired(event);
+        } else if (event.eventName === EventType.StunPulseActivated) {
+            this.handleStunPulseActivated(event);
         }
     }
 
@@ -122,6 +133,95 @@ export class DamageVisualSystem implements IEventListener {
         }
 
         this.removeEffectVisual(entity, effectType);
+    }
+
+    /**
+     * Handle a stun pulse activated event
+     */
+    private handleStunPulseActivated(event: Event): void {
+        const affectedEnemyIds = event.args['affectedEnemyIds'] as string[];
+        const stunLevel = event.args['stunLevel'] as number;
+        
+        if (!affectedEnemyIds || !stunLevel) {
+            return;
+        }
+
+        // Apply stun visual to all affected enemies
+        const affectedEnemies = EntityFinder.findEntitiesByIds(this.entities, affectedEnemyIds);
+        affectedEnemies.forEach(enemy => {
+            this.applyStunVisual(enemy, stunLevel);
+        });
+    }
+
+    /**
+     * Apply stun visual to an entity
+     */
+    private applyStunVisual(entity: Entity, stunLevel: number): void {
+        const geometryComponent = entity.getComponent(GeometryComponent);
+        if (!geometryComponent) {
+            return;
+        }
+
+        // Remove any existing stun visual for this entity
+        this.removeStunVisual(entity);
+
+        // Get original colors
+        const teamComponent = entity.getComponent(TeamComponent);
+        let originalMainColor: number;
+        let originalSecondaryColor: number;
+        
+        if (teamComponent && teamComponent.isEnemy()) {
+            originalMainColor = this.config.teamColors.enemy.original.main;
+            originalSecondaryColor = this.config.teamColors.enemy.original.secondary;
+        } else {
+            originalMainColor = this.config.teamColors.core.original.main;
+            originalSecondaryColor = this.config.teamColors.core.original.secondary;
+        }
+
+        // Determine stun color based on level (from config)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const cfgLocal = this.config as import('../config/DamageVisualConfig').DamageVisualConfig;
+        let stunCfg: { color: number; tintIntensity: number; duration: number };
+        if (stunLevel === 1) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            stunCfg = cfgLocal.stunVisual.level1 as { color: number; tintIntensity: number; duration: number };
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            stunCfg = cfgLocal.stunVisual.level2 as { color: number; tintIntensity: number; duration: number };
+        }
+        const stunColor = stunCfg.color;
+        const tintIntensity = stunCfg.tintIntensity;
+        
+        const tintedMainColor = this.tintColor(originalMainColor, stunColor, tintIntensity);
+        const tintedSecondaryColor = this.tintColor(originalSecondaryColor, stunColor, tintIntensity);
+        
+        geometryComponent.updateMainSphereColor(tintedMainColor);
+        geometryComponent.updateSecondaryColor(tintedSecondaryColor);
+
+        // Track the stun visual
+        this.stunVisuals.push({
+            entity,
+            originalMainColor,
+            originalSecondaryColor,
+            startTime: Time.now(),
+            duration: stunCfg.duration
+        });
+    }
+
+    /**
+     * Remove stun visual from an entity
+     */
+    private removeStunVisual(entity: Entity): void {
+        const index = this.stunVisuals.findIndex(v => v.entity === entity);
+        if (index !== -1 && this.stunVisuals[index]) {
+            const stunVisual = this.stunVisuals[index];
+            const geometryComponent = entity.getComponent(GeometryComponent);
+            if (geometryComponent && stunVisual) {
+                geometryComponent.updateMainSphereColor(stunVisual.originalMainColor);
+                geometryComponent.updateSecondaryColor(stunVisual.originalSecondaryColor);
+            }
+            this.stunVisuals.splice(index, 1);
+        }
     }
 
     /**
@@ -197,8 +297,8 @@ export class DamageVisualSystem implements IEventListener {
         const effectColor = this.getEffectColor(effectType);
         
         // Apply effect color (tint the entity)
-        const tintedMainColor = this.tintColor(originalMainColor, effectColor, 0.3);
-        const tintedSecondaryColor = this.tintColor(originalSecondaryColor, effectColor, 0.3);
+        const tintedMainColor = this.tintColor(originalMainColor, effectColor, this.config.effectTintIntensity);
+        const tintedSecondaryColor = this.tintColor(originalSecondaryColor, effectColor, this.config.effectTintIntensity);
         
         geometryComponent.updateMainSphereColor(tintedMainColor);
         geometryComponent.updateSecondaryColor(tintedSecondaryColor);
@@ -241,19 +341,27 @@ export class DamageVisualSystem implements IEventListener {
      * Get color for effect type
      */
     private getEffectColor(effectType: EffectType): number {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const cfgLocal = this.config as import('../config/DamageVisualConfig').DamageVisualConfig;
         switch (effectType) {
             case EffectType.ATTACK:
-                return 0xff4444; // Red
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.ATTACK;
             case EffectType.BUFF:
-                return 0x44ff44; // Green
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.BUFF;
             case EffectType.HEAL:
-                return 0x4444ff; // Blue
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.HEAL;
             case EffectType.SHIELD:
-                return 0xffff44; // Yellow
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.SHIELD;
             case EffectType.SPEED:
-                return 0xff44ff; // Magenta
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.SPEED;
             default:
-                return 0xffffff; // White
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                return cfgLocal.effectColors.DEFAULT;
         }
     }
 
@@ -321,6 +429,27 @@ export class DamageVisualSystem implements IEventListener {
                 
                 // Remove from array
                 this.effectVisuals.splice(i, 1);
+            }
+        }
+
+        // Process stun visuals (remove expired ones)
+        for (let i = this.stunVisuals.length - 1; i >= 0; i--) {
+            const stunVisual = this.stunVisuals[i];
+            
+            if (!stunVisual) {
+                continue;
+            }
+            
+            if (currentTime - stunVisual.startTime >= stunVisual.duration) {
+                // Restore original colors
+                const geometryComponent = stunVisual.entity.getComponent(GeometryComponent);
+                if (geometryComponent) {
+                    geometryComponent.updateMainSphereColor(stunVisual.originalMainColor);
+                    geometryComponent.updateSecondaryColor(stunVisual.originalSecondaryColor);
+                }
+                
+                // Remove from array
+                this.stunVisuals.splice(i, 1);
             }
         }
     }

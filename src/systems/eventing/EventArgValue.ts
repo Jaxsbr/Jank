@@ -6,4 +6,5 @@ export type EventArgValue =
     | number
     | boolean
     | Vector3
-    | Entity;
+    | Entity
+    | string[];

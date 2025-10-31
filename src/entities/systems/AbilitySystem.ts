@@ -1,5 +1,9 @@
 import { Entity } from '../../ecs/Entity';
 import { IEntitySystem } from '../../ecs/IEntitySystem';
+import { Event } from '../../systems/eventing/Event';
+import { GlobalEventDispatcher } from '../../systems/eventing/EventDispatcher';
+import { EventType } from '../../systems/eventing/EventType';
+import { hexRingsToWorldRadius } from '../../utils/SpatialConfig';
 import { SpatialQuery } from '../../utils/SpatialQuery';
 import { Time } from '../../utils/Time';
 import { AbilityComponent } from '../components/AbilityComponent';
@@ -7,7 +11,7 @@ import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { StunComponent } from '../components/StunComponent';
 import { TeamComponent } from '../components/TeamComponent';
-import { abilityConfigByLevel } from '../config/AbilityConfig';
+import { AbilityConfig, abilityConfigByLevel } from '../config/AbilityConfig';
 
 export class AbilitySystem implements IEntitySystem {
     private pendingActivation: boolean = false;
@@ -34,15 +38,16 @@ export class AbilitySystem implements IEntitySystem {
             return;
         }
 
-        const abilityComp = core.getComponent(AbilityComponent);
-        const metaComp = core.getComponent(MetaUpgradeComponent);
+        const abilityComp: AbilityComponent | null = core.getComponent(AbilityComponent);
+        const metaComp: MetaUpgradeComponent | null = core.getComponent(MetaUpgradeComponent);
         
         if (!abilityComp || !metaComp) {
             this.pendingActivation = false;
             return;
         }
 
-        const stunLevel = metaComp.getStunPulseLevel();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const stunLevel: number = (metaComp as MetaUpgradeComponent).getStunPulseLevel();
         if (stunLevel <= 0) {
             this.pendingActivation = false;
             return;
@@ -53,21 +58,27 @@ export class AbilitySystem implements IEntitySystem {
             return;
         }
 
-        const config = abilityConfigByLevel[stunLevel];
+        const level: 1 | 2 | undefined = stunLevel === 1 || stunLevel === 2 ? stunLevel : undefined;
+        if (!level) {
+            this.pendingActivation = false;
+            return;
+        }
+
+        const config = abilityConfigByLevel[level];
         if (!config) {
             this.pendingActivation = false;
             return;
         }
 
         // Execute the stun pulse
-        this.executeStunPulse(core, entities, config, currentTime);
+        this.executeStunPulse(core, entities, config, currentTime, stunLevel);
 
         // Mark ability as used
         abilityComp.use(currentTime);
         this.pendingActivation = false;
     }
 
-    private executeStunPulse(core: Entity, entities: readonly Entity[], config: typeof abilityConfigByLevel[number], currentTime: number): void {
+    private executeStunPulse(core: Entity, entities: readonly Entity[], config: AbilityConfig, currentTime: number, stunLevel: number): void {
         const positionComp = core.getComponent(PositionComponent);
         if (!positionComp) return;
 
@@ -84,9 +95,7 @@ export class AbilitySystem implements IEntitySystem {
             });
         } else {
             // Level 1: stun enemies in radius
-            const tileSpacing = 0.8;
-            const hexRadiusTo3D = tileSpacing * Math.sqrt(3);
-            const stunRadius3D = hexRadiusTo3D * config.stunRadius;
+            const stunRadius3D = hexRingsToWorldRadius(config.stunRadius);
             affectedEnemies = SpatialQuery.getEntitiesInRadius2D(entities, centerPos, stunRadius3D)
                 .filter(e => {
                     const team = e.getComponent(TeamComponent);
@@ -104,7 +113,13 @@ export class AbilitySystem implements IEntitySystem {
             }
         });
 
-        // Visual feedback removed - keeping stun effect only
+        // Dispatch stun pulse activated event for VFX
+        const affectedEnemyIds = affectedEnemies.map(e => e.getId());
+        GlobalEventDispatcher.dispatch(new Event(EventType.StunPulseActivated, {
+            corePosition: centerPos,
+            affectedEnemyIds: affectedEnemyIds,
+            stunLevel: stunLevel
+        }));
     }
 }
 

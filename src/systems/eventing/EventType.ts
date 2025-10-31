@@ -17,5 +17,6 @@ export enum EventType {
     CoreSpecialAttack,
     CoreHit,
     EnemyMoved,
-    EnemyKilled
+    EnemyKilled,
+    StunPulseActivated
 }

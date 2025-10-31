@@ -6,12 +6,12 @@ export interface AbilityConfig {
 
 export const abilityConfigByLevel: Record<number, AbilityConfig> = {
     1: {
-        cooldownDuration: 8,
-        stunRadius: 2, // Stun rings 0-2
+        cooldownDuration: 5,
+        stunRadius: 3, // Stun rings 0-3
         stunDuration: 2
     },
     2: {
-        cooldownDuration: 8,
+        cooldownDuration: 4,
         stunRadius: -1, // Special value: stun ALL enemies
         stunDuration: 3
     }

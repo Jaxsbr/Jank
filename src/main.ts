@@ -17,6 +17,7 @@ import { MeleeAttackSystem } from './entities/systems/MeleeAttackSystem';
 import { MovementSystem } from './entities/systems/MovementSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
 import { RotationSystem } from './entities/systems/RotationSystem';
+import { StunPulseVFXSystem } from './entities/systems/StunPulseVFXSystem';
 import { StunSystem } from './entities/systems/StunSystem';
 import { TargetingSystem } from './entities/systems/TargetingSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
@@ -61,6 +62,7 @@ const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffe
 const attackAnimationSystem = new AttackAnimationSystem()
 const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, defaultKnockbackConfig)
 const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher, scene)
+const stunPulseVFXSystem = new StunPulseVFXSystem(GlobalEventDispatcher, scene)
 const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
@@ -132,6 +134,7 @@ function initializeGame(): void {
     damageVisualSystem.setEntities(entityManager.getEntities());
     knockbackOnHitSystem.setEntities(entityManager.getEntities());
     hitParticleSystem.setEntities(entityManager.getEntities());
+    stunPulseVFXSystem.setEntities(entityManager.getEntities());
     
     gameStatsHUD.reset();
 }
@@ -236,6 +239,7 @@ function animate(): void {
     bobAnimationSystem.update(entities);
     damageVisualSystem.update();
     hitParticleSystem.update();
+    stunPulseVFXSystem.update();
     deathEffectSystem.update();
     attackAnimationSystem.update(entities);
 
