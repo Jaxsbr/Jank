@@ -55,7 +55,7 @@ export class DamageTextSystem implements IEventListener {
 
     private handleDamageTaken(event: Event): void {
         // Support both targetId (CombatSystem) and entityId (EffectTickSystem)
-        const targetId = (event.args['targetId'] || event.args['entityId']) as string;
+        const targetId = (event.args['targetId'] ?? event.args['entityId']) as string;
         const damage = event.args['damage'] as number;
         const position = event.args['position'] as THREE.Vector3;
         const isCritical = event.args['isCritical'] as boolean | undefined;
@@ -255,9 +255,6 @@ export class DamageTextSystem implements IEventListener {
                 this.activeTexts.splice(i, 1);
                 continue;
             }
-
-            // Apply easing
-            const easedT = this.applyEasing(t, text.config.animationCurve);
 
             // Move upward
             const floatDistance = text.config.floatSpeed * elapsed;
