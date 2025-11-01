@@ -4,7 +4,7 @@ export const defaultEnvironment: EnvironmentConfig = {
     floor: {
         size: 100,
         material: {
-            color: 0x1a1a1a,
+            color: 0x4a4a4a, // Lighter floor color
             transparent: false,
             opacity: 1,
             wireframe: false,
@@ -14,6 +14,12 @@ export const defaultEnvironment: EnvironmentConfig = {
         shadow: {
             receiveShadow: true,
             castShadow: false
+        },
+        pattern: {
+            type: 'radial',
+            intensity: 0.5,
+            scale: 1.0,
+            color: 0x1a1a1a
         }
     },
     skybox: {

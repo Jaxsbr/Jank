@@ -1,3 +1,10 @@
+export interface FloorPatternConfig {
+    type: 'hexagonal' | 'radial' | 'grid' | 'none';
+    intensity: number; // 0-1, controls pattern opacity/contrast
+    scale: number; // controls pattern size/density
+    color?: number; // optional pattern color, defaults to slightly lighter than base
+}
+
 export interface FloorConfig {
     size: number;
     material: {
@@ -12,4 +19,5 @@ export interface FloorConfig {
         receiveShadow: boolean;
         castShadow: boolean;
     };
+    pattern?: FloorPatternConfig;
 }
