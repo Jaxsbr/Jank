@@ -233,7 +233,7 @@ export class EnemySpawnerSystem {
             return;
         }
 
-        this.currentRoundConfig = this.waveConfig.rounds[this.currentRound - 1] || null;
+        this.currentRoundConfig = this.waveConfig.rounds[this.currentRound - 1] ?? null;
         this.batchesSpawnedThisRound = 0;
         this.enemiesSpawnedThisRound = 0;
         this.spawnTimer = 0;
