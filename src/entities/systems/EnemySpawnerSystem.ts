@@ -41,6 +41,7 @@ export class EnemySpawnerSystem {
     private enemiesSpawnedThisRound: number = 0;
     private spawnTimer: number = 0;
     private breakTimer: number = 0;
+    private enemiesSpawnedThisWave: number = 0; // Track total enemies spawned in current wave
 
     // Event tracking
     private lastRegisteredEnemyCount: number = 0;
@@ -204,6 +205,7 @@ export class EnemySpawnerSystem {
 
         this.entityFactory.createEnemyEntity(cfg);
         this.totalEnemiesSpawned++;
+        this.enemiesSpawnedThisWave++;
     }
 
     /**
@@ -212,6 +214,7 @@ export class EnemySpawnerSystem {
     public startWave(): void {
         this.currentRound = 0;
         this.currentState = SpawnerState.ROUND_BREAK; // Will immediately transition to first round
+        this.enemiesSpawnedThisWave = 0; // Reset wave counter
         
         // Dispatch wave started event
         GlobalEventDispatcher.dispatch(new Event(EventType.WaveStarted, {
@@ -355,6 +358,34 @@ export class EnemySpawnerSystem {
         this.breakTimer = 0;
         this.lastRegisteredEnemyCount = 0;
         this.totalEnemiesSpawned = 0;
+        this.enemiesSpawnedThisWave = 0;
         this.breakTimer = 0; // Start immediately to trigger first wave
+    }
+
+    /**
+     * Get total enemies spawned in the current wave
+     */
+    public getEnemiesSpawnedThisWave(): number {
+        return this.enemiesSpawnedThisWave;
+    }
+
+    /**
+     * Get total enemies that will be spawned for the current wave
+     */
+    public getTotalEnemiesForWave(): number {
+        let total = 0;
+        for (const roundConfig of this.waveConfig.rounds) {
+            total += roundConfig.totalBatches * roundConfig.batchSize;
+        }
+        return total;
+    }
+
+    /**
+     * Get enemy counts per round for the current wave
+     */
+    public getRoundEnemyCounts(): number[] {
+        return this.waveConfig.rounds.map(roundConfig => 
+            roundConfig.totalBatches * roundConfig.batchSize
+        );
     }
 }
