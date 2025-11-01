@@ -5,6 +5,7 @@ import { HealthComponent } from './entities/components/HealthComponent';
 import { AbilitySystem } from './entities/systems/AbilitySystem';
 import { AttackAnimationSystem } from './entities/systems/AttackAnimationSystem';
 import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
+import { CollisionSystem } from './entities/systems/CollisionSystem';
 import { CombatSystem } from './entities/systems/CombatSystem';
 import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
 import { EffectTickSystem } from './entities/systems/EffectTickSystem';
@@ -42,6 +43,7 @@ import { UpgradeShopUI } from './ui/UpgradeShopUI';
 import { WaveAnnouncementUI } from './ui/WaveAnnouncementUI';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { TeamComponent } from './entities/components/TeamComponent';
+import { defaultCollisionConfig } from './entities/config/CollisionConfig';
 import { defaultDeathEffectConfig } from './entities/config/DeathEffectConfig';
 import { defaultEffectTickConfig } from './entities/config/EffectTickConfig';
 import { defaultKnockbackConfig } from './entities/config/KnockbackConfig';
@@ -55,6 +57,7 @@ const scene = new THREE.Scene();
 const renderer = new Renderer(window.innerWidth, window.innerHeight)
 const renderSystem = new RenderSystem(renderer, scene)
 const bobAnimationSystem = new BobAnimationSystem()
+const collisionSystem = new CollisionSystem(defaultCollisionConfig)
 const movementSystem = new MovementSystem()
 const rotationSystem = new RotationSystem()
 const targetingSystem = new TargetingSystem(GlobalEventDispatcher)
@@ -291,6 +294,7 @@ function animate(): void {
             knockbackOnHitSystem.update(entities);
             stunSystem.update(entities);
             abilitySystem.update(entities);
+            collisionSystem.update(entities);
             movementSystem.update(entities);
             rotationSystem.update(entities);
             targetingSystem.update(entities);

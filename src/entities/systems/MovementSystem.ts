@@ -45,16 +45,6 @@ export class MovementSystem implements IEntitySystem {
                 const currentPosition2D = new THREE.Vector3(currentPosition.x, 0, currentPosition.z);
                 const targetPosition2D = new THREE.Vector3(movement.getTargetPosition().x, 0, movement.getTargetPosition().z);
                 
-                // Check distance to target and enforce a stop radius (enemy melee range)
-                const distance2D = currentPosition2D.distanceTo(targetPosition2D);
-                const stopRadius = this.enemyConfig.combat.attack.range; // keep enemy just outside melee range
-                const distanceToStop = Math.max(0, distance2D - stopRadius);
-                if (distanceToStop <= 0.0001) {
-                    // Stateless: halt when inside or at stop radius; resume if pushed out
-                    movement.setCurrentSpeed(0);
-                    return;
-                }
-                
                 // Calculate desired movement direction (2D only)
                 const desiredDirection2D = targetPosition2D.clone().sub(currentPosition2D).normalize();
                 // Blend with last direction for steering smoothness
@@ -69,9 +59,10 @@ export class MovementSystem implements IEntitySystem {
                 
                 movement.setCurrentSpeed(newSpeedPerSecond);
                 
-                // Calculate movement delta for this frame using current speed scaled by dt, don't cross stop radius
+                // Calculate movement delta for this frame using current speed scaled by dt
+                // Collision system will handle preventing overlap with core and other enemies
                 const dt = Time.getDeltaTime();
-                const movementDelta = Math.min(newSpeedPerSecond * dt, distanceToStop);
+                const movementDelta = newSpeedPerSecond * dt;
                 
                 // Calculate new position (2D movement, preserve Y)
                 const movementVector2D = steeredDir.multiplyScalar(movementDelta);

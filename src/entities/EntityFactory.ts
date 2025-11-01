@@ -6,6 +6,7 @@ import { AbilityComponent } from './components/AbilityComponent';
 import { AttackAnimationComponent } from './components/AttackAnimationComponent';
 import { AttackComponent } from './components/AttackComponent';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
+import { CollisionComponent } from './components/CollisionComponent';
 import { GeometryComponent, SecondaryGeometryConfig, SecondaryGeometryType } from './components/GeometryComponent';
 import { HealthComponent } from './components/HealthComponent';
 import { MetaUpgradeComponent } from './components/MetaUpgradeComponent';
@@ -16,6 +17,7 @@ import { TargetComponent } from './components/TargetComponent';
 import { TeamComponent, TeamType } from './components/TeamComponent';
 import { abilityConfigByLevel } from './config/AbilityConfig';
 import { BaseEntityConfig } from './config/BaseEntityConfig';
+import { CollisionConfig, defaultCollisionConfig } from './config/CollisionConfig';
 import { CombatConfig } from './config/CombatConfig';
 import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityConfig';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
@@ -193,13 +195,18 @@ export class EntityFactory implements IEntityFactory {
             initialTargetingMode
         ));
         
+        // Add collision component (core is immovable)
+        // Use geometry main sphere radius multiplied by collision config multiplier
+        const collisionRadius = config.geometry.mainSphere.radius * defaultCollisionConfig.defaultRadiusMultiplier;
+        entity.addComponent(new CollisionComponent(collisionRadius, true)); // true = immovable
+        
         // Set up entity in scene
         this.addEntityToScene(entity, geometryComponent, config.position);
 
         return entity;
     }
 
-    createEnemyEntity(config: EnemyEntityConfig = defaultEnemyEntityConfig): Entity {
+    createEnemyEntity(config: EnemyEntityConfig = defaultEnemyEntityConfig, collisionConfig: CollisionConfig = defaultCollisionConfig): Entity {
         const entity = this.entityManager.createEntity();
         
         // Add base components (health, position, geometry, rotation, bob animation)
@@ -217,6 +224,11 @@ export class EntityFactory implements IEntityFactory {
             config.movement.deceleration,
             config.movement.decelerationDistance
         ));
+        
+        // Add collision component (enemy-specific)
+        // Use geometry main sphere radius multiplied by collision config multiplier
+        const collisionRadius = config.geometry.mainSphere.radius * collisionConfig.defaultRadiusMultiplier;
+        entity.addComponent(new CollisionComponent(collisionRadius));
         
         // Set up entity in scene
         this.addEntityToScene(entity, geometryComponent, config.position);
