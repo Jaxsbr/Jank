@@ -1,3 +1,5 @@
+import { defaultMetaPointsConfig, LevelBasedCost, UpgradeCost } from '../entities/config/MetaPointsConfig';
+
 /**
  * Singleton service for managing meta progression points and upgrades.
  * Persists data to localStorage for cross-session persistence.
@@ -126,6 +128,62 @@ class MetaPointsService {
 
     public setHighestWaveMilestone(milestone: number): void {
         this.highestWaveMilestone = milestone;
+        this.saveToStorage();
+    }
+
+    /**
+     * Helper method to check if a cost is level-based
+     */
+    private isLevelBasedCost(cost: LevelBasedCost | UpgradeCost): cost is LevelBasedCost {
+        return typeof cost === 'object' && cost !== null && Object.keys(cost).every(key => !isNaN(Number(key)));
+    }
+
+    /**
+     * Helper method to get the cost for a specific upgrade level
+     */
+    private getUpgradeCostForLevel(upgradeId: string, level: number): UpgradeCost | undefined {
+        const costConfig = defaultMetaPointsConfig.upgradeCosts[upgradeId];
+        if (!costConfig) return undefined;
+
+        if (this.isLevelBasedCost(costConfig)) {
+            return costConfig[level];
+        } else {
+            return costConfig;
+        }
+    }
+
+    /**
+     * Resets all purchased upgrades and refunds all spent points.
+     * Calculates the total cost of all purchased upgrade levels and refunds them.
+     */
+    public resetAllUpgrades(): void {
+        let totalKillPointsRefund = 0;
+        let totalWavePointsRefund = 0;
+
+        // Calculate refunds for each purchased upgrade
+        for (const [upgradeId, level] of Object.entries(this.purchasedUpgrades)) {
+            // Sum costs for all levels purchased (from 1 to current level)
+            for (let currentLevel = 1; currentLevel <= level; currentLevel++) {
+                const cost = this.getUpgradeCostForLevel(upgradeId, currentLevel);
+                if (cost) {
+                    if (cost.killPoints) {
+                        totalKillPointsRefund += cost.killPoints;
+                    }
+                    if (cost.wavePoints) {
+                        totalWavePointsRefund += cost.wavePoints;
+                    }
+                }
+            }
+        }
+
+        // Refund the points
+        this.killPoints += totalKillPointsRefund;
+        this.wavePoints += totalWavePointsRefund;
+
+        // Clear all purchased upgrades
+        this.purchasedUpgrades = {};
+
+        // Save to storage
         this.saveToStorage();
     }
 

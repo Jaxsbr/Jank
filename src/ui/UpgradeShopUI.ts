@@ -109,6 +109,43 @@ export class UpgradeShopUI {
             upgradesContainer.appendChild(upgradeEntry);
         }
 
+        // Reset button
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset Talents';
+        resetButton.style.cssText = `
+            font-family: 'Courier New', monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 100, 100, 0.3);
+            border: 3px solid #ff6464;
+            border-radius: 8px;
+            padding: 15px 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 200px;
+        `;
+
+        resetButton.addEventListener('mouseenter', () => {
+            resetButton.style.background = 'rgba(255, 100, 100, 0.5)';
+            resetButton.style.transform = 'scale(1.1)';
+        });
+
+        resetButton.addEventListener('mouseleave', () => {
+            resetButton.style.background = 'rgba(255, 100, 100, 0.3)';
+            resetButton.style.transform = 'scale(1)';
+        });
+
+        resetButton.addEventListener('click', () => {
+            metaPointsService.resetAllUpgrades();
+            this.updateUI();
+        });
+
+        panel.appendChild(resetButton);
+
         // Replay button
         const replayButton = document.createElement('button');
         replayButton.textContent = 'Replay';
