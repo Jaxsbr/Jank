@@ -7,6 +7,7 @@ import { AttackAnimationSystem } from './entities/systems/AttackAnimationSystem'
 import { BobAnimationSystem } from './entities/systems/BobAnimationSystem';
 import { CollisionSystem } from './entities/systems/CollisionSystem';
 import { CombatSystem } from './entities/systems/CombatSystem';
+import { DamageTextSystem } from './entities/systems/DamageTextSystem';
 import { DamageVisualSystem } from './entities/systems/DamageVisualSystem';
 import { EffectTickSystem } from './entities/systems/EffectTickSystem';
 import { EnemySpawnerSystem } from './entities/systems/EnemySpawnerSystem';
@@ -72,6 +73,7 @@ const knockbackOnHitSystem = new KnockbackOnHitSystem(GlobalEventDispatcher, def
 const hitParticleSystem = new HitParticleSystem(GlobalEventDispatcher, scene)
 const stunPulseVFXSystem = new StunPulseVFXSystem(GlobalEventDispatcher, scene)
 const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
+const damageTextSystem = new DamageTextSystem(GlobalEventDispatcher, scene, renderer.getCamera())
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
 const entityFactory = new EntityFactory(scene, entityManager)
 const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
@@ -329,6 +331,7 @@ function animate(): void {
     hitParticleSystem.update();
     stunPulseVFXSystem.update();
     deathEffectSystem.update();
+    damageTextSystem.update();
     attackAnimationSystem.update(entities);
 
     const tileEntities = tileManager.getAllTiles();

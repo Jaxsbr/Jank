@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { Entity } from '../../ecs/Entity';
 import { Event } from '../../systems/eventing/Event';
+import { EventArgValue } from '../../systems/eventing/EventArgValue';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
+import { EffectType } from '../EffectType';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
@@ -82,13 +84,25 @@ export class CombatSystem implements IEventListener {
             }
         }
 
-        // Dispatch damage taken event for visual feedback
-        const damageEvent = new Event(EventType.DamageTaken, {
+        // Extract additional damage metadata from AttackExecuted event if available
+        const isCritical = event.args['isCritical'] as boolean | undefined;
+        const effectType = event.args['effectType'] as EffectType | undefined;
+
+        // Build event args, conditionally including effectType
+        const eventArgs: Record<string, EventArgValue> = {
             targetId: targetId,
             damage: damage,
             newHP: healthComponent.getHP(),
-            position: hitPosition
-        });
+            position: hitPosition,
+            isCritical: isCritical ?? false
+        };
+        
+        if (effectType) {
+            eventArgs['effectType'] = effectType;
+        }
+
+        // Dispatch damage taken event for visual feedback
+        const damageEvent = new Event(EventType.DamageTaken, eventArgs);
         this.eventDispatcher.dispatch(damageEvent);
 
         // Check if target is dead
