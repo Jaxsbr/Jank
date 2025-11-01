@@ -11,6 +11,7 @@ import { ActiveEffect, EffectComponent } from '../components/EffectComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
+import { TeamComponent } from '../components/TeamComponent';
 
 /**
  * System that updates active effects on entities each frame
@@ -143,6 +144,12 @@ export class EffectTickSystem implements IEntitySystem {
                     geom.getGeometryGroup().getWorldPosition(position);
                 }
             }
+
+            // Capture team information before entity is destroyed
+            const teamComponent = entity.getComponent(TeamComponent);
+            const isCore = teamComponent?.isCore() ?? false;
+            const isEnemy = teamComponent?.isEnemy() ?? false;
+
             this.eventDispatcher.dispatch(new Event(EventType.EntityDeath, {
                 entity: entity,
                 entityId: entity.getId(),
@@ -150,7 +157,9 @@ export class EffectTickSystem implements IEntitySystem {
                 deathTime: currentTime,
                 deathCause: 'effect',
                 effectType: effect.effectType,
-                effectSource: effect.source ?? 'unknown'
+                effectSource: effect.source ?? 'unknown',
+                isCore,
+                isEnemy
             }));
         }
     }

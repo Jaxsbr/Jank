@@ -6,11 +6,17 @@ import { defaultMetaUpgradeConfig } from '../entities/config/MetaUpgradeConfig';
 import { Event } from '../systems/eventing/Event';
 import { GlobalEventDispatcher } from '../systems/eventing/EventDispatcher';
 import { EventType } from '../systems/eventing/EventType';
+import { metaPointsService } from '../utils/MetaPointsService';
+
+export interface IDebugUICallbacks {
+    onRestartGame?: () => void;
+}
 
 export class DebugUI {
     private container!: HTMLDivElement;
     private isVisible: boolean = false;
     private entityManager: EntityManager;
+    private onRestartGame?: () => void;
     private ring1Checkbox!: HTMLInputElement;
     private ring2Checkbox!: HTMLInputElement;
     private ring3Checkbox!: HTMLInputElement;
@@ -18,8 +24,9 @@ export class DebugUI {
     private stunPulse1Checkbox!: HTMLInputElement;
     private stunPulse2Checkbox!: HTMLInputElement;
 
-    constructor(entityManager: EntityManager) {
+    constructor(entityManager: EntityManager, callbacks?: IDebugUICallbacks) {
         this.entityManager = entityManager;
+        this.onRestartGame = callbacks?.onRestartGame;
         this.createUI();
         this.setupEventListeners();
     }
@@ -109,6 +116,9 @@ export class DebugUI {
 
         // DEBUG: Meta upgrades section - remove when proper upgrade system is implemented
         this.createMetaUpgradesSection();
+
+        // Clear meta progression data button
+        this.createClearDataButton();
 
         // Add instructions
         const instructions = document.createElement('div');
@@ -452,5 +462,60 @@ export class DebugUI {
 
         // Update disabled states after changes
         this.updateUpgradeState();
+    }
+
+    private createClearDataButton(): void {
+        const clearDataLabel = document.createElement('div');
+        clearDataLabel.textContent = 'Meta Progression:';
+        clearDataLabel.style.cssText = `
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #40E0D0;
+        `;
+        this.container.appendChild(clearDataLabel);
+
+        const clearDataButton = document.createElement('button');
+        clearDataButton.textContent = 'Clear Meta Progression Data';
+        clearDataButton.style.cssText = `
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: rgba(200, 0, 0, 0.5);
+            border: 2px solid #FF0000;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            width: 100%;
+            margin-top: 10px;
+        `;
+
+        clearDataButton.addEventListener('mouseenter', () => {
+            clearDataButton.style.background = 'rgba(200, 0, 0, 0.7)';
+        });
+
+        clearDataButton.addEventListener('mouseleave', () => {
+            clearDataButton.style.background = 'rgba(200, 0, 0, 0.5)';
+        });
+
+        clearDataButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all meta progression data? This will reset all points and purchased upgrades and restart the game.')) {
+                metaPointsService.clearAllData();
+                alert('Meta progression data cleared successfully. Restarting game...');
+                
+                // Close the debug UI
+                this.hide();
+                
+                // Restart the game if callback is provided
+                if (this.onRestartGame) {
+                    this.onRestartGame();
+                }
+            }
+        });
+
+        this.container.appendChild(clearDataButton);
     }
 }

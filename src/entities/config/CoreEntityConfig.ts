@@ -55,8 +55,8 @@ export const defaultCoreEntityConfig: CoreEntityConfig = {
     },
     combat: {
         attack: {
-            damage: 50,
-            range: 1.3,
+            damage: 75,
+            range: 1.4,
             cooldown: 1.0 // seconds (was 1000ms)
         },
         target: {

@@ -114,10 +114,17 @@ export class CombatSystem implements IEventListener {
                 }
             }
 
+            // Capture team information before entity is destroyed
+            const teamComponent = targetEntity.getComponent(TeamComponent);
+            const isCore = teamComponent?.isCore() ?? false;
+            const isEnemy = teamComponent?.isEnemy() ?? false;
+
             // Dispatch entity death event (EntityManager will handle destruction and cleanup)
             const deathEvent = new Event(EventType.EntityDeath, {
                 entityId: targetId,
-                position
+                position,
+                isCore,
+                isEnemy
             });
             this.eventDispatcher.dispatch(deathEvent);
         }

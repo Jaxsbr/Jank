@@ -8,6 +8,7 @@ import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { Time } from '../../utils/Time';
 import { GeometryComponent } from '../components/GeometryComponent';
+import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { MovementComponent } from '../components/MovementComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TeamComponent } from '../components/TeamComponent';
@@ -55,6 +56,11 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         // Only apply for core -> enemy
         if (!(attackerTeam.isCore() && targetTeam.isEnemy())) return;
 
+        // Check if core has melee knockback upgrade (no knockback by default)
+        const meta = attacker.getComponent(MetaUpgradeComponent);
+        const knockbackLevel = meta?.getMeleeKnockbackLevel() || 0;
+        if (knockbackLevel === 0) return; // No knockback without upgrade
+
         const attackerPos = attacker.getComponent(PositionComponent) as PositionComponent | undefined;
         const targetPos = target.getComponent(PositionComponent) as PositionComponent | undefined;
         if (!attackerPos || !targetPos) return;
@@ -71,8 +77,14 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         const jitter = THREE.MathUtils.degToRad((Math.random() * 10) - 25);
         dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), jitter);
 
+        // Scale knockback by level (+1 distance per level)
+        // Each level multiplies the base distance, so level 1 = 1x, level 2 = 2x, level 3 = 3x
+        // This scales the initial speed proportionally to achieve roughly +1 distance per level
+        const knockbackMultiplier = knockbackLevel;
+        const scaledInitialSpeed = this.config.initialSpeed * knockbackMultiplier;
+
         // Apply knockback as initial velocity (XZ only), let update() apply and decay it for smoothness
-        const velocity = dir.clone().multiplyScalar(this.config.initialSpeed);
+        const velocity = dir.clone().multiplyScalar(scaledInitialSpeed);
         const current = this.knockbackVelocityByEntityId.get(target.getId());
         if (current) {
             // Combine with existing velocity

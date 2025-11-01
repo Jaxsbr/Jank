@@ -5,11 +5,15 @@ import { Event } from '../../systems/eventing/Event';
 import { EventDispatcherSingleton } from '../../systems/eventing/EventDispatcher';
 import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
+import { metaPointsService } from '../../utils/MetaPointsService';
 import { SpatialQuery } from '../../utils/SpatialQuery';
+import { AttackComponent } from '../components/AttackComponent';
 import { HealthComponent } from '../components/HealthComponent';
+import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent } from '../components/TeamComponent';
+import { defaultMetaUpgradeConfig } from '../config/MetaUpgradeConfig';
 
 export class TargetingSystem implements IEntitySystem, IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
@@ -71,8 +75,20 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
                     target.clearTarget();
                 }
                 
-                // Find new target if we don't have one
-                if (!target.hasTarget()) {
+                // Check if advanced melee targeting is enabled for core
+                const advancedTargetingLevel = team.isCore() 
+                    ? metaPointsService.getPurchasedUpgradeLevel('advanced-melee-targeting')
+                    : 0;
+                
+                // For core with advanced targeting, always re-evaluate to pick best target
+                // For others, only find target if we don't have one
+                if (advancedTargetingLevel > 0 && team.isCore()) {
+                    const newTarget = this.findTarget(entity, team, position, entities);
+                    if (newTarget && (!target.hasTarget() || target.getTarget() !== newTarget)) {
+                        target.setTarget(newTarget);
+                    }
+                } else if (!target.hasTarget()) {
+                    // Default behavior: only find target when we don't have one
                     const newTarget = this.findTarget(entity, team, position, entities);
                     if (newTarget) {
                         target.setTarget(newTarget);
@@ -119,7 +135,60 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
 
         // Apply targeting rules
         if (team.isCore()) {
-            // Core entity can target any enemy - find closest
+            // Check if advanced melee targeting is unlocked
+            const advancedTargetingLevel = metaPointsService.getPurchasedUpgradeLevel('advanced-melee-targeting');
+            if (advancedTargetingLevel > 0) {
+                // Advanced targeting mode - filter by attack range and apply mode logic
+                const meta = entity.getComponent(MetaUpgradeComponent);
+                const attack = entity.getComponent(AttackComponent);
+                
+                if (meta && attack) {
+                    // Calculate effective melee range
+                    const meleeRings = Math.min(
+                        meta.getMeleeRangeRings(),
+                        defaultMetaUpgradeConfig.maxMeleeRangeRings
+                    );
+                    const baseRange = attack.getRange();
+                    const effectiveRange = meleeRings === 0 ? baseRange : baseRange * meleeRings;
+                    
+                    // Filter targets within attack range
+                    const targetsInRange = SpatialQuery.getEntitiesInRadius2D(
+                        potentialTargets,
+                        entityPosition,
+                        effectiveRange
+                    );
+                    
+                    if (targetsInRange.length === 0) {
+                        return null;
+                    }
+                    
+                    // Apply targeting mode
+                    const targetingMode = meta.getTargetingMode();
+                    if (targetingMode === 'lowest') {
+                        // Find target with lowest HP
+                        let lowestHpTarget: Entity | null = null;
+                        let lowestHp = Infinity;
+                        
+                        for (const target of targetsInRange) {
+                            const targetHealth = target.getComponent(HealthComponent);
+                            if (targetHealth && targetHealth.isAlive()) {
+                                const currentHp = targetHealth.getHP();
+                                if (currentHp < lowestHp) {
+                                    lowestHp = currentHp;
+                                    lowestHpTarget = target;
+                                }
+                            }
+                        }
+                        
+                        return lowestHpTarget;
+                    } else {
+                        // 'nearest' mode - find closest
+                        return SpatialQuery.getClosestEntity2D(targetsInRange, entityPosition);
+                    }
+                }
+            }
+            
+            // Default behavior: Core entity can target any enemy - find closest (grudge mode)
             return SpatialQuery.getClosestEntity2D(potentialTargets, entityPosition);
         } else if (team.isEnemy()) {
             // Enemies can only target the core entity

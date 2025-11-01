@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { EntityManager } from './ecs/EntityManager';
 import { EntityFactory } from './entities/EntityFactory';
-import { GeometryComponent } from './entities/components/GeometryComponent';
 import { HealthComponent } from './entities/components/HealthComponent';
 import { AbilitySystem } from './entities/systems/AbilitySystem';
 import { AttackAnimationSystem } from './entities/systems/AttackAnimationSystem';
@@ -38,13 +37,17 @@ import { CoreHPBarSystem } from './ui/CoreHPBarSystem';
 import { CoreHPHUD } from './ui/CoreHPHUD';
 import { GameOverUI } from './ui/GameOverUI';
 import { GameStatsHUD } from './ui/GameStatsHUD';
+import { TargetingModeToggleUI } from './ui/TargetingModeToggleUI';
+import { UpgradeShopUI } from './ui/UpgradeShopUI';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { TeamComponent } from './entities/components/TeamComponent';
 import { defaultDeathEffectConfig } from './entities/config/DeathEffectConfig';
 import { defaultEffectTickConfig } from './entities/config/EffectTickConfig';
 import { defaultKnockbackConfig } from './entities/config/KnockbackConfig';
+import { defaultMetaPointsConfig } from './entities/config/MetaPointsConfig';
 import { DeathEffectSystem } from './entities/systems/DeathEffectSystem';
 import { DebugUI } from './ui/DebugUI';
+import { metaPointsService } from './utils/MetaPointsService';
 import { Time } from './utils/Time';
 
 const scene = new THREE.Scene();
@@ -105,14 +108,33 @@ const stunSystem = new StunSystem();
 
 // Create new UI systems
 const gameStatsHUD = new GameStatsHUD();
-const gameOverUI = new GameOverUI({
-    onRestart: () => {
+
+// Set up wave getter for enemy spawner (for HP scaling)
+enemySpawner.setWaveGetter(() => {
+    return gameStatsHUD.getWave();
+});
+
+const upgradeShopUI = new UpgradeShopUI({
+    onReplay: () => {
         restartGame();
+    }
+});
+const gameOverUI = new GameOverUI({
+    onReplay: () => {
+        restartGame();
+    },
+    onUpgrade: () => {
+        upgradeShopUI.show();
     }
 });
 const abilityButton = new AbilityButton(entityManager, {
     onActivate: () => {
         abilitySystem.activateAbility();
+    }
+});
+const targetingModeToggleUI = new TargetingModeToggleUI(entityManager, {
+    onModeChanged: () => {
+        // Mode changed - TargetingSystem will pick up the change on next target search
     }
 });
 
@@ -126,7 +148,11 @@ entityFactory.createCoreEntity()
 
 
 // Create the UI
-const debugUI = new DebugUI(entityManager);
+const debugUI = new DebugUI(entityManager, {
+    onRestartGame: () => {
+        restartGame();
+    }
+});
 
 // Game initialization
 function initializeGame(): void {
@@ -143,23 +169,25 @@ function initializeGame(): void {
 
 // Game restart
 function restartGame(): void {
-    // Clear all entities
-    const entities = entityManager.getEntities();
-    entities.forEach(entity => {
-        const geometry = entity.getComponent(GeometryComponent);
-        if (geometry) {
-            scene.remove(geometry.getGeometryGroup());
-        }
-        entityManager.destroyEntity(entity);
-    });
+    // Set game state to paused temporarily to prevent spawns during cleanup
+    gameState = 'paused';
     
-    // Recreate the core
+    // Reset enemy spawner difficulty to starting state
+    // This resets: spawn timer, spawn counter, and spawn interval (difficulty scaling)
+    enemySpawner.reset();
+    
+    // Clear all entities (including enemies, effects, particles, etc.)
+    // This ensures no enemies remain from the previous run
+    entityManager.clearAllEntities();
+    
+    // Reset HP bar system to clear cached core entity reference
+    coreHPBarSystem.resetCoreEntity();
+    
+    // Recreate the core entity (automatically has full health from HealthComponent constructor)
     entityFactory.createCoreEntity();
     
-    // Reset game state
+    // Reset game state to playing and reinitialize systems
     gameState = 'playing';
-    
-    // Reinitialize
     initializeGame();
 }
 
@@ -168,25 +196,45 @@ GlobalEventDispatcher.registerListener('MainGame', {
     onEvent: (event: Event) => {
         if (event.eventName === EventType.EnemyKilled) {
             gameStatsHUD.addKill();
-            // Advance wave every N kills
             const kills = gameStatsHUD.getKills();
+            
+            // Check kill milestones and award points
+            let highestMilestone = metaPointsService.getHighestKillMilestone();
+            for (const milestone of defaultMetaPointsConfig.killMilestones) {
+                if (kills >= milestone.kills && milestone.kills > highestMilestone) {
+                    metaPointsService.addKillPoints(milestone.points);
+                    metaPointsService.setHighestKillMilestone(milestone.kills);
+                    highestMilestone = milestone.kills; // Update local tracking
+                    // Optional: could show notification here
+                }
+            }
+            
+            // Advance wave every N kills
             if (kills % KILLS_PER_WAVE === 0) {
-                gameStatsHUD.setWave(gameStatsHUD.getWave() + 1);
+                const newWave = gameStatsHUD.getWave() + 1;
+                gameStatsHUD.setWave(newWave);
+                
+                // Check wave milestones and award points
+                let highestWaveMilestone = metaPointsService.getHighestWaveMilestone();
+                for (const milestone of defaultMetaPointsConfig.waveMilestones) {
+                    if (newWave >= milestone.wave && milestone.wave > highestWaveMilestone) {
+                        metaPointsService.addWavePoints(milestone.points);
+                        metaPointsService.setHighestWaveMilestone(milestone.wave);
+                        highestWaveMilestone = milestone.wave; // Update local tracking
+                        // Optional: could show notification here
+                    }
+                }
             }
         } else if (event.eventName === EventType.EntityDeath) {
-            const entityId = event.args['entityId'] as string;
-            const entity = entityManager.findEntityById(entityId);
+            const isCore = event.args['isCore'] as boolean;
             
-            if (entity) {
-                const team = entity.getComponent(TeamComponent);
-                if (team?.isCore()) {
-                    // Core died - game over
-                    if (gameState === 'playing') {
-                        gameState = 'gameOver';
-                        const wave = gameStatsHUD.getWave();
-                        const kills = gameStatsHUD.getKills();
-                        gameOverUI.show(wave, kills);
-                    }
+            if (isCore) {
+                // Core died - game over
+                if (gameState === 'playing') {
+                    gameState = 'gameOver';
+                    const wave = gameStatsHUD.getWave();
+                    const kills = gameStatsHUD.getKills();
+                    gameOverUI.show(wave, kills);
                 }
             }
         }
@@ -261,6 +309,7 @@ function animate(): void {
     // UI
     coreHPBarSystem.update();
     abilityButton.update();
+    targetingModeToggleUI.update();
     
     // Update enemy count and check for wave progression
     if (gameState === 'playing') {

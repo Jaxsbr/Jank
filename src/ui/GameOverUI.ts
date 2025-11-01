@@ -1,14 +1,17 @@
 export interface IGameOverUICallbacks {
-    onRestart: () => void;
+    onReplay: () => void;
+    onUpgrade: () => void;
 }
 
 export class GameOverUI {
     private container: HTMLDivElement;
     private isVisible: boolean = false;
-    private onRestart: () => void;
+    private onReplay: () => void;
+    private onUpgrade: () => void;
 
     constructor(callbacks: IGameOverUICallbacks) {
-        this.onRestart = callbacks.onRestart;
+        this.onReplay = callbacks.onReplay;
+        this.onUpgrade = callbacks.onUpgrade;
         this.createUI();
     }
 
@@ -66,10 +69,18 @@ export class GameOverUI {
         `;
         panel.appendChild(statsContainer);
 
-        // Restart button
-        const restartButton = document.createElement('button');
-        restartButton.textContent = 'Restart';
-        restartButton.style.cssText = `
+        // Buttons container
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.style.cssText = `
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        `;
+
+        // Replay button
+        const replayButton = document.createElement('button');
+        replayButton.textContent = 'Replay';
+        replayButton.style.cssText = `
             font-family: 'Courier New', monospace;
             font-size: 32px;
             font-weight: bold;
@@ -83,22 +94,56 @@ export class GameOverUI {
             outline: none;
         `;
 
-        restartButton.addEventListener('mouseenter', () => {
-            restartButton.style.background = 'rgba(64, 224, 208, 0.5)';
-            restartButton.style.transform = 'scale(1.1)';
+        replayButton.addEventListener('mouseenter', () => {
+            replayButton.style.background = 'rgba(64, 224, 208, 0.5)';
+            replayButton.style.transform = 'scale(1.1)';
         });
 
-        restartButton.addEventListener('mouseleave', () => {
-            restartButton.style.background = 'rgba(64, 224, 208, 0.3)';
-            restartButton.style.transform = 'scale(1)';
+        replayButton.addEventListener('mouseleave', () => {
+            replayButton.style.background = 'rgba(64, 224, 208, 0.3)';
+            replayButton.style.transform = 'scale(1)';
         });
 
-        restartButton.addEventListener('click', () => {
-            this.onRestart();
+        replayButton.addEventListener('click', () => {
+            this.onReplay();
             this.hide();
         });
 
-        panel.appendChild(restartButton);
+        // Upgrade button
+        const upgradeButton = document.createElement('button');
+        upgradeButton.textContent = 'Upgrade';
+        upgradeButton.style.cssText = `
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            background: rgba(64, 224, 208, 0.3);
+            border: 3px solid #40E0D0;
+            border-radius: 8px;
+            padding: 15px 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+        `;
+
+        upgradeButton.addEventListener('mouseenter', () => {
+            upgradeButton.style.background = 'rgba(64, 224, 208, 0.5)';
+            upgradeButton.style.transform = 'scale(1.1)';
+        });
+
+        upgradeButton.addEventListener('mouseleave', () => {
+            upgradeButton.style.background = 'rgba(64, 224, 208, 0.3)';
+            upgradeButton.style.transform = 'scale(1)';
+        });
+
+        upgradeButton.addEventListener('click', () => {
+            this.onUpgrade();
+            this.hide();
+        });
+
+        buttonsContainer.appendChild(replayButton);
+        buttonsContainer.appendChild(upgradeButton);
+        panel.appendChild(buttonsContainer);
         this.container.appendChild(panel);
         document.body.appendChild(this.container);
     }

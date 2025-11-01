@@ -8,7 +8,7 @@ export interface MetaUpgradeConfig {
 }
 
 export const defaultMetaUpgradeConfig: MetaUpgradeConfig = {
-    maxExtraMeleeTargets: 3,
+    maxExtraMeleeTargets: 5,
     maxMeleeRangeRings: 3,
     maxStunPulseLevel: 2,
     defaultExtraMeleeTargets: 0,

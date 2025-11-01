@@ -1,6 +1,7 @@
 import { Scene, Vector3 } from 'three';
 import { Entity } from '../ecs/Entity';
 import { EntityManager } from '../ecs/EntityManager';
+import { metaPointsService } from '../utils/MetaPointsService';
 import { AbilityComponent } from './components/AbilityComponent';
 import { AttackAnimationComponent } from './components/AttackAnimationComponent';
 import { AttackComponent } from './components/AttackComponent';
@@ -134,11 +135,62 @@ export class EntityFactory implements IEntityFactory {
         const cooldown = defaultAbilityConfig?.cooldownDuration ?? 8;
         entity.addComponent(new AbilityComponent(cooldown));
         
-        // Add meta upgrade component with default values
+        // Read purchased upgrades from meta progression service
+        const purchasedUpgrades = metaPointsService.getPurchasedUpgrades();
+        
+        // Get melee range rings from level-based upgrade (level directly corresponds to ring count)
+        let meleeRangeRings = defaultMetaUpgradeConfig.defaultMeleeRangeRings;
+        const meleeRangeLevel = purchasedUpgrades['melee-range'] || 0;
+        if (meleeRangeLevel > 0) {
+            meleeRangeRings = meleeRangeLevel;
+        }
+        // Clamp to max
+        meleeRangeRings = Math.min(meleeRangeRings, defaultMetaUpgradeConfig.maxMeleeRangeRings);
+        
+        // Calculate extra melee targets (multi-melee)
+        // Level directly corresponds to number of extra targets (level 1 = 1 extra, level 2 = 2 extra, etc.)
+        let extraMeleeTargets = defaultMetaUpgradeConfig.defaultExtraMeleeTargets;
+        const multiMeleeLevel = purchasedUpgrades['multi-melee'] || 0;
+        if (multiMeleeLevel > 0) {
+            extraMeleeTargets = multiMeleeLevel;
+        }
+        // Clamp to max
+        extraMeleeTargets = Math.min(extraMeleeTargets, defaultMetaUpgradeConfig.maxExtraMeleeTargets);
+        
+        // Get stun pulse level from level-based upgrade
+        let stunPulseLevel = defaultMetaUpgradeConfig.defaultStunPulseLevel;
+        const stunPulseUpgradeLevel = purchasedUpgrades['stun-pulse'] || 0;
+        if (stunPulseUpgradeLevel > 0) {
+            stunPulseLevel = stunPulseUpgradeLevel;
+        }
+        // Clamp to max
+        stunPulseLevel = Math.min(stunPulseLevel, defaultMetaUpgradeConfig.maxStunPulseLevel);
+        
+        // Get melee knockback level from level-based upgrade
+        const meleeKnockbackLevel = purchasedUpgrades['melee-knockback'] || 0;
+        
+        // Check if advanced melee targeting is unlocked
+        const advancedTargetingLevel = purchasedUpgrades['advanced-melee-targeting'] || 0;
+        const initialTargetingMode: 'nearest' | 'lowest' = advancedTargetingLevel > 0 ? 'nearest' : 'nearest';
+        
+        // Apply melee damage bonus (+25 per level)
+        const meleeDamageLevel = purchasedUpgrades['melee-damage'] || 0;
+        if (meleeDamageLevel > 0) {
+            const attackComponent = entity.getComponent(AttackComponent);
+            if (attackComponent) {
+                const baseDamage = attackComponent.getDamage();
+                const damageBonus = meleeDamageLevel * 25; // +25 per level
+                attackComponent.setDamage(baseDamage + damageBonus);
+            }
+        }
+        
+        // Add meta upgrade component with purchased upgrades
         entity.addComponent(new MetaUpgradeComponent(
-            defaultMetaUpgradeConfig.defaultExtraMeleeTargets,
-            defaultMetaUpgradeConfig.defaultMeleeRangeRings,
-            defaultMetaUpgradeConfig.defaultStunPulseLevel
+            extraMeleeTargets,
+            meleeRangeRings,
+            stunPulseLevel,
+            meleeKnockbackLevel,
+            initialTargetingMode
         ));
         
         // Set up entity in scene

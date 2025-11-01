@@ -27,12 +27,20 @@ export class EnemySpawnerSystem {
     private totalSpawned: number = 0;
     private currentIntervalSeconds: number;
     private readonly intensityDefaults = { reduceEveryNSpawns: 10, reductionFactor: 0.9, minIntervalSeconds: 0.5 } as const;
+    private getCurrentWave: (() => number) | null = null;
 
     constructor(entityFactory: EntityFactory, entityManager: EntityManager, config: EnemySpawnerConfig) {
         this.entityFactory = entityFactory;
         this.entityManager = entityManager;
         this.config = config;
         this.currentIntervalSeconds = config.intervalSeconds;
+    }
+
+    /**
+     * Set a callback to get the current wave number for scaling enemy difficulty
+     */
+    public setWaveGetter(callback: () => number): void {
+        this.getCurrentWave = callback;
     }
 
     public update(deltaSeconds: number): void {
@@ -59,8 +67,15 @@ export class EnemySpawnerSystem {
         const corePos = this.getCorePosition();
         const spawnPos = this.randomPointInRing(corePos, this.config.innerRadius, this.config.outerRadius);
 
+        // Get current wave for HP scaling (25 HP per wave)
+        const currentWave = this.getCurrentWave ? this.getCurrentWave() : 1;
+        const waveHpBonus = 25 * currentWave;
+
         const cfg: EnemyEntityConfig = {
             ...defaultEnemyEntityConfig,
+            health: {
+                maxHP: defaultEnemyEntityConfig.health.maxHP + waveHpBonus,
+            },
             position: spawnPos.clone(),
             movement: {
                 ...defaultEnemyEntityConfig.movement,
@@ -128,6 +143,22 @@ export class EnemySpawnerSystem {
         const theta = Math.random() * Math.PI * 2;
         const offset = new THREE.Vector3(Math.cos(theta) * r, 0, Math.sin(theta) * r);
         return center.clone().add(offset);
+    }
+
+    /**
+     * Reset the spawner to initial state.
+     * Clears spawn timers and resets spawn count/interval.
+     * This completely resets the difficulty progression back to the starting spawn rate.
+     */
+    public reset(): void {
+        // Reset spawn timer
+        this.elapsedSeconds = 0;
+        // Reset initial spawn flag (allows immediate spawn on next update if configured)
+        this.hasSpawnedInitial = false;
+        // Reset spawn counter (critical for difficulty - this tracks total spawns which reduces spawn interval)
+        this.totalSpawned = 0;
+        // Reset spawn interval back to initial difficulty (resets any intensity scaling)
+        this.currentIntervalSeconds = this.config.intervalSeconds;
     }
 }
 

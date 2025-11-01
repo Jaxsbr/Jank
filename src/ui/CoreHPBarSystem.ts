@@ -15,8 +15,9 @@ export class CoreHPBarSystem {
     }
 
     public update(): void {
-        // Find core entity if not already found
-        if (!this.coreEntity) {
+        // Find core entity if not already found, or if cached entity is no longer valid
+        if (!this.coreEntity || !this.isEntityValid(this.coreEntity)) {
+            this.coreEntity = null; // Clear invalid reference
             this.findCoreEntity();
         }
 
@@ -31,6 +32,20 @@ export class CoreHPBarSystem {
         }
 
         // HUD is in screen space; no world-position update needed
+    }
+
+    private isEntityValid(entity: Entity): boolean {
+        // Check if entity still exists in the entity manager
+        const entities = this.entityManager.getEntities();
+        return entities.includes(entity);
+    }
+
+    /**
+     * Reset the cached core entity reference.
+     * Call this when restarting the game to ensure a fresh core is found.
+     */
+    public resetCoreEntity(): void {
+        this.coreEntity = null;
     }
 
     private findCoreEntity(): void {

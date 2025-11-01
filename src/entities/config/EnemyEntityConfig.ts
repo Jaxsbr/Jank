@@ -49,7 +49,7 @@ export interface EnemyEntityConfig {
 
 export const defaultEnemyEntityConfig: EnemyEntityConfig = {
     health: {
-        maxHP: 100
+        maxHP: 75
     },
     position: new Vector3(5, 0, 0),
     geometry: defaultGeometryConfig,
