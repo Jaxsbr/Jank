@@ -18,5 +18,9 @@ export enum EventType {
     CoreHit,
     EnemyMoved,
     EnemyKilled,
-    StunPulseActivated
+    StunPulseActivated,
+    WaveStarted,
+    WaveCompleted,
+    RoundStarted,
+    RoundCompleted
 }

@@ -39,6 +39,7 @@ import { GameOverUI } from './ui/GameOverUI';
 import { GameStatsHUD } from './ui/GameStatsHUD';
 import { TargetingModeToggleUI } from './ui/TargetingModeToggleUI';
 import { UpgradeShopUI } from './ui/UpgradeShopUI';
+import { WaveAnnouncementUI } from './ui/WaveAnnouncementUI';
 // import { TileHeightSystem } from './tiles/systems/TileHeightSystem';
 import { TeamComponent } from './entities/components/TeamComponent';
 import { defaultDeathEffectConfig } from './entities/config/DeathEffectConfig';
@@ -72,8 +73,6 @@ const entityFactory = new EntityFactory(scene, entityManager)
 const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
     innerRadius: 6,
     outerRadius: 12,
-    intervalSeconds: 4,
-    spawnImmediately: true,
 })
 
 const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig.speed);
@@ -108,11 +107,7 @@ const stunSystem = new StunSystem();
 
 // Create new UI systems
 const gameStatsHUD = new GameStatsHUD();
-
-// Set up wave getter for enemy spawner (for HP scaling)
-enemySpawner.setWaveGetter(() => {
-    return gameStatsHUD.getWave();
-});
+const waveAnnouncementUI = new WaveAnnouncementUI();
 
 const upgradeShopUI = new UpgradeShopUI({
     onReplay: () => {
@@ -140,7 +135,6 @@ const targetingModeToggleUI = new TargetingModeToggleUI(entityManager, {
 
 // Game state
 let gameState: 'playing' | 'paused' | 'gameOver' = 'playing';
-const KILLS_PER_WAVE = 10; // Advance wave every N kills
 
 // Create the game core
 entityFactory.createCoreEntity()
@@ -164,7 +158,12 @@ function initializeGame(): void {
     stunPulseVFXSystem.setEntities(entityManager.getEntities());
     
     gameStatsHUD.reset();
-    gameStatsHUD.setWave(1); // Start at wave 1
+    
+    // Start first wave
+    enemySpawner.reset();
+    setTimeout(() => {
+        enemySpawner.startWave();
+    }, 500); // Brief delay to let UI settle
 }
 
 // Game restart
@@ -208,23 +207,6 @@ GlobalEventDispatcher.registerListener('MainGame', {
                     // Optional: could show notification here
                 }
             }
-            
-            // Advance wave every N kills
-            if (kills % KILLS_PER_WAVE === 0) {
-                const newWave = gameStatsHUD.getWave() + 1;
-                gameStatsHUD.setWave(newWave);
-                
-                // Check wave milestones and award points
-                let highestWaveMilestone = metaPointsService.getHighestWaveMilestone();
-                for (const milestone of defaultMetaPointsConfig.waveMilestones) {
-                    if (newWave >= milestone.wave && milestone.wave > highestWaveMilestone) {
-                        metaPointsService.addWavePoints(milestone.points);
-                        metaPointsService.setHighestWaveMilestone(milestone.wave);
-                        highestWaveMilestone = milestone.wave; // Update local tracking
-                        // Optional: could show notification here
-                    }
-                }
-            }
         } else if (event.eventName === EventType.EntityDeath) {
             const isCore = event.args['isCore'] as boolean;
             
@@ -237,6 +219,43 @@ GlobalEventDispatcher.registerListener('MainGame', {
                     gameOverUI.show(wave, kills);
                 }
             }
+        } else if (event.eventName === EventType.WaveStarted) {
+            const wave = event.args['wave'] as number;
+            gameStatsHUD.setWave(wave);
+            gameStatsHUD.setRound(1);
+            
+            // Check wave milestones and award points
+            let highestWaveMilestone = metaPointsService.getHighestWaveMilestone();
+            for (const milestone of defaultMetaPointsConfig.waveMilestones) {
+                if (wave >= milestone.wave && milestone.wave > highestWaveMilestone) {
+                    metaPointsService.addWavePoints(milestone.points);
+                    metaPointsService.setHighestWaveMilestone(milestone.wave);
+                    highestWaveMilestone = milestone.wave; // Update local tracking
+                    // Optional: could show notification here
+                }
+            }
+        } else if (event.eventName === EventType.RoundStarted) {
+            const round = event.args['round'] as number;
+            gameStatsHUD.setRound(round);
+            waveAnnouncementUI.showBrief(`Round ${round}`, 2.0);
+        } else if (event.eventName === EventType.RoundCompleted) {
+            // Immediately move to next round (no countdown for rounds)
+            enemySpawner.onRoundBreakComplete();
+        } else if (event.eventName === EventType.WaveCompleted) {
+            const wave = event.args['wave'] as number;
+            
+            // Show wave complete, then countdown
+            waveAnnouncementUI.showBrief(`Wave ${wave} Complete!`, 2.0);
+            
+            setTimeout(() => {
+                waveAnnouncementUI.showWithCountdown('Next wave starting in:', 5, () => {
+                    // Countdown tick - could add sound effect here
+                });
+                
+                setTimeout(() => {
+                    enemySpawner.onWaveBreakComplete();
+                }, 5000);
+            }, 2000);
         }
     }
 });

@@ -5,6 +5,7 @@ export class GameStatsHUD {
     private enemiesAliveText: HTMLDivElement;
 
     private currentWave: number = 0;
+    private currentRound: number = 0;
     private totalKills: number = 0;
     private enemiesAlive: number = 0;
 
@@ -68,6 +69,11 @@ export class GameStatsHUD {
         this.updateWaveDisplay();
     }
 
+    public setRound(round: number): void {
+        this.currentRound = round;
+        this.updateWaveDisplay();
+    }
+
     public addKill(): void {
         this.totalKills++;
         this.updateKillsDisplay();
@@ -87,7 +93,11 @@ export class GameStatsHUD {
     }
 
     private updateWaveDisplay(): void {
-        this.waveText.textContent = `Wave: ${this.currentWave}`;
+        if (this.currentRound > 0) {
+            this.waveText.textContent = `Wave: ${this.currentWave} | Round: ${this.currentRound}`;
+        } else {
+            this.waveText.textContent = `Wave: ${this.currentWave}`;
+        }
     }
 
     private updateKillsDisplay(): void {
@@ -100,6 +110,7 @@ export class GameStatsHUD {
 
     public reset(): void {
         this.currentWave = 0;
+        this.currentRound = 0;
         this.totalKills = 0;
         this.enemiesAlive = 0;
         this.updateWaveDisplay();
