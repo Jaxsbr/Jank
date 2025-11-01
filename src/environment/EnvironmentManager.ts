@@ -12,6 +12,7 @@ export class EnvironmentManager {
     private scene: THREE.Scene;
     private environmentGroup: THREE.Group;
     private floorComponent!: FloorComponent;
+    private floorGroup!: THREE.Group;
     private wallComponents: WallComponent[] = [];
     private skyboxComponent?: SkyboxComponent;
     private lightingComponent: LightingComponent;
@@ -31,6 +32,7 @@ export class EnvironmentManager {
     private createEnvironment(config: EnvironmentConfig): void {
         // Create floor
         const floor = FloorFactory.createFloor(config.floor);
+        this.floorGroup = floor;
         this.floorComponent = new FloorComponent(config.floor);
         this.environmentGroup.add(floor);
 
@@ -70,5 +72,16 @@ export class EnvironmentManager {
 
     public getEnvironmentGroup(): THREE.Group {
         return this.environmentGroup;
+    }
+
+    public updateFloorShaderAnimation(deltaTime: number): void {
+        // Update shader uniforms for animated floor patterns
+        this.floorGroup.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.material instanceof THREE.ShaderMaterial) {
+                if (child.material.uniforms && child.material.uniforms['uTime']) {
+                    child.material.uniforms['uTime'].value += deltaTime;
+                }
+            }
+        });
     }
 }

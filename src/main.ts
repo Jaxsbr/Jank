@@ -105,7 +105,7 @@ tileManager.unlockNextRing(); // Ring 2
 tileManager.unlockNextRing(); // Ring 3
 
 // Create environment (side effects: adds floor, skybox, etc. to scene)
-new EnvironmentManager(scene, defaultEnvironment);
+const environmentManager = new EnvironmentManager(scene, defaultEnvironment);
 
 // Create ability systems
 const abilitySystem = new AbilitySystem();
@@ -341,6 +341,9 @@ function animate(): void {
     tileRangeRingSystem.update(tileEntities, entities);
     tileAnimationSystem.update(tileEntities);
     tileVFXController.update(frameDelta);
+
+    // Update floor shader animations
+    environmentManager.updateFloorShaderAnimation(frameDelta);
 
     // UI
     coreHPBarSystem.update();

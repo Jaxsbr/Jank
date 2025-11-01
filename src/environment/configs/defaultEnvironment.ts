@@ -16,10 +16,17 @@ export const defaultEnvironment: EnvironmentConfig = {
             castShadow: false
         },
         pattern: {
-            type: 'radial',
-            intensity: 0.5,
-            scale: 1.0,
+            type: 'circuitry',
+            intensity: 0.7,
+            scale: 9.5,
             color: 0x1a1a1a
+            // Optional circuitry-specific settings (using defaults):
+            // circuitry: {
+            //     patternColor: { r: 0.2, g: 0.9, b: 0.5 }, // Neon cyan/green
+            //     density: 8.0,     // Grid density
+            //     wireGlow: 0.6,    // Wire glow intensity (0-1)
+            //     pulseSpeed: 2.0   // Animation speed
+            // }
         }
     },
     skybox: {
