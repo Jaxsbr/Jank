@@ -19,6 +19,8 @@ export class TileVisualComponent implements IComponent {
     private baseEmissiveIntensity: number;
     private rangeOverlayIntensity: number;
     private tempGlowColor: number | null = null;
+    private currentHeartbeatColor: number;
+    private targetHeartbeatColor: number;
 
     constructor(tileSize: number, materialConfig: TileMaterial) {
         this.baseHeight = 0.1;
@@ -29,6 +31,8 @@ export class TileVisualComponent implements IComponent {
         this.idleEmissiveColor = 0x88ccff;
         this.baseEmissiveIntensity = 0.3;
         this.rangeOverlayIntensity = 0;
+        this.currentHeartbeatColor = this.idleEmissiveColor;
+        this.targetHeartbeatColor = this.idleEmissiveColor;
 
         // Create hexagon geometry
         const geometry = this.createHexagonGeometry(tileSize);
@@ -258,8 +262,38 @@ export class TileVisualComponent implements IComponent {
 
     /**
      * Update idle heartbeat modulation
+     * @param time - Current time value for heartbeat animation
+     * @param amplitude - Amplitude of heartbeat modulation (default 0.25)
+     * @param frequency - Frequency of heartbeat (default 1.0)
+     * @param deltaTime - Delta time for smooth color transitions
+     * @param color - Optional heartbeat color to transition to
+     * @param colorTransitionSpeed - Speed of color transition (default 3.0)
      */
-    public updateIdleHeartbeat(time: number, amplitude: number = 0.25, frequency: number = 1.0): void {
+    public updateIdleHeartbeat(time: number, amplitude: number = 0.25, frequency: number = 1.0, deltaTime: number = 0.016, color?: number, colorTransitionSpeed: number = 3.0): void {
+        // Update target heartbeat color if provided
+        if (color !== undefined && color !== this.targetHeartbeatColor) {
+            this.targetHeartbeatColor = color;
+        }
+
+        // Smoothly transition heartbeat color (only when not using temp glow)
+        if (this.tempGlowColor === null) {
+            const colorDiff = this.targetHeartbeatColor - this.currentHeartbeatColor;
+            if (Math.abs(colorDiff) > 1) {
+                // Interpolate color components for smooth transition
+                const currentColor = new THREE.Color(this.currentHeartbeatColor);
+                const targetColor = new THREE.Color(this.targetHeartbeatColor);
+                currentColor.lerp(targetColor, colorTransitionSpeed * deltaTime);
+                this.currentHeartbeatColor = currentColor.getHex();
+                this.material.emissive.copy(currentColor);
+            } else {
+                // Snap to target if very close
+                if (this.currentHeartbeatColor !== this.targetHeartbeatColor) {
+                    this.currentHeartbeatColor = this.targetHeartbeatColor;
+                    this.material.emissive.setHex(this.targetHeartbeatColor);
+                }
+            }
+        }
+
         const heartbeatOffset = Math.sin(time * frequency) * amplitude;
         const totalIntensity = this.baseEmissiveIntensity + heartbeatOffset + this.rangeOverlayIntensity + this.glowIntensity;
         this.material.emissiveIntensity = Math.max(0, totalIntensity);

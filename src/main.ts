@@ -75,7 +75,7 @@ const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
     outerRadius: 12,
 })
 
-const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig.speed);
+const tileAnimationSystem = new TileAnimationSystem(defaultTileAnimationConfig, enemySpawner, entityManager);
 const tileRangeRingSystem = new TileRangeRingSystem();
 const tileVFXController = new TileVFXController(GlobalEventDispatcher);
 // Bridge listens on global dispatcher; instance retained for lifecycle
