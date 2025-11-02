@@ -1,5 +1,7 @@
 import { Vector3 } from 'three';
 
+import { SecondaryGeometryType } from '../components/GeometryComponent';
+
 export interface GeometryConfig {
     mainSphere: {
         radius: number;
@@ -8,9 +10,11 @@ export interface GeometryConfig {
     protrusions: {
         radius: number;
         segments: number;
-        embedRatio: number; // How much of the protrusion is embedded (0.5 = half embedded)
+        embedRatio: number; // How much of the protrusion is embedded (0.5 = half embedded) - default for all
     };
-    positions: Vector3[]; // 14 positions for even distribution on sphere surface
+    positions: Vector3[]; // Positions for protrusions on sphere surface
+    protrusionTypes?: SecondaryGeometryType[]; // Optional array specifying geometry type for each position (defaults to Sphere if not provided)
+    embedRatios?: number[]; // Optional array specifying embedRatio for each position (defaults to protrusions.embedRatio if not provided)
 }
 
 export type CoreGeometryLevel = 'core-0' | 'core-1' | 'core-2' | 'core-3';

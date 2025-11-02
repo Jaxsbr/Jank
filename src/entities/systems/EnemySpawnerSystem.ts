@@ -8,6 +8,7 @@ import { HealthComponent } from '../components/HealthComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TeamComponent, TeamType } from '../components/TeamComponent';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from '../config/EnemyEntityConfig';
+import { EnemyType } from '../config/EnemyTypeConfig';
 import { RoundConfig, WaveConfig, defaultWaveConfig } from '../config/WaveSpawnerConfig';
 
 export interface EnemySpawnerConfig {
@@ -181,17 +182,74 @@ export class EnemySpawnerSystem {
         }));
     }
 
+    /**
+     * Determines enemy type for a given wave and round based on milestone progression:
+     * - Early waves (1-3): Homogeneous rounds (Round 1 = Charger, Round 2 = Tank, Round 3 = Standard)
+     * - Mid waves (4-6): Two-type mixes (Round 1 = Charger+Tank, Round 2 = Tank+Standard, Round 3 = All types)
+     * - Late waves (7+): Varied compositions (randomized with weighted distribution)
+     */
+    private getEnemyTypeForRound(wave: number, round: number): EnemyType {
+        if (wave <= 3) {
+            // Early waves: Homogeneous rounds
+            switch (round) {
+                case 1:
+                    return EnemyType.CHARGER;
+                case 2:
+                    return EnemyType.TANK;
+                case 3:
+                    return EnemyType.STANDARD;
+                default:
+                    return EnemyType.STANDARD;
+            }
+        } else if (wave <= 6) {
+            // Mid waves: Two-type mixes (simple round-based selection)
+            // For MVP, alternate between types based on batch spawn order
+            // This creates visual variety within rounds
+            switch (round) {
+                case 1:
+                    // Round 1: Mix Charger and Tank (alternate)
+                    return this.batchesSpawnedThisRound % 2 === 0 ? EnemyType.CHARGER : EnemyType.TANK;
+                case 2:
+                    // Round 2: Mix Tank and Standard (alternate)
+                    return this.batchesSpawnedThisRound % 2 === 0 ? EnemyType.TANK : EnemyType.STANDARD;
+                case 3:
+                    // Round 3: All three types (cycle through)
+                    {
+                        const cycleIndex = this.batchesSpawnedThisRound % 3;
+                        return cycleIndex === 0 ? EnemyType.CHARGER : cycleIndex === 1 ? EnemyType.TANK : EnemyType.STANDARD;
+                    }
+                default:
+                    return EnemyType.STANDARD;
+            }
+        } else {
+            // Late waves (7+): Varied compositions (randomized)
+            // Weighted distribution: 30% Charger, 30% Tank, 40% Standard
+            const rand = Math.random();
+            if (rand < 0.3) {
+                return EnemyType.CHARGER;
+            } else if (rand < 0.6) {
+                return EnemyType.TANK;
+            } else {
+                return EnemyType.STANDARD;
+            }
+        }
+    }
+
     private spawnEnemy(): void {
         const corePos = this.getCorePosition();
         const spawnPos = this.randomPointInRing(corePos, this.config.innerRadius, this.config.outerRadius);
 
+        // Determine enemy type for this wave/round
+        const enemyType = this.getEnemyTypeForRound(this.currentWave, this.currentRound);
+
         // Calculate HP scaling based on wave (25 HP per wave)
         const waveHpBonus = 25 * this.currentWave;
 
+        // Start with default config - factory will apply type config and preserve wave bonus
         const cfg: EnemyEntityConfig = {
             ...defaultEnemyEntityConfig,
             health: {
-                maxHP: defaultEnemyEntityConfig.health.maxHP + waveHpBonus,
+                maxHP: defaultEnemyEntityConfig.health.maxHP + waveHpBonus, // Include wave bonus for factory to preserve
             },
             position: spawnPos.clone(),
             movement: {
@@ -203,7 +261,7 @@ export class EnemySpawnerSystem {
             },
         } as EnemyEntityConfig;
 
-        this.entityFactory.createEnemyEntity(cfg);
+        this.entityFactory.createEnemyEntity(cfg, undefined, enemyType);
         this.totalEnemiesSpawned++;
         this.enemiesSpawnedThisWave++;
     }

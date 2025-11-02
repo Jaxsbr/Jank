@@ -14,6 +14,7 @@ export interface MaterialConfig {
         envMapIntensity: number;
         emissive?: number; // Optional emissive color for glow
         emissiveIntensity?: number; // Optional emissive intensity (0-1)
+        cubeColor?: number; // Optional different color for cube protrusions (if not provided, uses color)
     };
 }
 

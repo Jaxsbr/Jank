@@ -6,15 +6,20 @@ import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { Time } from '../../utils/Time';
 import { EffectType } from '../EffectType';
+import { EnemyTypeComponent } from '../components/EnemyTypeComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { TeamComponent } from '../components/TeamComponent';
 import { DamageVisualConfig, defaultDamageVisualConfig } from '../config/DamageVisualConfig';
+import { EnemyType } from '../config/EnemyTypeConfig';
 
 interface DamageFlash {
     entity: Entity;
     originalMainColor: number;
     originalSecondaryColor: number;
+    originalSecondaryEmissive?: number;
+    originalSecondaryEmissiveIntensity?: number;
     endTime: number;
+    isTankProtrusionFlash?: boolean;
 }
 
 interface EffectVisual {
@@ -225,7 +230,8 @@ export class DamageVisualSystem implements IEventListener {
     }
 
     /**
-     * Flash an entity red to indicate damage
+     * Flash an entity to indicate damage
+     * Uses type-specific colors for enemy types if available
      */
     private flashEntity(entity: Entity): void {
         const geometryComponent = entity.getComponent(GeometryComponent);
@@ -233,15 +239,53 @@ export class DamageVisualSystem implements IEventListener {
             return;
         }
 
-        // Determine original colors based on team type
+        // Check for enemy type component
+        const enemyTypeComponent = entity.getComponent(EnemyTypeComponent);
         const teamComponent = entity.getComponent(TeamComponent);
+        
         let originalMainColor: number;
         let originalSecondaryColor: number;
         let flashMainColor: number;
         let flashSecondaryColor: number;
+        let isTankProtrusionFlash = false;
+        let originalSecondaryEmissive: number | undefined;
+        let originalSecondaryEmissiveIntensity: number | undefined;
         
-        if (teamComponent && teamComponent.isEnemy()) {
-            // Enemy entity: use enemy colors from config
+        if (teamComponent && teamComponent.isEnemy() && enemyTypeComponent) {
+            // Enemy entity with type: use type-specific colors
+            const enemyType = enemyTypeComponent.getEnemyType();
+            const typeColors = this.config.enemyTypeColors[enemyType];
+            
+            if (typeColors) {
+                originalMainColor = typeColors.original.main;
+                originalSecondaryColor = typeColors.original.secondary;
+                flashMainColor = typeColors.flash.main;
+                flashSecondaryColor = typeColors.flash.secondary;
+                
+                // Special handling for Tank: protrusion glow
+                if (enemyType === EnemyType.TANK && 'protrusionFlash' in typeColors) {
+                    const tankColors = typeColors as typeof this.config.enemyTypeColors[EnemyType.TANK];
+                    // Store original emissive values
+                    const secondaryMaterial = geometryComponent.getSecondaryMaterial();
+                    originalSecondaryEmissive = secondaryMaterial.emissive.getHex();
+                    originalSecondaryEmissiveIntensity = secondaryMaterial.emissiveIntensity;
+                    
+                    // Apply violet/purple glow to protrusions
+                    geometryComponent.updateSecondaryEmissive(
+                        tankColors.protrusionFlash.color,
+                        tankColors.protrusionFlash.emissiveIntensity
+                    );
+                    isTankProtrusionFlash = true;
+                }
+            } else {
+                // Fallback to generic enemy colors
+                originalMainColor = this.config.teamColors.enemy.original.main;
+                originalSecondaryColor = this.config.teamColors.enemy.original.secondary;
+                flashMainColor = this.config.teamColors.enemy.flash.main;
+                flashSecondaryColor = this.config.teamColors.enemy.flash.secondary;
+            }
+        } else if (teamComponent && teamComponent.isEnemy()) {
+            // Enemy entity without type: use generic enemy colors
             originalMainColor = this.config.teamColors.enemy.original.main;
             originalSecondaryColor = this.config.teamColors.enemy.original.secondary;
             flashMainColor = this.config.teamColors.enemy.flash.main;
@@ -264,7 +308,10 @@ export class DamageVisualSystem implements IEventListener {
             entity,
             originalMainColor,
             originalSecondaryColor,
-            endTime
+            originalSecondaryEmissive,
+            originalSecondaryEmissiveIntensity,
+            endTime,
+            isTankProtrusionFlash
         });
     }
 
@@ -404,6 +451,14 @@ export class DamageVisualSystem implements IEventListener {
                 if (geometryComponent) {
                     geometryComponent.updateMainSphereColor(flash.originalMainColor);
                     geometryComponent.updateSecondaryColor(flash.originalSecondaryColor);
+                    
+                    // Restore original emissive if it was modified (Tank protrusion flash)
+                    if (flash.isTankProtrusionFlash && flash.originalSecondaryEmissive !== undefined && flash.originalSecondaryEmissiveIntensity !== undefined) {
+                        geometryComponent.updateSecondaryEmissive(
+                            flash.originalSecondaryEmissive,
+                            flash.originalSecondaryEmissiveIntensity
+                        );
+                    }
                 }
                 
                 // Remove from array

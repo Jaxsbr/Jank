@@ -1,3 +1,5 @@
+import { EnemyType } from './EnemyTypeConfig';
+
 export interface DamageVisualConfig {
     flashDuration: number; // seconds
     effectTintIntensity: number; // 0..1 tint amount for effect visuals
@@ -21,6 +23,42 @@ export interface DamageVisualConfig {
             };
         };
         enemy: {
+            original: {
+                main: number;
+                secondary: number;
+            };
+            flash: {
+                main: number;
+                secondary: number;
+            };
+        };
+    };
+    enemyTypeColors: {
+        [EnemyType.CHARGER]: {
+            original: {
+                main: number;
+                secondary: number;
+            };
+            flash: {
+                main: number;
+                secondary: number;
+            };
+        };
+        [EnemyType.TANK]: {
+            original: {
+                main: number;
+                secondary: number;
+            };
+            flash: {
+                main: number;
+                secondary: number;
+            };
+            protrusionFlash: {
+                color: number;
+                emissiveIntensity: number;
+            };
+        };
+        [EnemyType.STANDARD]: {
             original: {
                 main: number;
                 secondary: number;
@@ -67,6 +105,42 @@ export const defaultDamageVisualConfig: DamageVisualConfig = {
             flash: {
                 main: 0xFFFFFF,    // White flash for visibility
                 secondary: 0xFFFF00 // Bright yellow flash
+            }
+        }
+    },
+    enemyTypeColors: {
+        [EnemyType.CHARGER]: {
+            original: {
+                main: 0xFF4400,    // Bright orange-red
+                secondary: 0xFF8844 // Lighter orange
+            },
+            flash: {
+                main: 0xFF8844,    // Brighter orange-red flash
+                secondary: 0xFFBB66 // Very bright orange-yellow
+            }
+        },
+        [EnemyType.TANK]: {
+            original: {
+                main: 0x555555,    // Darker murky gray (slightly altered from default)
+                secondary: 0x555555 // Dark gray
+            },
+            flash: {
+                main: 0x666666,    // Slightly lighter gray on hit
+                secondary: 0x666666
+            },
+            protrusionFlash: {
+                color: 0x6633AA,   // Darker purple/violet glow
+                emissiveIntensity: 1.2 // High emissive intensity for pop
+            }
+        },
+        [EnemyType.STANDARD]: {
+            original: {
+                main: 0xAA2222,    // Darker muted red
+                secondary: 0xDD4444 // Brighter red
+            },
+            flash: {
+                main: 0xFF6666,    // Bright red flash
+                secondary: 0xFF8888 // Very bright red
             }
         }
     },

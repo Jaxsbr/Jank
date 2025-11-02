@@ -8,6 +8,7 @@ import { AttackAnimationComponent } from './components/AttackAnimationComponent'
 import { AttackComponent } from './components/AttackComponent';
 import { BobAnimationComponent } from './components/BobAnimationComponent';
 import { CollisionComponent } from './components/CollisionComponent';
+import { EnemyTypeComponent } from './components/EnemyTypeComponent';
 import { GeometryComponent, SecondaryGeometryConfig, SecondaryGeometryType } from './components/GeometryComponent';
 import { HealthComponent } from './components/HealthComponent';
 import { MetaUpgradeComponent } from './components/MetaUpgradeComponent';
@@ -24,6 +25,7 @@ import { CombatConfig } from './config/CombatConfig';
 import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityConfig';
 import { getCoreVisualLevel } from './config/CoreVisualLevelConfig';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
+import { EnemyType, enemyTypeConfigs } from './config/EnemyTypeConfig';
 import { GeometryConfig, geometryConfigsByLevel } from './config/GeometryConfig';
 import { materialConfigsByLevel } from './config/MaterialConfig';
 import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
@@ -49,23 +51,41 @@ export class EntityFactory implements IEntityFactory {
      */
     private createSecondaryGeometryConfigs(config: GeometryConfig): SecondaryGeometryConfig[] {
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
-        const embedDepth = config.protrusions.radius * config.protrusions.embedRatio;
         
-        config.positions.forEach((pos: Vector3) => {
+        config.positions.forEach((pos: Vector3, index: number) => {
+            // Use per-protrusion embedRatio or default to config's embedRatio
+            let embedRatio = config.protrusions.embedRatio;
+            if (config.embedRatios?.[index] !== undefined) {
+                const specifiedRatio = config.embedRatios[index];
+                if (specifiedRatio !== undefined) {
+                    embedRatio = specifiedRatio;
+                }
+            }
+            const embedDepth = config.protrusions.radius * embedRatio;
+            
             // Normalize the position to be on the sphere surface
             const length = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
             const normalizedX = pos.x / length;
             const normalizedY = pos.y / length;
             const normalizedZ = pos.z / length;
 
-            // Position the sphere so it's embedded
+            // Position the geometry so it's embedded
             const embedPosition = config.mainSphere.radius - embedDepth;
             const finalX = normalizedX * embedPosition;
             const finalY = normalizedY * embedPosition;
             const finalZ = normalizedZ * embedPosition;
 
+            // Use specified protrusion type or default to Sphere
+            let protrusionType = SecondaryGeometryType.Sphere;
+            if (config.protrusionTypes?.[index] !== undefined) {
+                const specifiedType = config.protrusionTypes[index];
+                if (specifiedType !== undefined) {
+                    protrusionType = specifiedType;
+                }
+            }
+
             secondaryConfigs.push({
-                type: SecondaryGeometryType.Sphere,
+                type: protrusionType,
                 position: new Vector3(finalX, finalY, finalZ),
                 size: config.protrusions.radius,
                 segments: config.protrusions.segments,
@@ -238,32 +258,87 @@ export class EntityFactory implements IEntityFactory {
         return entity;
     }
 
-    createEnemyEntity(config: EnemyEntityConfig = defaultEnemyEntityConfig, collisionConfig: CollisionConfig = defaultCollisionConfig): Entity {
+    /**
+     * Merges enemy type config overrides into base config.
+     * Type configs override base values for stats and visuals.
+     * Note: HP is preserved from baseConfig if it's been modified (e.g., wave bonus already applied),
+     * otherwise uses type's base HP.
+     */
+    private applyEnemyTypeConfig(baseConfig: EnemyEntityConfig, enemyType: EnemyType): EnemyEntityConfig {
+        const typeConfig = enemyTypeConfigs[enemyType];
+        
+        // Preserve HP from baseConfig if it's been customized (e.g., wave bonus added),
+        // otherwise use type's base HP
+        const baseHP = baseConfig.health.maxHP;
+        const typeBaseHP = typeConfig.health.maxHP;
+        // If baseConfig HP differs from default (75), assume it includes wave bonus and preserve it
+        // Otherwise, use type's base HP
+        const finalHP = baseHP !== defaultEnemyEntityConfig.health.maxHP 
+            ? baseHP - defaultEnemyEntityConfig.health.maxHP + typeBaseHP // Adjust by type difference
+            : typeBaseHP;
+        
+        return {
+            ...baseConfig,
+            health: {
+                maxHP: finalHP
+            },
+            movement: {
+                ...baseConfig.movement,
+                maxSpeed: typeConfig.movement.maxSpeed
+            },
+            combat: {
+                ...baseConfig.combat,
+                attack: {
+                    ...baseConfig.combat.attack,
+                    damage: typeConfig.combat.attack.damage
+                }
+            },
+            geometry: typeConfig.geometry,
+            material: typeConfig.material,
+            bobAnimation: typeConfig.bobAnimation
+        };
+    }
+
+    createEnemyEntity(
+        config: EnemyEntityConfig = defaultEnemyEntityConfig, 
+        collisionConfig: CollisionConfig = defaultCollisionConfig,
+        enemyType?: EnemyType
+    ): Entity {
         const entity = this.entityManager.createEntity();
         
+        // Apply enemy type config overrides if type is specified
+        const finalConfig = enemyType 
+            ? this.applyEnemyTypeConfig(config, enemyType)
+            : config;
+        
         // Add base components (health, position, geometry, rotation, bob animation)
-        const geometryComponent = this.addBaseComponents(entity, config);
+        const geometryComponent = this.addBaseComponents(entity, finalConfig);
         
         // Add combat components
-        this.addCombatComponents(entity, config.combat, TeamType.ENEMY);
+        this.addCombatComponents(entity, finalConfig.combat, TeamType.ENEMY);
+        
+        // Add enemy type component if type is specified
+        if (enemyType) {
+            entity.addComponent(new EnemyTypeComponent(enemyType));
+        }
         
         // Add movement component (enemy-specific)
         entity.addComponent(new MovementComponent(
-            config.movement.targetPosition,
-            config.movement.maxSpeed,
-            config.movement.targetReachedThreshold,
-            config.movement.acceleration,
-            config.movement.deceleration,
-            config.movement.decelerationDistance
+            finalConfig.movement.targetPosition,
+            finalConfig.movement.maxSpeed,
+            finalConfig.movement.targetReachedThreshold,
+            finalConfig.movement.acceleration,
+            finalConfig.movement.deceleration,
+            finalConfig.movement.decelerationDistance
         ));
         
         // Add collision component (enemy-specific)
         // Use geometry main sphere radius multiplied by collision config multiplier
-        const collisionRadius = config.geometry.mainSphere.radius * collisionConfig.defaultRadiusMultiplier;
+        const collisionRadius = finalConfig.geometry.mainSphere.radius * collisionConfig.defaultRadiusMultiplier;
         entity.addComponent(new CollisionComponent(collisionRadius));
         
         // Set up entity in scene
-        this.addEntityToScene(entity, geometryComponent, config.position);
+        this.addEntityToScene(entity, geometryComponent, finalConfig.position);
 
         return entity;
     }

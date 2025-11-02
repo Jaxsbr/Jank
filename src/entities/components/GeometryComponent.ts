@@ -21,7 +21,9 @@ export class GeometryComponent implements IComponent {
     private secondaryGeometries: THREE.Mesh[];
     private mainMaterial!: THREE.MeshStandardMaterial;
     private secondaryMaterial!: THREE.MeshStandardMaterial;
+    private cubeMaterial?: THREE.MeshStandardMaterial; // Optional separate material for cubes
     private secondaryPositions: THREE.Vector3[];
+    private materialConfig: MaterialConfig;
 
     constructor(
         mainSphereRadius: number = 0.5,
@@ -32,6 +34,7 @@ export class GeometryComponent implements IComponent {
         this.group = new THREE.Group();
         this.secondaryGeometries = [];
         this.secondaryPositions = [];
+        this.materialConfig = materialConfig;
 
         this.createMainMaterial(materialConfig);
         this.createMainSphere(mainSphereRadius, mainSphereSegments);
@@ -68,6 +71,23 @@ export class GeometryComponent implements IComponent {
             this.secondaryMaterial.emissive = new THREE.Color(materialConfig.secondary.emissive);
             this.secondaryMaterial.emissiveIntensity = materialConfig.secondary.emissiveIntensity ?? 1.0;
         }
+        
+        // Create separate cube material if cubeColor is specified
+        const cubeColor = materialConfig.secondary.cubeColor;
+        if (cubeColor !== undefined && cubeColor !== null) {
+            this.cubeMaterial = new THREE.MeshStandardMaterial({
+                color: cubeColor,
+                metalness: materialConfig.secondary.metalness,
+                roughness: materialConfig.secondary.roughness,
+                envMapIntensity: materialConfig.secondary.envMapIntensity
+            });
+            
+            // Set emissive properties for cube material (use same emissive settings)
+            if (materialConfig.secondary.emissive !== undefined) {
+                this.cubeMaterial.emissive = new THREE.Color(materialConfig.secondary.emissive);
+                this.cubeMaterial.emissiveIntensity = materialConfig.secondary.emissiveIntensity ?? 1.0;
+            }
+        }
     }
         
     private createMainSphere(radius: number, segments: number): void {
@@ -81,7 +101,12 @@ export class GeometryComponent implements IComponent {
     private createSecondaryGeometries(configs: SecondaryGeometryConfig[]): void {
         configs.forEach(config => {
             const geometry = this.createGeometry(config);
-            const mesh = new THREE.Mesh(geometry, this.secondaryMaterial);
+            // Use cube material if it exists and this is a cube, otherwise use secondary material
+            const isCube = config.type === SecondaryGeometryType.Cube;
+            const material = (isCube && this.cubeMaterial !== undefined)
+                ? this.cubeMaterial
+                : this.secondaryMaterial;
+            const mesh = new THREE.Mesh(geometry, material);
             
             mesh.position.copy(config.position);
             mesh.castShadow = true;
