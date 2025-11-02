@@ -32,8 +32,8 @@ export const defaultRangedAttackConfig: RangedAttackConfig = {
         // Level 1: Unlock with base stats - bright orange glowing pellet
         { 
             range: 5.0, 
-            damage: 2, 
-            cooldown: 0.2,
+            damage: 5, 
+            cooldown: 0.25,
             visual: {
                 radius: 0.15, // Slightly larger than default
                 material: {
@@ -59,8 +59,8 @@ export const defaultRangedAttackConfig: RangedAttackConfig = {
         // Level 2: Enhanced stats - larger, brighter, white-hot energy pellet
         { 
             range: 6.0, 
-            damage: 3, 
-            cooldown: 0.15,
+            damage: 10, 
+            cooldown: 0.2,
             visual: {
                 radius: 0.22, // Significantly larger
                 material: {

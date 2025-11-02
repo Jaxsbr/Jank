@@ -31,7 +31,7 @@ export interface CollisionConfig {
 
 export const defaultCollisionConfig: CollisionConfig = {
     defaultRadiusMultiplier: 1.0,
-    minSeparationDistance: 0.05, // Small buffer to prevent overlap
+    minSeparationDistance: 0.1, // Small buffer to prevent overlap
     pushForceStrength: 0.5,
     use2D: true
 };
