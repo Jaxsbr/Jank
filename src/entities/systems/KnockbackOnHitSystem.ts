@@ -58,7 +58,7 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
 
         // Check if core has melee knockback upgrade (no knockback by default)
         const meta = attacker.getComponent(MetaUpgradeComponent);
-        const knockbackLevel = meta?.getMeleeKnockbackLevel() || 0;
+        const knockbackLevel = meta?.getMeleeKnockbackLevel() ?? 0;
         if (knockbackLevel === 0) return; // No knockback without upgrade
 
         const attackerPos = attacker.getComponent(PositionComponent) as PositionComponent | undefined;

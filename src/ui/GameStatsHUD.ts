@@ -1,7 +1,7 @@
 export class GameStatsHUD {
-    private container: HTMLDivElement;
-    private killsText: HTMLDivElement;
-    private enemiesAliveText: HTMLDivElement;
+    private container!: HTMLDivElement;
+    private killsText!: HTMLDivElement;
+    private enemiesAliveText!: HTMLDivElement;
 
     private totalKills: number = 0;
     private enemiesAlive: number = 0;

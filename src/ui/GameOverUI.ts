@@ -4,7 +4,7 @@ export interface IGameOverUICallbacks {
 }
 
 export class GameOverUI {
-    private container: HTMLDivElement;
+    private container!: HTMLDivElement;
     private isVisible: boolean = false;
     private onReplay: () => void;
     private onUpgrade: () => void;

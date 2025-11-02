@@ -10,8 +10,8 @@ export interface ITargetingModeToggleCallbacks {
 }
 
 export class TargetingModeToggleUI {
-    private container: HTMLDivElement;
-    private button: HTMLButtonElement;
+    private container!: HTMLDivElement;
+    private button!: HTMLButtonElement;
     private entityManager: EntityManager;
     private isVisible: boolean = false;
     private onModeChanged?: (mode: TargetingMode) => void;

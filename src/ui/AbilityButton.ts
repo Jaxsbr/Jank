@@ -10,8 +10,8 @@ export interface IAbilityButtonCallbacks {
 }
 
 export class AbilityButton {
-    private container: HTMLDivElement;
-    private button: HTMLButtonElement;
+    private container!: HTMLDivElement;
+    private button!: HTMLButtonElement;
     private entityManager: EntityManager;
     private onActivate: () => void;
     private isVisible: boolean = false;

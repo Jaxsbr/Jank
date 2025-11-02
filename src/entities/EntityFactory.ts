@@ -142,7 +142,7 @@ export class EntityFactory implements IEntityFactory {
         
         // Get melee range rings from level-based upgrade (level directly corresponds to ring count)
         let meleeRangeRings = defaultMetaUpgradeConfig.defaultMeleeRangeRings;
-        const meleeRangeLevel = purchasedUpgrades['melee-range'] || 0;
+        const meleeRangeLevel = purchasedUpgrades['melee-range'] ?? 0;
         if (meleeRangeLevel > 0) {
             meleeRangeRings = meleeRangeLevel;
         }
@@ -152,7 +152,7 @@ export class EntityFactory implements IEntityFactory {
         // Calculate extra melee targets (multi-melee)
         // Level directly corresponds to number of extra targets (level 1 = 1 extra, level 2 = 2 extra, etc.)
         let extraMeleeTargets = defaultMetaUpgradeConfig.defaultExtraMeleeTargets;
-        const multiMeleeLevel = purchasedUpgrades['multi-melee'] || 0;
+        const multiMeleeLevel = purchasedUpgrades['multi-melee'] ?? 0;
         if (multiMeleeLevel > 0) {
             extraMeleeTargets = multiMeleeLevel;
         }
@@ -161,7 +161,7 @@ export class EntityFactory implements IEntityFactory {
         
         // Get stun pulse level from level-based upgrade
         let stunPulseLevel = defaultMetaUpgradeConfig.defaultStunPulseLevel;
-        const stunPulseUpgradeLevel = purchasedUpgrades['stun-pulse'] || 0;
+        const stunPulseUpgradeLevel = purchasedUpgrades['stun-pulse'] ?? 0;
         if (stunPulseUpgradeLevel > 0) {
             stunPulseLevel = stunPulseUpgradeLevel;
         }
@@ -169,14 +169,14 @@ export class EntityFactory implements IEntityFactory {
         stunPulseLevel = Math.min(stunPulseLevel, defaultMetaUpgradeConfig.maxStunPulseLevel);
         
         // Get melee knockback level from level-based upgrade
-        const meleeKnockbackLevel = purchasedUpgrades['melee-knockback'] || 0;
+        const meleeKnockbackLevel = purchasedUpgrades['melee-knockback'] ?? 0;
         
         // Check if advanced melee targeting is unlocked
-        const advancedTargetingLevel = purchasedUpgrades['advanced-melee-targeting'] || 0;
+        const advancedTargetingLevel = purchasedUpgrades['advanced-melee-targeting'] ?? 0;
         const initialTargetingMode: 'nearest' | 'lowest' = advancedTargetingLevel > 0 ? 'nearest' : 'nearest';
         
         // Apply melee damage bonus (+25 per level)
-        const meleeDamageLevel = purchasedUpgrades['melee-damage'] || 0;
+        const meleeDamageLevel = purchasedUpgrades['melee-damage'] ?? 0;
         if (meleeDamageLevel > 0) {
             const attackComponent = entity.getComponent(AttackComponent);
             if (attackComponent) {

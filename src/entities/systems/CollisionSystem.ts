@@ -44,6 +44,8 @@ export class CollisionSystem implements IEntitySystem {
             // Check collisions between all entities (enemies and core)
             for (let i = 0; i < entitiesWithCollision.length; i++) {
                 const entityA = entitiesWithCollision[i];
+                if (!entityA) continue;
+                
                 const positionA = entityA.getComponent(PositionComponent);
                 const collisionA = entityA.getComponent(CollisionComponent);
 
@@ -62,6 +64,8 @@ export class CollisionSystem implements IEntitySystem {
 
                 // Check collisions with nearby entities
                 for (const entityB of nearbyEntities) {
+                    if (!entityA) continue;
+                    
                     // Skip self
                     if (entityB.getId() === entityA.getId()) continue;
                     
@@ -134,6 +138,8 @@ export class CollisionSystem implements IEntitySystem {
                                 geometryB.setPosition(newPosB.x, currentGeometryPos.y, newPosB.z);
                             }
                         } else if (immovableB) {
+                            if (!entityA) continue;
+                            
                             // Entity B is immovable, only push Entity A
                             const pushA = separationDir.clone().multiplyScalar(pushDistance);
                             const newPosA = posA.clone().add(pushA);
@@ -146,6 +152,8 @@ export class CollisionSystem implements IEntitySystem {
                                 geometryA.setPosition(newPosA.x, currentGeometryPos.y, newPosA.z);
                             }
                         } else {
+                            if (!entityA) continue;
+                            
                             // Both movable - push both apart equally (50/50 split)
                             const pushA = separationDir.clone().multiplyScalar(pushDistance * 0.5);
                             const pushB = separationDir.clone().multiplyScalar(-pushDistance * 0.5);

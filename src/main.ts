@@ -22,7 +22,7 @@ import { StunPulseVFXSystem } from './entities/systems/StunPulseVFXSystem';
 import { StunSystem } from './entities/systems/StunSystem';
 import { TargetingSystem } from './entities/systems/TargetingSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
-import { defaultEnvironment } from './environment/configs/defaultEnvironment';
+import { defaultEnvironment } from './environment/configs/DefaultEnvironment';
 import './styles.css';
 import { Renderer } from './systems/Renderer';
 import { Event } from './systems/eventing/Event';
@@ -117,25 +117,25 @@ const waveAnnouncementUI = new WaveAnnouncementUI();
 const waveProgressBarUI = new WaveProgressBarUI();
 
 const upgradeShopUI = new UpgradeShopUI({
-    onReplay: () => {
+    onReplay: (): void => {
         restartGame();
     }
 });
 const gameOverUI = new GameOverUI({
-    onReplay: () => {
+    onReplay: (): void => {
         restartGame();
     },
-    onUpgrade: () => {
+    onUpgrade: (): void => {
         upgradeShopUI.show();
     }
 });
 const abilityButton = new AbilityButton(entityManager, {
-    onActivate: () => {
+    onActivate: (): void => {
         abilitySystem.activateAbility();
     }
 });
 const targetingModeToggleUI = new TargetingModeToggleUI(entityManager, {
-    onModeChanged: () => {
+    onModeChanged: (): void => {
         // Mode changed - TargetingSystem will pick up the change on next target search
     }
 });
@@ -149,8 +149,9 @@ entityFactory.createCoreEntity()
 
 
 // Create the UI
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 const debugUI = new DebugUI(entityManager, {
-    onRestartGame: () => {
+    onRestartGame: (): void => {
         restartGame();
     }
 });

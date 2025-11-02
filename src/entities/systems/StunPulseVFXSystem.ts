@@ -107,7 +107,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
         });
 
         for (let i = 0; i < levelConfig.arcCount; i++) {
-            const color = levelConfig.colors[Math.floor(Math.random() * levelConfig.colors.length)];
+            const colorIndex = Math.floor(Math.random() * levelConfig.colors.length);
+            const color = levelConfig.colors[colorIndex];
+            if (color === undefined) continue;
+            
             const segments = 12;
             const positions = new Float32Array(segments * 3);
             const geometry = new THREE.BufferGeometry();
@@ -138,7 +141,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
 
         const ringParticles: Particle[] = [];
         for (let i = 0; i < levelConfig.ringParticleCount; i++) {
-            const color = levelConfig.colors[Math.floor(Math.random() * levelConfig.colors.length)];
+            const colorIndex = Math.floor(Math.random() * levelConfig.colors.length);
+            const color = levelConfig.colors[colorIndex];
+            if (color === undefined) continue;
+            
             const mesh = new THREE.Mesh(
                 new THREE.SphereGeometry(levelConfig.ringParticleSize, 8, 8),
                 particleMaterial.clone()
@@ -187,7 +193,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
         });
 
         for (let i = 0; i < levelConfig.arcCount; i++) {
-            const color = levelConfig.colors[Math.floor(Math.random() * levelConfig.colors.length)];
+            const colorIndex = Math.floor(Math.random() * levelConfig.colors.length);
+            const color = levelConfig.colors[colorIndex];
+            if (color === undefined) continue;
+            
             const segments = 8;
             const positions = new Float32Array(segments * 3);
             const geometry = new THREE.BufferGeometry();
@@ -218,7 +227,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
 
         const particles: Particle[] = [];
         for (let i = 0; i < levelConfig.particleCount; i++) {
-            const color = levelConfig.colors[Math.floor(Math.random() * levelConfig.colors.length)];
+            const colorIndex = Math.floor(Math.random() * levelConfig.colors.length);
+            const color = levelConfig.colors[colorIndex];
+            if (color === undefined) continue;
+            
             const mesh = new THREE.Mesh(
                 new THREE.SphereGeometry(levelConfig.particleSize, 8, 8),
                 particleMaterial.clone()
@@ -323,7 +335,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             positions.needsUpdate = true;
             
             // Fade out
-            arc.material.opacity = (1 - t) * effect.arcs[0].material.opacity;
+            const firstArc = effect.arcs[0];
+            if (firstArc) {
+                arc.material.opacity = (1 - t) * firstArc.material.opacity;
+            }
         });
 
         // Animate ring particles
@@ -334,7 +349,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             
             particle.mesh.position.addScaledVector(particle.velocity, effect.expansionSpeed * deltaTime);
             
-            particle.material.opacity = (1 - t) * effect.ringParticles[0].material.opacity;
+            const firstParticle = effect.ringParticles[0];
+            if (firstParticle) {
+                particle.material.opacity = (1 - t) * firstParticle.material.opacity;
+            }
         });
     }
 
@@ -360,7 +378,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             positions.needsUpdate = true;
             
             // Fade out
-            arc.material.opacity = (1 - t) * effect.arcs[0].material.opacity;
+            const firstArc = effect.arcs[0];
+            if (firstArc) {
+                arc.material.opacity = (1 - t) * firstArc.material.opacity;
+            }
         });
 
         // Animate particles
@@ -370,7 +391,10 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             const gravity = -3.0;
             particle.velocity.y += gravity * deltaTime;
             
-            particle.material.opacity = (1 - t) * effect.particles[0].material.opacity;
+            const firstParticle = effect.particles[0];
+            if (firstParticle) {
+                particle.material.opacity = (1 - t) * firstParticle.material.opacity;
+            }
         });
     }
 

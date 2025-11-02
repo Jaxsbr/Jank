@@ -78,7 +78,7 @@ export class EnvironmentManager {
         // Update shader uniforms for animated floor patterns
         this.floorGroup.traverse((child) => {
             if (child instanceof THREE.Mesh && child.material instanceof THREE.ShaderMaterial) {
-                if (child.material.uniforms && child.material.uniforms['uTime']) {
+                if (child.material.uniforms?.['uTime']) {
                     child.material.uniforms['uTime'].value += deltaTime;
                 }
             }

@@ -43,7 +43,7 @@ class MetaPointsService {
 
             this.killPoints = killPointsStr ? parseInt(killPointsStr, 10) : 0;
             this.wavePoints = wavePointsStr ? parseInt(wavePointsStr, 10) : 0;
-            this.purchasedUpgrades = upgradesStr ? JSON.parse(upgradesStr) : {};
+            this.purchasedUpgrades = upgradesStr ? (JSON.parse(upgradesStr) as PurchasedUpgrades) : {};
             this.highestKillMilestone = killMilestoneStr ? parseInt(killMilestoneStr, 10) : 0;
             this.highestWaveMilestone = waveMilestoneStr ? parseInt(waveMilestoneStr, 10) : 0;
         } catch (error) {
@@ -101,7 +101,7 @@ class MetaPointsService {
     }
 
     public getPurchasedUpgradeLevel(upgradeId: string): number {
-        return this.purchasedUpgrades[upgradeId] || 0;
+        return this.purchasedUpgrades[upgradeId] ?? 0;
     }
 
     public getPurchasedUpgrades(): PurchasedUpgrades {
