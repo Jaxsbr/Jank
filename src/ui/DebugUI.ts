@@ -23,6 +23,7 @@ export class DebugUI {
     private multiMeleeCheckbox!: HTMLInputElement;
     private stunPulse1Checkbox!: HTMLInputElement;
     private stunPulse2Checkbox!: HTMLInputElement;
+    private rangedAttackCheckbox!: HTMLInputElement;
 
     constructor(entityManager: EntityManager, callbacks?: IDebugUICallbacks) {
         this.entityManager = entityManager;
@@ -359,6 +360,36 @@ export class DebugUI {
         stunPulse2Container.appendChild(this.stunPulse2Checkbox);
         stunPulse2Container.appendChild(stunPulse2Label);
         this.container.appendChild(stunPulse2Container);
+
+        // Ranged Attack
+        const rangedAttackContainer = document.createElement('div');
+        rangedAttackContainer.style.cssText = `
+            margin-top: 10px;
+            margin-bottom: 5px;
+        `;
+
+        this.rangedAttackCheckbox = document.createElement('input');
+        this.rangedAttackCheckbox.type = 'checkbox';
+        this.rangedAttackCheckbox.id = 'ranged-attack-checkbox';
+        this.rangedAttackCheckbox.style.cssText = `
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        `;
+        this.rangedAttackCheckbox.addEventListener('change', () => this.handleMetaUpgradeChange());
+
+        const rangedAttackLabel = document.createElement('label');
+        rangedAttackLabel.htmlFor = 'ranged-attack-checkbox';
+        rangedAttackLabel.textContent = 'Ranged Attack';
+        rangedAttackLabel.style.cssText = `
+            font-size: 24px;
+            cursor: pointer;
+        `;
+
+        rangedAttackContainer.appendChild(this.rangedAttackCheckbox);
+        rangedAttackContainer.appendChild(rangedAttackLabel);
+        this.container.appendChild(rangedAttackContainer);
     }
 
     private findCoreEntity(): Entity | null {
@@ -375,7 +406,10 @@ export class DebugUI {
             meta = new MetaUpgradeComponent(
                 defaultMetaUpgradeConfig.defaultExtraMeleeTargets,
                 defaultMetaUpgradeConfig.defaultMeleeRangeRings,
-                defaultMetaUpgradeConfig.defaultStunPulseLevel
+                defaultMetaUpgradeConfig.defaultStunPulseLevel,
+                0, // meleeKnockbackLevel
+                'nearest', // targetingMode
+                false // rangedAttackUnlocked
             );
             entity.addComponent(meta);
         }
@@ -390,6 +424,7 @@ export class DebugUI {
         const rings = meta ? meta.getMeleeRangeRings() : 0;
         const extraTargets = meta ? meta.getExtraMeleeTargets() : 0;
         const stunPulseLevel = meta ? meta.getStunPulseLevel() : 0;
+        const rangedAttackUnlocked = meta ? meta.isRangedAttackUnlocked() : false;
 
         // Update checkboxes
         this.ring1Checkbox.checked = rings >= 1;
@@ -398,6 +433,7 @@ export class DebugUI {
         this.multiMeleeCheckbox.checked = extraTargets >= 1;
         this.stunPulse1Checkbox.checked = stunPulseLevel >= 1;
         this.stunPulse2Checkbox.checked = stunPulseLevel >= 2;
+        this.rangedAttackCheckbox.checked = rangedAttackUnlocked;
 
         // Update disabled states for level-based upgrades
         this.ring2Checkbox.disabled = rings < 1;
@@ -459,6 +495,10 @@ export class DebugUI {
         // Clamp to config max
         const clampedStunPulseLevel = Math.min(targetStunPulseLevel, defaultMetaUpgradeConfig.maxStunPulseLevel);
         meta.setStunPulseLevel(clampedStunPulseLevel);
+
+        // Handle ranged attack (binary unlock)
+        const rangedAttackUnlocked = this.rangedAttackCheckbox.checked;
+        meta.setRangedAttackUnlocked(rangedAttackUnlocked);
 
         // Update disabled states after changes
         this.updateUpgradeState();

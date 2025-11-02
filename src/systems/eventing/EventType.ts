@@ -22,5 +22,8 @@ export enum EventType {
     WaveStarted,
     WaveCompleted,
     RoundStarted,
-    RoundCompleted
+    RoundCompleted,
+    RangedAttackExecuted,
+    ProjectileHit,
+    ProjectileExpired
 }

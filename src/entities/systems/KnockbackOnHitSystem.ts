@@ -11,6 +11,7 @@ import { GeometryComponent } from '../components/GeometryComponent';
 import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { MovementComponent } from '../components/MovementComponent';
 import { PositionComponent } from '../components/PositionComponent';
+import { ProjectileComponent } from '../components/ProjectileComponent';
 import { TeamComponent } from '../components/TeamComponent';
 import { KnockbackConfig, defaultKnockbackConfig } from '../config/KnockbackConfig';
 
@@ -41,8 +42,14 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
     }
 
     public onEvent(event: Event): void {
-        if (event.eventName !== EventType.AttackExecuted) return;
+        if (event.eventName === EventType.AttackExecuted) {
+            this.handleMeleeKnockback(event);
+        } else if (event.eventName === EventType.ProjectileHit) {
+            this.handleProjectileKnockback(event);
+        }
+    }
 
+    private handleMeleeKnockback(event: Event): void {
         const attackerId = event.args['attackerId'] as string;
         const targetId = event.args['targetId'] as string;
         const attacker = EntityFinder.findEntityById(this.entities, attackerId);
@@ -61,6 +68,40 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         const knockbackLevel = meta?.getMeleeKnockbackLevel() ?? 0;
         if (knockbackLevel === 0) return; // No knockback without upgrade
 
+        this.applyKnockback(attacker, target, knockbackLevel, this.config);
+    }
+
+    private handleProjectileKnockback(event: Event): void {
+        const projectileId = event.args['projectileId'] as string;
+        const attackerId = event.args['attackerId'] as string;
+        const targetId = event.args['targetId'] as string;
+
+        // Get knockback config from projectile entity
+        const projectileEntity = EntityFinder.findEntityById(this.entities, projectileId);
+        if (!projectileEntity) return;
+
+        const projectileComponent = projectileEntity.getComponent(ProjectileComponent);
+        if (!projectileComponent) return;
+
+        const knockbackConfig = projectileComponent.getKnockbackConfig();
+        if (!knockbackConfig) return; // No knockback config means no knockback
+
+        const attacker = EntityFinder.findEntityById(this.entities, attackerId);
+        const target = EntityFinder.findEntityById(this.entities, targetId);
+        if (!attacker || !target) return;
+
+        const attackerTeam = attacker.getComponent(TeamComponent);
+        const targetTeam = target.getComponent(TeamComponent);
+        if (!attackerTeam || !targetTeam) return;
+
+        // Only apply for core -> enemy
+        if (!(attackerTeam.isCore() && targetTeam.isEnemy())) return;
+
+        // Use projectile's knockback config (level is embedded in config)
+        this.applyKnockback(attacker, target, 1, knockbackConfig);
+    }
+
+    private applyKnockback(attacker: Entity, target: Entity, knockbackLevel: number, config: KnockbackConfig): void {
         const attackerPos = attacker.getComponent(PositionComponent) as PositionComponent | undefined;
         const targetPos = target.getComponent(PositionComponent) as PositionComponent | undefined;
         if (!attackerPos || !targetPos) return;
@@ -81,7 +122,7 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         // Each level multiplies the base distance, so level 1 = 1x, level 2 = 2x, level 3 = 3x
         // This scales the initial speed proportionally to achieve roughly +1 distance per level
         const knockbackMultiplier = knockbackLevel;
-        const scaledInitialSpeed = this.config.initialSpeed * knockbackMultiplier;
+        const scaledInitialSpeed = config.initialSpeed * knockbackMultiplier;
 
         // Apply knockback as initial velocity (XZ only), let update() apply and decay it for smoothness
         const velocity = dir.clone().multiplyScalar(scaledInitialSpeed);
@@ -97,7 +138,7 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
         const movement = target.getComponent(MovementComponent);
         if (movement) {
             movement.setCurrentSpeed(0);
-            this.staggerMap.set(target.getId(), { untilTime: Time.now() + this.config.staggerDuration });
+            this.staggerMap.set(target.getId(), { untilTime: Time.now() + config.staggerDuration });
         }
     }
 

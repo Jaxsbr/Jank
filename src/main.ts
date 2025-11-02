@@ -16,6 +16,8 @@ import { HitParticleSystem } from './entities/systems/HitParticleSystem';
 import { KnockbackOnHitSystem } from './entities/systems/KnockbackOnHitSystem';
 import { MeleeAttackSystem } from './entities/systems/MeleeAttackSystem';
 import { MovementSystem } from './entities/systems/MovementSystem';
+import { ProjectileSystem } from './entities/systems/ProjectileSystem';
+import { RangedAttackSystem } from './entities/systems/RangedAttackSystem';
 import { RenderSystem } from './entities/systems/RenderSystem';
 import { RotationSystem } from './entities/systems/RotationSystem';
 import { StunPulseVFXSystem } from './entities/systems/StunPulseVFXSystem';
@@ -65,6 +67,9 @@ const rotationSystem = new RotationSystem()
 const targetingSystem = new TargetingSystem(GlobalEventDispatcher)
 const meleeAttackSystem = new MeleeAttackSystem()
 const entityManager = new EntityManager(GlobalEventDispatcher)
+const entityFactory = new EntityFactory(scene, entityManager)
+const rangedAttackSystem = new RangedAttackSystem(entityFactory)
+const projectileSystem = new ProjectileSystem(entityManager, scene)
 const combatSystem = new CombatSystem(GlobalEventDispatcher)
 const damageVisualSystem = new DamageVisualSystem(GlobalEventDispatcher)
 const effectTickSystem = new EffectTickSystem(GlobalEventDispatcher, defaultEffectTickConfig.intervalSeconds)
@@ -75,7 +80,6 @@ const stunPulseVFXSystem = new StunPulseVFXSystem(GlobalEventDispatcher, scene)
 const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
 const damageTextSystem = new DamageTextSystem(GlobalEventDispatcher, scene, renderer.getCamera())
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
-const entityFactory = new EntityFactory(scene, entityManager)
 const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
     innerRadius: 6,
     outerRadius: 12,
@@ -311,7 +315,9 @@ function animate(): void {
             movementSystem.update(entities);
             rotationSystem.update(entities);
             targetingSystem.update(entities);
+            rangedAttackSystem.update(entities);
             meleeAttackSystem.update(entities);
+            projectileSystem.update(entities);
             effectTickSystem.update(entities);
             enemySpawner.update(FIXED_DT);
 

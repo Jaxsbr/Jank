@@ -13,7 +13,7 @@ import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent } from '../components/TeamComponent';
-import { defaultMetaUpgradeConfig } from '../config/MetaUpgradeConfig';
+import { defaultCoreEntityConfig } from '../config/CoreEntityConfig';
 
 export class TargetingSystem implements IEntitySystem, IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
@@ -143,19 +143,15 @@ export class TargetingSystem implements IEntitySystem, IEventListener {
                 const attack = entity.getComponent(AttackComponent);
                 
                 if (meta && attack) {
-                    // Calculate effective melee range
-                    const meleeRings = Math.min(
-                        meta.getMeleeRangeRings(),
-                        defaultMetaUpgradeConfig.maxMeleeRangeRings
-                    );
-                    const baseRange = attack.getRange();
-                    const effectiveRange = meleeRings === 0 ? baseRange : baseRange * meleeRings;
+                    // Use core's search range for target selection (includes both melee and ranged)
+                    // This allows core to target enemies for both melee and ranged attacks
+                    const searchRange = defaultCoreEntityConfig.combat.target.searchRange;
                     
-                    // Filter targets within attack range
+                    // Filter targets within search range (allows targeting for both attack types)
                     const targetsInRange = SpatialQuery.getEntitiesInRadius2D(
                         potentialTargets,
                         entityPosition,
-                        effectiveRange
+                        searchRange
                     );
                     
                     if (targetsInRange.length === 0) {

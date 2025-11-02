@@ -10,7 +10,7 @@ export class AttackComponent implements IComponent {
         this.damage = damage;
         this.range = range;
         this.cooldownDuration = cooldownDuration;
-        this.lastAttackTime = 0;
+        this.lastAttackTime = -this.cooldownDuration; // Initialize so first attack can fire immediately
     }
 
     /**

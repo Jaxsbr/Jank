@@ -76,6 +76,7 @@ export const defaultMetaPointsConfig: MetaPointsConfig = {
         },
         // Single-level upgrades (no levels)
         'advanced-melee-targeting': { wavePoints: 1 },
+        'ranged-attack': { killPoints: 1 }, // Unlock ranged attack (pellet projectiles)
     },
 };
 

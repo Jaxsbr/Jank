@@ -4,12 +4,16 @@ export interface MaterialConfig {
         metalness: number;
         roughness: number;
         envMapIntensity: number;
+        emissive?: number; // Optional emissive color for glow
+        emissiveIntensity?: number; // Optional emissive intensity (0-1)
     };
     secondary: {
         color: number;
         metalness: number;
         roughness: number;
         envMapIntensity: number;
+        emissive?: number; // Optional emissive color for glow
+        emissiveIntensity?: number; // Optional emissive intensity (0-1)
     };
 }
 

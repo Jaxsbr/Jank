@@ -48,11 +48,6 @@ export class MeleeAttackSystem implements IEntitySystem {
                     return;
                 }
                 
-                // Check if we can attack (cooldown)
-                if (!attack.canAttack(currentTime)) {
-                    return;
-                }
-                
                 // Determine effective melee range with meta upgrades (core only)
                 const team = entity.getComponent(TeamComponent);
                 const meta = team && team.isCore() ? (entity.getComponent(MetaUpgradeComponent) ?? null) : null;
@@ -65,7 +60,15 @@ export class MeleeAttackSystem implements IEntitySystem {
 
                 // Check if target is in range (2D distance ignoring Y position)
                 const distance = MathUtils.calculate2DDistance(position, targetPosition);
+                
+                // Check if target is in melee range - melee should fire regardless of ranged activity
                 if (distance > effectiveRange) {
+                    return; // Target is out of melee range, skip (ranged system may handle it if in ranged range)
+                }
+                
+                // Check if we can attack (cooldown) - melee uses its own independent cooldown
+                // This allows melee and ranged to fire simultaneously when both are ready
+                if (!attack.canAttack(currentTime)) {
                     return;
                 }
                 

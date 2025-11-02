@@ -47,6 +47,12 @@ export class GeometryComponent implements IComponent {
             roughness: materialConfig.main.roughness,
             envMapIntensity: materialConfig.main.envMapIntensity
         });
+        
+        // Set emissive properties if provided
+        if (materialConfig.main.emissive !== undefined) {
+            this.mainMaterial.emissive = new THREE.Color(materialConfig.main.emissive);
+            this.mainMaterial.emissiveIntensity = materialConfig.main.emissiveIntensity ?? 1.0;
+        }
     }
 
     private createSecondaryMaterial(materialConfig: MaterialConfig): void {
@@ -56,6 +62,12 @@ export class GeometryComponent implements IComponent {
             roughness: materialConfig.secondary.roughness,
             envMapIntensity: materialConfig.secondary.envMapIntensity
         });
+        
+        // Set emissive properties if provided
+        if (materialConfig.secondary.emissive !== undefined) {
+            this.secondaryMaterial.emissive = new THREE.Color(materialConfig.secondary.emissive);
+            this.secondaryMaterial.emissiveIntensity = materialConfig.secondary.emissiveIntensity ?? 1.0;
+        }
     }
         
     private createMainSphere(radius: number, segments: number): void {

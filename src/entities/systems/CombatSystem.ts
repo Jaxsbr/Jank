@@ -40,6 +40,8 @@ export class CombatSystem implements IEventListener {
     public onEvent(event: Event): void {
         if (event.eventName === EventType.AttackExecuted) {
             this.handleAttackExecuted(event);
+        } else if (event.eventName === EventType.ProjectileHit) {
+            this.handleProjectileHit(event);
         }
     }
 
@@ -48,11 +50,77 @@ export class CombatSystem implements IEventListener {
      * Applies damage to the target and checks for death
      */
     private handleAttackExecuted(event: Event): void {
-        const attackerId = event.args['attackerId'] as string;
         const targetId = event.args['targetId'] as string;
         const damage = event.args['damage'] as number;
+        const isCritical = event.args['isCritical'] as boolean | undefined;
+        const effectType = event.args['effectType'] as EffectType | undefined;
 
-        if (!attackerId || !targetId || typeof damage !== 'number') {
+        // Get hit position from target entity (melee attacks use target position)
+        const targetEntity = EntityFinder.findEntityById(this.entities, targetId);
+        if (!targetEntity) {
+            return;
+        }
+
+        const hitPosition = new THREE.Vector3();
+        const posComp = targetEntity.getComponent(PositionComponent);
+        if (posComp) {
+            const p = posComp.getPosition();
+            hitPosition.set(p.x, p.y, p.z);
+        } else {
+            const geom = targetEntity.getComponent(GeometryComponent);
+            if (geom) {
+                geom.getGeometryGroup().getWorldPosition(hitPosition);
+            }
+        }
+
+        this.applyDamageAndCheckDeath(targetId, damage, hitPosition, isCritical, effectType);
+    }
+
+    /**
+     * Handle a projectile hit event
+     * Applies damage to the target and checks for death
+     */
+    private handleProjectileHit(event: Event): void {
+        const targetId = event.args['targetId'] as string;
+        const damage = event.args['damage'] as number;
+        const position = event.args['position'] as THREE.Vector3;
+
+        // Use provided position from projectile or fallback to target position
+        const targetEntity = EntityFinder.findEntityById(this.entities, targetId);
+        if (!targetEntity) {
+            return;
+        }
+
+        const hitPosition = position?.clone() ?? new THREE.Vector3();
+        if (!position) {
+            const posComp = targetEntity.getComponent(PositionComponent);
+            if (posComp) {
+                const p = posComp.getPosition();
+                hitPosition.set(p.x, p.y, p.z);
+            } else {
+                const geom = targetEntity.getComponent(GeometryComponent);
+                if (geom) {
+                    geom.getGeometryGroup().getWorldPosition(hitPosition);
+                }
+            }
+        }
+
+        // Projectiles don't have critical hits or effect types
+        this.applyDamageAndCheckDeath(targetId, damage, hitPosition, false, undefined);
+    }
+
+    /**
+     * Shared logic for applying damage and checking death
+     * Used by both melee and projectile attacks
+     */
+    private applyDamageAndCheckDeath(
+        targetId: string,
+        damage: number,
+        hitPosition: THREE.Vector3,
+        isCritical?: boolean,
+        effectType?: EffectType
+    ): void {
+        if (!targetId || typeof damage !== 'number') {
             return;
         }
 
@@ -68,25 +136,7 @@ export class CombatSystem implements IEventListener {
             return;
         }
 
-        // Apply damage
         healthComponent.removeHP(damage);
-
-        // Capture target position for hit VFX
-        const hitPosition = new THREE.Vector3();
-        const posComp = targetEntity.getComponent(PositionComponent);
-        if (posComp) {
-            const p = posComp.getPosition();
-            hitPosition.set(p.x, p.y, p.z);
-        } else {
-            const geom = targetEntity.getComponent(GeometryComponent);
-            if (geom) {
-                geom.getGeometryGroup().getWorldPosition(hitPosition);
-            }
-        }
-
-        // Extract additional damage metadata from AttackExecuted event if available
-        const isCritical = event.args['isCritical'] as boolean | undefined;
-        const effectType = event.args['effectType'] as EffectType | undefined;
 
         // Build event args, conditionally including effectType
         const eventArgs: Record<string, EventArgValue> = {
@@ -115,18 +165,9 @@ export class CombatSystem implements IEventListener {
                 });
                 this.eventDispatcher.dispatch(enemyKilledEvent);
             }
+
             // Capture position at death time before destruction
-            const position = new THREE.Vector3();
-            const posComp = targetEntity.getComponent(PositionComponent);
-            if (posComp) {
-                const p = posComp.getPosition();
-                position.set(p.x, p.y, p.z);
-            } else {
-                const geom = targetEntity.getComponent(GeometryComponent);
-                if (geom) {
-                    geom.getGeometryGroup().getWorldPosition(position);
-                }
-            }
+            const deathPosition = hitPosition.clone();
 
             // Capture team information before entity is destroyed
             const teamComponent = targetEntity.getComponent(TeamComponent);
@@ -136,7 +177,7 @@ export class CombatSystem implements IEventListener {
             // Dispatch entity death event (EntityManager will handle destruction and cleanup)
             const deathEvent = new Event(EventType.EntityDeath, {
                 entityId: targetId,
-                position,
+                position: deathPosition,
                 isCore,
                 isEnemy
             });

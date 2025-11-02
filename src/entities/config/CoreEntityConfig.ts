@@ -25,6 +25,12 @@ export interface CoreEntityConfig {
             range: number;
             cooldown: number; // seconds
         };
+        ranged: {
+            damage: number; // projectile damage (attacker-specific, not in projectile config)
+            range: number; // maximum distance for ranged attacks
+            cooldown: number; // seconds
+            projectileType: 'pellet'; // which projectile type to use (visuals/movement from PelletProjectileConfig)
+        };
         target: {
             searchRange: number;
         };
@@ -59,8 +65,15 @@ export const defaultCoreEntityConfig: CoreEntityConfig = {
             range: 1.4,
             cooldown: 1.0 // seconds (was 1000ms)
         },
+        ranged: {
+            damage: 2, // projectile damage (lower than melee 75)
+            // Visuals (color, size) and movement (speed, range) come from PelletProjectileConfig
+            range: 5.0, // maximum distance for ranged attacks
+            cooldown: 0.2, // faster than melee
+            projectileType: 'pellet' // references PelletProjectileConfig for visuals/movement/knockback
+        },
         target: {
-            searchRange: 10.0
+            searchRange: 9.0 // core can search target in this range 
         },
         attackAnimation: {
             scaleMultiplier: 1.2,

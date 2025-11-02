@@ -2,6 +2,7 @@ import { Scene, Vector3 } from 'three';
 import { Entity } from '../ecs/Entity';
 import { EntityManager } from '../ecs/EntityManager';
 import { metaPointsService } from '../utils/MetaPointsService';
+import { Time } from '../utils/Time';
 import { AbilityComponent } from './components/AbilityComponent';
 import { AttackAnimationComponent } from './components/AttackAnimationComponent';
 import { AttackComponent } from './components/AttackComponent';
@@ -12,6 +13,7 @@ import { HealthComponent } from './components/HealthComponent';
 import { MetaUpgradeComponent } from './components/MetaUpgradeComponent';
 import { MovementComponent } from './components/MovementComponent';
 import { PositionComponent } from './components/PositionComponent';
+import { ProjectileComponent } from './components/ProjectileComponent';
 import { RotationComponent } from './components/RotationComponent';
 import { TargetComponent } from './components/TargetComponent';
 import { TeamComponent, TeamType } from './components/TeamComponent';
@@ -23,6 +25,7 @@ import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityCo
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
 import { GeometryConfig } from './config/GeometryConfig';
 import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
+import { defaultPelletProjectileConfig } from './config/PelletProjectileConfig';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -175,6 +178,9 @@ export class EntityFactory implements IEntityFactory {
         const advancedTargetingLevel = purchasedUpgrades['advanced-melee-targeting'] ?? 0;
         const initialTargetingMode: 'nearest' | 'lowest' = advancedTargetingLevel > 0 ? 'nearest' : 'nearest';
         
+        // Check if ranged attack is unlocked
+        const rangedAttackUnlocked = (purchasedUpgrades['ranged-attack'] ?? 0) > 0;
+        
         // Apply melee damage bonus (+25 per level)
         const meleeDamageLevel = purchasedUpgrades['melee-damage'] ?? 0;
         if (meleeDamageLevel > 0) {
@@ -192,7 +198,8 @@ export class EntityFactory implements IEntityFactory {
             meleeRangeRings,
             stunPulseLevel,
             meleeKnockbackLevel,
-            initialTargetingMode
+            initialTargetingMode,
+            rangedAttackUnlocked
         ));
         
         // Add collision component (core is immovable)
@@ -232,6 +239,88 @@ export class EntityFactory implements IEntityFactory {
         
         // Set up entity in scene
         this.addEntityToScene(entity, geometryComponent, config.position);
+
+        return entity;
+    }
+
+    /**
+     * Create a projectile entity
+     * Uses projectile config based on core's ranged.projectileType
+     * Currently supports 'pellet' type
+     */
+    createProjectileEntity(
+        startPosition: Vector3,
+        direction: Vector3,
+        attacker: Entity,
+        targetEntity: Entity | null = null
+    ): Entity {
+        const entity = this.entityManager.createEntity();
+        const rangedConfig = defaultCoreEntityConfig.combat.ranged;
+
+        // Get projectile config based on type
+        // TODO: Add support for other projectile types (arrow, bolt, etc.)
+        let projectileConfig;
+        if (rangedConfig.projectileType === 'pellet') {
+            projectileConfig = defaultPelletProjectileConfig;
+        } else {
+            // Fallback to pellet if unknown type
+            projectileConfig = defaultPelletProjectileConfig;
+        }
+
+        // Normalize direction
+        const normalizedDirection = direction.clone().normalize();
+        const velocity = normalizedDirection.multiplyScalar(projectileConfig.speed);
+
+        // Create projectile-specific geometry (small sphere, no protrusions)
+        const projectileGeometryConfig: GeometryConfig = {
+            mainSphere: {
+                radius: projectileConfig.radius,
+                segments: 16
+            },
+            protrusions: {
+                radius: 0,
+                segments: 0,
+                embedRatio: 0
+            },
+            positions: []
+        };
+
+        // Use material from projectile config
+        const projectileMaterial = projectileConfig.material;
+
+        const secondaryConfigs = this.createSecondaryGeometryConfigs(projectileGeometryConfig);
+        const geometryComponent = new GeometryComponent(
+            projectileGeometryConfig.mainSphere.radius,
+            projectileGeometryConfig.mainSphere.segments,
+            secondaryConfigs,
+            projectileMaterial
+        );
+
+        // Add components
+        entity.addComponent(new PositionComponent(startPosition.x, startPosition.y, startPosition.z));
+        entity.addComponent(geometryComponent);
+
+        // Get attacker team
+        const attackerTeam = attacker.getComponent(TeamComponent);
+        const teamType = attackerTeam?.getTeamType() ?? TeamType.CORE;
+        entity.addComponent(new TeamComponent(teamType));
+
+        // Add projectile component
+        // Damage is attacker-specific (from core config), not projectile-specific
+        const projectileComponent = new ProjectileComponent(
+            velocity,
+            rangedConfig.damage, // Damage from CoreEntityConfig.combat.ranged.damage
+            projectileConfig.maxRange,
+            startPosition.clone(),
+            attacker.getId(),
+            targetEntity?.getId() ?? null,
+            projectileConfig.knockback ?? null,
+            Time.now()
+        );
+        entity.addComponent(projectileComponent);
+
+        // Set up entity in scene
+        this.addEntityToScene(entity, geometryComponent, startPosition);
 
         return entity;
     }
