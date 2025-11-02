@@ -19,7 +19,7 @@ const UPGRADE_DEFINITIONS: UpgradeDefinition[] = [
     { id: 'melee-knockback', name: 'Melee Knockback', description: 'Knocks back enemies on hit (+1 distance per level)', maxLevel: 3 },
     { id: 'multi-melee', name: 'Multi-Melee', description: 'Hit additional nearest enemies (1 extra per level)', maxLevel: 5 },
     { id: 'advanced-melee-targeting', name: 'Advanced Melee Targeting', description: 'Unlock toggleable targeting modes: nearest enemy or lowest HP enemy', maxLevel: 1 },
-    { id: 'ranged-attack', name: 'Ranged Attack', description: 'Unlock pellet projectiles for ranged combat', maxLevel: 1 },
+    { id: 'ranged-attack', name: 'Ranged Pellet Attack', description: 'Unlock pellet projectiles for ranged combat. Center tile flashes orange on each shot. Level 2: Enhanced range, damage, and speed.', maxLevel: 2 },
 ];
 
 export class UpgradeShopUI {
