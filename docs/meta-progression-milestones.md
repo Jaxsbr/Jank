@@ -71,6 +71,8 @@ Acceptance:
 As of now, meta upgrades can be tested manually via the Debug UI (press 'D' to open):
 - Checkboxes for Ring 1/2/3 melee range (level-based, sequential validation)
 - Checkbox for multi-melee (independent)
+- Checkboxes for Stun Pulse Level 1/2 (level-based, sequential validation)
+- Checkboxes for Ranged Attack Level 1/2 (level-based, sequential validation)
 - Changes apply immediately to the core entity during gameplay
 
 This debug implementation is temporary and will be replaced by the proper milestone system above.

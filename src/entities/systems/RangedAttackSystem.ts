@@ -13,7 +13,7 @@ import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent } from '../components/TeamComponent';
-import { defaultCoreEntityConfig } from '../config/CoreEntityConfig';
+import { defaultRangedAttackConfig } from '../config/RangedAttackConfig';
 
 export class RangedAttackSystem implements IEntitySystem {
     private readonly entityFactory: EntityFactory;
@@ -30,12 +30,12 @@ export class RangedAttackSystem implements IEntitySystem {
             .withComponents(AttackComponent, TargetComponent, PositionComponent, HealthComponent, MetaUpgradeComponent, TeamComponent)
             .filter(({ components }) => {
                 const [, , , health, meta, team] = components;
-                // Only process core entities with ranged attack unlocked
-                return health.isAlive() && team.isCore() && meta.isRangedAttackUnlocked();
+                // Only process core entities with ranged attack unlocked (level > 0)
+                return health.isAlive() && team.isCore() && meta.getRangedAttackLevel() > 0;
             })
             .execute()
             .forEach(({ entity, components }) => {
-                const [, target, position] = components; // AttackComponent not needed, kept for query compatibility
+                const [, target, position, , meta] = components; // AttackComponent not needed, kept for query compatibility
 
                 // Check if we have a valid target
                 if (!target.hasTarget() || !target.isTargetValid()) {
@@ -56,9 +56,14 @@ export class RangedAttackSystem implements IEntitySystem {
                 // Calculate distance to target
                 const distance = MathUtils.calculate2DDistance(position, targetPosition);
 
-                // Get ranged config from core config (use default for now)
-                const rangedRange = defaultCoreEntityConfig.combat.ranged.range;
-                const rangedCooldown = defaultCoreEntityConfig.combat.ranged.cooldown;
+                // Get ranged stats from meta upgrade level
+                const rangedLevel = meta.getRangedAttackLevel();
+                const rangedConfig = defaultRangedAttackConfig.levels[rangedLevel];
+                if (!rangedConfig) {
+                    return; // Invalid level, skip
+                }
+                const rangedRange = rangedConfig.range;
+                const rangedCooldown = rangedConfig.cooldown;
 
                 // Only check max range - allow ranged to fire at any distance within range
                 // This enables simultaneous melee + ranged attacks when both are in range
@@ -78,12 +83,14 @@ export class RangedAttackSystem implements IEntitySystem {
                 const targetPos = targetPosition.toVector3();
                 const direction = targetPos.clone().sub(corePos).normalize();
 
-                // Create projectile entity using core's ranged configuration
+                // Create projectile entity using level-based damage and visual config
                 this.entityFactory.createProjectileEntity(
                     corePos,
                     direction,
                     entity,
-                    targetEntity
+                    targetEntity,
+                    rangedConfig.damage,
+                    rangedLevel // Pass level for visual configuration
                 );
 
                 // Update cooldown

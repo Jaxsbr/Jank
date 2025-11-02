@@ -167,6 +167,25 @@ export class TileVFXController implements IEventListener {
     }
 
     /**
+     * Flash the center tile for ranged attack visual feedback
+     */
+    public flashCenterTile(color: number = 0xFF6600, intensity: number = 1.5): void {
+        const centerTile = this.tiles.find(tile => {
+            const tileComponent = tile.getComponent(TileComponent);
+            return tileComponent && tileComponent.isCenterTile();
+        });
+        
+        if (centerTile) {
+            const visualComponent = centerTile.getComponent(TileVisualComponent);
+            if (visualComponent) {
+                // Set temporary glow color and target intensity
+                visualComponent.setTempGlowColor(color);
+                visualComponent.setTargetGlowIntensity(intensity);
+            }
+        }
+    }
+
+    /**
      * Handle dispatched events
      */
     public onEvent(event: Event): void {

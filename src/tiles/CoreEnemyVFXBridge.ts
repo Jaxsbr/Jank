@@ -30,6 +30,8 @@ export class CoreEnemyVFXBridge implements IEventListener {
             this.handleAttackExecuted(event);
         } else if (event.eventName === EventType.DamageTaken) {
             this.handleDamageTaken(event);
+        } else if (event.eventName === EventType.RangedAttackExecuted) {
+            this.handleRangedAttackExecuted();
         }
     }
 
@@ -82,6 +84,15 @@ export class CoreEnemyVFXBridge implements IEventListener {
             // Core took damage - emit shockwave
             this.tileVFXController.emitShockwave(targetWorldPos, 0.9, 10.0, 8.0);
         }
+    }
+
+    /**
+     * Handle ranged attack executed event
+     */
+    private handleRangedAttackExecuted(): void {
+        // Flash the center tile when ranged attack is fired
+        // Color matches the orange pellet projectile
+        this.tileVFXController.flashCenterTile(0xFF6600, 1.5);
     }
 
     /**

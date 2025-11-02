@@ -26,6 +26,7 @@ import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntit
 import { GeometryConfig } from './config/GeometryConfig';
 import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
 import { defaultPelletProjectileConfig } from './config/PelletProjectileConfig';
+import { defaultRangedAttackConfig } from './config/RangedAttackConfig';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -178,8 +179,14 @@ export class EntityFactory implements IEntityFactory {
         const advancedTargetingLevel = purchasedUpgrades['advanced-melee-targeting'] ?? 0;
         const initialTargetingMode: 'nearest' | 'lowest' = advancedTargetingLevel > 0 ? 'nearest' : 'nearest';
         
-        // Check if ranged attack is unlocked
-        const rangedAttackUnlocked = (purchasedUpgrades['ranged-attack'] ?? 0) > 0;
+        // Get ranged attack level from level-based upgrade
+        let rangedAttackLevel = defaultMetaUpgradeConfig.defaultRangedAttackLevel;
+        const rangedAttackUpgradeLevel = purchasedUpgrades['ranged-attack'] ?? 0;
+        if (rangedAttackUpgradeLevel > 0) {
+            rangedAttackLevel = rangedAttackUpgradeLevel;
+        }
+        // Clamp to max
+        rangedAttackLevel = Math.min(rangedAttackLevel, defaultMetaUpgradeConfig.maxRangedAttackLevel);
         
         // Apply melee damage bonus (+25 per level)
         const meleeDamageLevel = purchasedUpgrades['melee-damage'] ?? 0;
@@ -199,7 +206,8 @@ export class EntityFactory implements IEntityFactory {
             stunPulseLevel,
             meleeKnockbackLevel,
             initialTargetingMode,
-            rangedAttackUnlocked
+            rangedAttackLevel > 0, // rangedAttackUnlocked determined by level
+            rangedAttackLevel
         ));
         
         // Add collision component (core is immovable)
@@ -252,7 +260,9 @@ export class EntityFactory implements IEntityFactory {
         startPosition: Vector3,
         direction: Vector3,
         attacker: Entity,
-        targetEntity: Entity | null = null
+        targetEntity: Entity | null = null,
+        damage?: number,
+        rangedLevel?: number
     ): Entity {
         const entity = this.entityManager.createEntity();
         const rangedConfig = defaultCoreEntityConfig.combat.ranged;
@@ -267,6 +277,19 @@ export class EntityFactory implements IEntityFactory {
             projectileConfig = defaultPelletProjectileConfig;
         }
 
+        // Check if we have level-specific visual config
+        let visualRadius = projectileConfig.radius;
+        let visualMaterial = projectileConfig.material;
+        let visualSegments = 16; // Default segments
+        if (rangedLevel && rangedLevel > 0) {
+            const levelConfig = defaultRangedAttackConfig.levels[rangedLevel];
+            if (levelConfig?.visual) {
+                visualRadius = levelConfig.visual.radius;
+                visualMaterial = levelConfig.visual.material;
+                visualSegments = levelConfig.visual.segments ?? 16;
+            }
+        }
+
         // Normalize direction
         const normalizedDirection = direction.clone().normalize();
         const velocity = normalizedDirection.multiplyScalar(projectileConfig.speed);
@@ -274,8 +297,8 @@ export class EntityFactory implements IEntityFactory {
         // Create projectile-specific geometry (small sphere, no protrusions)
         const projectileGeometryConfig: GeometryConfig = {
             mainSphere: {
-                radius: projectileConfig.radius,
-                segments: 16
+                radius: visualRadius, // Use level-specific radius
+                segments: visualSegments // Use level-specific segments
             },
             protrusions: {
                 radius: 0,
@@ -285,8 +308,8 @@ export class EntityFactory implements IEntityFactory {
             positions: []
         };
 
-        // Use material from projectile config
-        const projectileMaterial = projectileConfig.material;
+        // Use material from ranged level config if available, otherwise from projectile config
+        const projectileMaterial = visualMaterial;
 
         const secondaryConfigs = this.createSecondaryGeometryConfigs(projectileGeometryConfig);
         const geometryComponent = new GeometryComponent(
@@ -306,10 +329,11 @@ export class EntityFactory implements IEntityFactory {
         entity.addComponent(new TeamComponent(teamType));
 
         // Add projectile component
-        // Damage is attacker-specific (from core config), not projectile-specific
+        // Damage is attacker-specific (from meta upgrade level if provided, otherwise from core config)
+        const projectileDamage = damage ?? rangedConfig.damage;
         const projectileComponent = new ProjectileComponent(
             velocity,
-            rangedConfig.damage, // Damage from CoreEntityConfig.combat.ranged.damage
+            projectileDamage,
             projectileConfig.maxRange,
             startPosition.clone(),
             attacker.getId(),

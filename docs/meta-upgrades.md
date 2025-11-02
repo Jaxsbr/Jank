@@ -41,6 +41,12 @@ Upgrades can have multiple levels that are purchased sequentially. Each level un
 - Level 5: 5 extra targets (primary + 5, total: 6 targets)
 - Cost per level equals the level number (Level 1 = 1 KP, Level 2 = 2 KP, etc.)
 
+**Ranged Pellet Attack** (2 levels, kill points):
+- Level 1: Unlocks ranged attacks. Range 5.0, damage 2, cooldown 0.2s. Cost: 1 KP.
+- Level 2: Enhanced stats. Range 6.0, damage 3, cooldown 0.15s. Cost: 2 KP.
+- Ranged attacks fire orange pellet projectiles simultaneously with melee attacks when targets are in range.
+- Visual feedback: center tile flashes orange when each ranged projectile is fired.
+
 ## Core Upgrades
 
 Core upgrades are advanced enhancements that unlock new player control abilities or provide active/passive bonuses to the Core. These upgrades are typically unlocked with wave points and represent significant gameplay changes.
@@ -60,10 +66,12 @@ Core upgrades are advanced enhancements that unlock new player control abilities
   - `meleeRangeRings`: number (0 default; corresponds to melee-range upgrade level: 1, 2, or 3)
   - `stunPulseLevel`: number (0 default; corresponds to stun-pulse upgrade level: 1 or 2)
   - `meleeKnockbackLevel`: number (0 default; corresponds to melee-knockback upgrade level: 1, 2, or 3)
+  - `rangedAttackLevel`: number (0 default; corresponds to ranged-attack upgrade level: 1 or 2)
   - `targetingMode`: `'nearest' | 'lowest'` ('nearest' default; only used when advanced-melee-targeting is unlocked)
 - `MeleeAttackSystem` reads this component to determine effective target count and range.
 - `AbilitySystem` reads `stunPulseLevel` to determine if ability is unlocked and which configuration to use.
 - `KnockbackOnHitSystem` reads `meleeKnockbackLevel` to apply knockback only when level > 0, scaling distance by level.
+- `RangedAttackSystem` reads `rangedAttackLevel` to determine if ranged attacks are unlocked and which configuration to use (range, damage, cooldown).
 - `TargetingSystem` reads `targetingMode` when advanced-melee-targeting is unlocked:
   - Filters potential targets by effective melee range (base range * meleeRangeRings)
   - Applies targeting mode: 'nearest' finds closest enemy, 'lowest' finds enemy with lowest HP
@@ -72,6 +80,7 @@ Core upgrades are advanced enhancements that unlock new player control abilities
 - Range calculation: 0 rings = base range only; 1+ rings = base range * ring count.
 - Stun ability only available when `stunPulseLevel > 0`.
 - Knockback only applies when `meleeKnockbackLevel > 0`; each level adds +1 knockback distance.
+- Ranged attacks only available when `rangedAttackLevel > 0`; stats determined by level via `RangedAttackConfig`.
 
 ### Purchase System
 - Upgrades are purchased in the Upgrade Shop UI (accessible from Game Over screen).

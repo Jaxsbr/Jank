@@ -33,10 +33,11 @@ You are the Core: a sentient defense construct. You don’t move; you dominate. 
 - Difficulty ramps via spawn frequency, composition, and minor enemy modifiers.
 
 ## Tiles (visual only)
-- Purpose: communicate the core’s heartbeat and combat impacts.
+- Purpose: communicate the core's heartbeat and combat impacts.
 - Behaviors:
   - Idle heartbeat: subtle global pulse (lab‑like energy slab vibe).
-  - Ripple (Core attack executed): ring from center out.
+  - Ripple (Core melee attack executed): ring from center out.
+  - Flash (Core ranged attack executed): center tile glows orange briefly.
   - Shockwave (Core takes damage): strong outward pulse from core position.
   - Local burst (enemy melee impact): small, sharp splash near impact.
 - Grid size: can expand across stages/waves for spectacle; expansion is visual, not gameplay.

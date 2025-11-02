@@ -41,9 +41,9 @@ export const defaultPelletProjectileConfig: PelletProjectileConfig = {
             color: 0xFF6600, // Orange color
             metalness: 0.8,
             roughness: 0.2,
-            envMapIntensity: 1.0,
+            envMapIntensity: 0.5,
             emissive: 0xFF6600, // Orange emissive glow
-            emissiveIntensity: 1.5 // Strong glow to overcome metalness
+            emissiveIntensity: 0.5 // Strong glow to overcome metalness
         }
     },
     radius: 0.1, // small pellet

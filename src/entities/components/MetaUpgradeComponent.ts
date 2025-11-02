@@ -9,14 +9,16 @@ export class MetaUpgradeComponent implements IComponent {
     private meleeKnockbackLevel: number;
     private targetingMode: TargetingMode;
     private rangedAttackUnlocked: boolean;
+    private rangedAttackLevel: number;
 
-    constructor(extraMeleeTargets: number, meleeRangeRings: number, stunPulseLevel: number = 0, meleeKnockbackLevel: number = 0, targetingMode: TargetingMode = 'nearest', rangedAttackUnlocked: boolean = false) {
+    constructor(extraMeleeTargets: number, meleeRangeRings: number, stunPulseLevel: number = 0, meleeKnockbackLevel: number = 0, targetingMode: TargetingMode = 'nearest', rangedAttackUnlocked: boolean = false, rangedAttackLevel: number = 0) {
         this.extraMeleeTargets = extraMeleeTargets;
         this.meleeRangeRings = meleeRangeRings;
         this.stunPulseLevel = stunPulseLevel;
         this.meleeKnockbackLevel = meleeKnockbackLevel;
         this.targetingMode = targetingMode;
         this.rangedAttackUnlocked = rangedAttackUnlocked;
+        this.rangedAttackLevel = rangedAttackLevel;
     }
 
     public getExtraMeleeTargets(): number {
@@ -65,6 +67,14 @@ export class MetaUpgradeComponent implements IComponent {
 
     public setRangedAttackUnlocked(unlocked: boolean): void {
         this.rangedAttackUnlocked = unlocked;
+    }
+
+    public getRangedAttackLevel(): number {
+        return this.rangedAttackLevel;
+    }
+
+    public setRangedAttackLevel(level: number): void {
+        this.rangedAttackLevel = level;
     }
 }
 

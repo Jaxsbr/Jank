@@ -35,17 +35,20 @@ This doc explains how the unified, visual-only tile system works and how to exte
     - `emitRippleFromCenter(strength?, speed?, falloff?)`
     - `emitShockwave(origin, strength?, radius?, speed?)`
     - `emitLocalBurst(origin, strength?)`
+    - `flashCenterTile(color?, intensity?)` – direct center tile flash for instant feedback
     - `update(deltaTime)` – advances waves and writes glow targets to tiles
 - `src/tiles/CoreEnemyVFXBridge.ts`
   - Listens to game events and triggers VFX:
     - Core `AttackExecuted` → ripple from center
     - Core `DamageTaken` → shockwave at core position
+    - Core `RangedAttackExecuted` → flash center tile orange
     - Enemy `AttackExecuted` → local burst at target
 
 ## Event Types
 Defined in `src/systems/eventing/EventType.ts`:
-- `AttackExecuted`
-- `DamageTaken`
+- `AttackExecuted` – melee/ranged attack fired
+- `RangedAttackExecuted` – ranged pellet attack fired (triggers center tile flash)
+- `DamageTaken` – entity took damage
 - `CoreSpecialAttack`, `CoreHit` (optional custom hooks also handled by VFXController if dispatched)
 
 ## Tuning Visuals
@@ -67,6 +70,8 @@ tileVFXController.emitRippleFromCenter(2.0, 5.0, 0.6);
 tileVFXController.emitShockwave(new THREE.Vector3(0, 0, 0), 1.8, 12.0, 8.0);
 // Local burst near an impact point
 tileVFXController.emitLocalBurst(new THREE.Vector3(3, 0, 3), 1.2);
+// Flash center tile with color/intensity
+tileVFXController.flashCenterTile(0xFF6600, 1.5);
 ```
 Or via events:
 ```ts

@@ -23,7 +23,8 @@ export class DebugUI {
     private multiMeleeCheckbox!: HTMLInputElement;
     private stunPulse1Checkbox!: HTMLInputElement;
     private stunPulse2Checkbox!: HTMLInputElement;
-    private rangedAttackCheckbox!: HTMLInputElement;
+    private rangedAttack1Checkbox!: HTMLInputElement;
+    private rangedAttack2Checkbox!: HTMLInputElement;
 
     constructor(entityManager: EntityManager, callbacks?: IDebugUICallbacks) {
         this.entityManager = entityManager;
@@ -361,35 +362,65 @@ export class DebugUI {
         stunPulse2Container.appendChild(stunPulse2Label);
         this.container.appendChild(stunPulse2Container);
 
-        // Ranged Attack
-        const rangedAttackContainer = document.createElement('div');
-        rangedAttackContainer.style.cssText = `
+        // Ranged Attack Level 1
+        const rangedAttack1Container = document.createElement('div');
+        rangedAttack1Container.style.cssText = `
             margin-top: 10px;
             margin-bottom: 5px;
         `;
 
-        this.rangedAttackCheckbox = document.createElement('input');
-        this.rangedAttackCheckbox.type = 'checkbox';
-        this.rangedAttackCheckbox.id = 'ranged-attack-checkbox';
-        this.rangedAttackCheckbox.style.cssText = `
+        this.rangedAttack1Checkbox = document.createElement('input');
+        this.rangedAttack1Checkbox.type = 'checkbox';
+        this.rangedAttack1Checkbox.id = 'ranged-attack-1-checkbox';
+        this.rangedAttack1Checkbox.style.cssText = `
             width: 20px;
             height: 20px;
             margin-right: 10px;
             cursor: pointer;
         `;
-        this.rangedAttackCheckbox.addEventListener('change', () => this.handleMetaUpgradeChange());
+        this.rangedAttack1Checkbox.addEventListener('change', () => this.handleMetaUpgradeChange());
 
-        const rangedAttackLabel = document.createElement('label');
-        rangedAttackLabel.htmlFor = 'ranged-attack-checkbox';
-        rangedAttackLabel.textContent = 'Ranged Attack';
-        rangedAttackLabel.style.cssText = `
+        const rangedAttack1Label = document.createElement('label');
+        rangedAttack1Label.htmlFor = 'ranged-attack-1-checkbox';
+        rangedAttack1Label.textContent = 'Ranged Attack Level 1';
+        rangedAttack1Label.style.cssText = `
             font-size: 24px;
             cursor: pointer;
         `;
 
-        rangedAttackContainer.appendChild(this.rangedAttackCheckbox);
-        rangedAttackContainer.appendChild(rangedAttackLabel);
-        this.container.appendChild(rangedAttackContainer);
+        rangedAttack1Container.appendChild(this.rangedAttack1Checkbox);
+        rangedAttack1Container.appendChild(rangedAttack1Label);
+        this.container.appendChild(rangedAttack1Container);
+
+        // Ranged Attack Level 2
+        const rangedAttack2Container = document.createElement('div');
+        rangedAttack2Container.style.cssText = `
+            margin-top: 10px;
+            margin-bottom: 5px;
+        `;
+
+        this.rangedAttack2Checkbox = document.createElement('input');
+        this.rangedAttack2Checkbox.type = 'checkbox';
+        this.rangedAttack2Checkbox.id = 'ranged-attack-2-checkbox';
+        this.rangedAttack2Checkbox.style.cssText = `
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        `;
+        this.rangedAttack2Checkbox.addEventListener('change', () => this.handleMetaUpgradeChange());
+
+        const rangedAttack2Label = document.createElement('label');
+        rangedAttack2Label.htmlFor = 'ranged-attack-2-checkbox';
+        rangedAttack2Label.textContent = 'Ranged Attack Level 2';
+        rangedAttack2Label.style.cssText = `
+            font-size: 24px;
+            cursor: pointer;
+        `;
+
+        rangedAttack2Container.appendChild(this.rangedAttack2Checkbox);
+        rangedAttack2Container.appendChild(rangedAttack2Label);
+        this.container.appendChild(rangedAttack2Container);
     }
 
     private findCoreEntity(): Entity | null {
@@ -409,7 +440,8 @@ export class DebugUI {
                 defaultMetaUpgradeConfig.defaultStunPulseLevel,
                 0, // meleeKnockbackLevel
                 'nearest', // targetingMode
-                false // rangedAttackUnlocked
+                false, // rangedAttackUnlocked
+                0 // rangedAttackLevel
             );
             entity.addComponent(meta);
         }
@@ -424,7 +456,7 @@ export class DebugUI {
         const rings = meta ? meta.getMeleeRangeRings() : 0;
         const extraTargets = meta ? meta.getExtraMeleeTargets() : 0;
         const stunPulseLevel = meta ? meta.getStunPulseLevel() : 0;
-        const rangedAttackUnlocked = meta ? meta.isRangedAttackUnlocked() : false;
+        const rangedAttackLevel = meta ? meta.getRangedAttackLevel() : 0;
 
         // Update checkboxes
         this.ring1Checkbox.checked = rings >= 1;
@@ -433,12 +465,14 @@ export class DebugUI {
         this.multiMeleeCheckbox.checked = extraTargets >= 1;
         this.stunPulse1Checkbox.checked = stunPulseLevel >= 1;
         this.stunPulse2Checkbox.checked = stunPulseLevel >= 2;
-        this.rangedAttackCheckbox.checked = rangedAttackUnlocked;
+        this.rangedAttack1Checkbox.checked = rangedAttackLevel >= 1;
+        this.rangedAttack2Checkbox.checked = rangedAttackLevel >= 2;
 
         // Update disabled states for level-based upgrades
         this.ring2Checkbox.disabled = rings < 1;
         this.ring3Checkbox.disabled = rings < 2;
         this.stunPulse2Checkbox.disabled = stunPulseLevel < 1;
+        this.rangedAttack2Checkbox.disabled = rangedAttackLevel < 1;
     }
 
     private handleMetaUpgradeChange(): void {
@@ -496,9 +530,24 @@ export class DebugUI {
         const clampedStunPulseLevel = Math.min(targetStunPulseLevel, defaultMetaUpgradeConfig.maxStunPulseLevel);
         meta.setStunPulseLevel(clampedStunPulseLevel);
 
-        // Handle ranged attack (binary unlock)
-        const rangedAttackUnlocked = this.rangedAttackCheckbox.checked;
-        meta.setRangedAttackUnlocked(rangedAttackUnlocked);
+        // Handle ranged attack upgrades (level-based with validation)
+        let targetRangedAttackLevel = 0;
+        if (this.rangedAttack2Checkbox.checked) {
+            targetRangedAttackLevel = 2;
+            // Ensure previous level is checked
+            this.rangedAttack1Checkbox.checked = true;
+        } else if (this.rangedAttack1Checkbox.checked) {
+            targetRangedAttackLevel = 1;
+            // Cascade down: disable higher levels
+            this.rangedAttack2Checkbox.checked = false;
+        } else {
+            targetRangedAttackLevel = 0;
+        }
+
+        // Clamp to config max
+        const clampedRangedAttackLevel = Math.min(targetRangedAttackLevel, defaultMetaUpgradeConfig.maxRangedAttackLevel);
+        meta.setRangedAttackLevel(clampedRangedAttackLevel);
+        meta.setRangedAttackUnlocked(clampedRangedAttackLevel > 0);
 
         // Update disabled states after changes
         this.updateUpgradeState();
