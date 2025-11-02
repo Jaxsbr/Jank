@@ -22,8 +22,10 @@ import { BaseEntityConfig } from './config/BaseEntityConfig';
 import { CollisionConfig, defaultCollisionConfig } from './config/CollisionConfig';
 import { CombatConfig } from './config/CombatConfig';
 import { CoreEntityConfig, defaultCoreEntityConfig } from './config/CoreEntityConfig';
+import { getCoreVisualLevel } from './config/CoreVisualLevelConfig';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from './config/EnemyEntityConfig';
-import { GeometryConfig } from './config/GeometryConfig';
+import { GeometryConfig, geometryConfigsByLevel } from './config/GeometryConfig';
+import { materialConfigsByLevel } from './config/MaterialConfig';
 import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
 import { defaultPelletProjectileConfig } from './config/PelletProjectileConfig';
 import { defaultRangedAttackConfig } from './config/RangedAttackConfig';
@@ -49,7 +51,7 @@ export class EntityFactory implements IEntityFactory {
         const secondaryConfigs: SecondaryGeometryConfig[] = [];
         const embedDepth = config.protrusions.radius * config.protrusions.embedRatio;
         
-        config.positions.forEach(pos => {
+        config.positions.forEach((pos: Vector3) => {
             // Normalize the position to be on the sphere surface
             const length = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
             const normalizedX = pos.x / length;
@@ -130,8 +132,23 @@ export class EntityFactory implements IEntityFactory {
     createCoreEntity(config: CoreEntityConfig = defaultCoreEntityConfig): Entity {
         const entity = this.entityManager.createEntity();
         
+        // Determine visual level based on wave points
+        const wavePoints = metaPointsService.getWavePoints();
+        const visualLevel = getCoreVisualLevel(wavePoints);
+        
+        // Select level-specific geometry and material configs
+        const levelGeometry = geometryConfigsByLevel[visualLevel];
+        const levelMaterial = materialConfigsByLevel[visualLevel];
+        
+        // Create modified config with level-specific visuals
+        const levelConfig: CoreEntityConfig = {
+            ...config,
+            geometry: levelGeometry,
+            material: levelMaterial
+        };
+        
         // Add base components (health, position, geometry, rotation, bob animation)
-        const geometryComponent = this.addBaseComponents(entity, config);
+        const geometryComponent = this.addBaseComponents(entity, levelConfig);
         
         // Add combat components
         this.addCombatComponents(entity, config.combat, TeamType.CORE);
