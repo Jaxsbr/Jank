@@ -4,7 +4,7 @@ export const defaultEnvironment: EnvironmentConfig = {
     floor: {
         size: 100,
         material: {
-            color: 0x4a4a4a, // Lighter floor color
+            color: 0x1a1a1a, // Lighter floor color
             transparent: false,
             opacity: 1,
             wireframe: false,
@@ -19,14 +19,14 @@ export const defaultEnvironment: EnvironmentConfig = {
             type: 'circuitry',
             intensity: 0.7,
             scale: 9.5,
-            color: 0x1a1a1a
-            // Optional circuitry-specific settings (using defaults):
-            // circuitry: {
-            //     patternColor: { r: 0.2, g: 0.9, b: 0.5 }, // Neon cyan/green
-            //     density: 8.0,     // Grid density
-            //     wireGlow: 0.6,    // Wire glow intensity (0-1)
-            //     pulseSpeed: 2.0   // Animation speed
-            // }
+            color: 0x1a1a1a,
+            // Optional circuitry-specific settings
+            circuitry: {
+                patternColor: { r: 0.2, g: 0.4, b: 0.5 }, // Neon cyan/green
+                density: 6.0,     // Grid density
+                wireGlow: 0.6,    // Wire glow intensity (0-1)
+                pulseSpeed: 1.5   // Animation speed
+            }
         }
     },
     skybox: {
