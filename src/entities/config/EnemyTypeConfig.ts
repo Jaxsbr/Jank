@@ -50,7 +50,7 @@ export interface EnemyTypeConfig {
 export const enemyTypeConfigs: Record<EnemyType, EnemyTypeConfig> = {
     [EnemyType.CHARGER]: {
         health: {
-            maxHP: 555 // Low HP (vs 75 default)
+            maxHP: 55 // Low HP (vs 75 default)
         },
         movement: {
             maxSpeed: 0.1 // High speed (increased for more urgency)
