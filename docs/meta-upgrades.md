@@ -100,6 +100,19 @@ Core upgrades are advanced enhancements that unlock new player control abilities
 - Clicking toggles between modes and clears current target to force immediate re-evaluation.
 - Mode persists during the game session and resets to 'nearest' on restart.
 
+## Enemy Abilities
+
+**Tank - Heavy Armor**:
+- Immune to knockback effects
+- Cannot be pushed by Core's melee knockback upgrade
+- Maintains steady advance despite incoming attacks
+
+**Charger - Kamikaze**:
+- Explodes on contact with the Core
+- Deals increased damage (15 vs normal 7) in small area on death
+- Self-destructs instead of performing normal melee attack
+- Creates dramatic threat requiring prioritization
+
 ## Rules and Constraints
 - Upgrades are additive but clamped by `MetaUpgradeConfig` caps.
 - Tiles remain VFX-only and are unaffected by upgrades.

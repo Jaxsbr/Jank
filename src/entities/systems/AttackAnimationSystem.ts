@@ -6,7 +6,10 @@ import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { AttackAnimationComponent } from '../components/AttackAnimationComponent';
+import { EnemyTypeComponent } from '../components/EnemyTypeComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
+import { RotationComponent } from '../components/RotationComponent';
+import { EnemyType } from '../config/EnemyTypeConfig';
 
 export class AttackAnimationSystem implements IEventListener {
     private pendingAttackers: string[] = [];
@@ -48,6 +51,15 @@ export class AttackAnimationSystem implements IEventListener {
                     if (attackAnimComponent) {
                         attackAnimComponent.startAttackAnimation();
                     }
+                    
+                    // Tank-specific: boost rotation speed during attack
+                    const enemyType = attackerEntity.getComponent(EnemyTypeComponent);
+                    if (enemyType && enemyType.getEnemyType() === EnemyType.TANK) {
+                        const rotation = attackerEntity.getComponent(RotationComponent);
+                        if (rotation) {
+                            rotation.setSpeedMultiplier(5.0); // Fast spin during attack
+                        }
+                    }
                 }
             });
             this.pendingAttackers = [];
@@ -57,7 +69,7 @@ export class AttackAnimationSystem implements IEventListener {
         EntityQuery.from(entities)
             .withComponents(AttackAnimationComponent, GeometryComponent)
             .execute()
-            .forEach(({ components }) => {
+            .forEach(({ entity, components }) => {
                 const [attackAnim, geometry] = components;
                 
                 // Get current scale multiplier
@@ -65,6 +77,15 @@ export class AttackAnimationSystem implements IEventListener {
                 
                 // Apply scale to geometry group
                 geometry.setScale(scaleMultiplier);
+                
+                // Tank-specific: Reset rotation speed when not attacking
+                const enemyType = entity.getComponent(EnemyTypeComponent);
+                if (enemyType && enemyType.getEnemyType() === EnemyType.TANK) {
+                    const rotation = entity.getComponent(RotationComponent);
+                    if (rotation && !attackAnim.isAnimating()) {
+                        rotation.setSpeedMultiplier(1.0); // Normal speed when not attacking
+                    }
+                }
             });
     }
 

@@ -8,11 +8,13 @@ import { MathUtils } from '../../utils/MathUtils';
 import { SpatialQuery } from '../../utils/SpatialQuery';
 import { Time } from '../../utils/Time';
 import { AttackComponent } from '../components/AttackComponent';
+import { EnemyTypeComponent } from '../components/EnemyTypeComponent';
 import { HealthComponent } from '../components/HealthComponent';
 import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { TargetComponent } from '../components/TargetComponent';
 import { TeamComponent, TeamType } from '../components/TeamComponent';
+import { enemyTypeConfigs } from '../config/EnemyTypeConfig';
 import { defaultMetaUpgradeConfig } from '../config/MetaUpgradeConfig';
 
 export class MeleeAttackSystem implements IEntitySystem {
@@ -102,6 +104,22 @@ export class MeleeAttackSystem implements IEntitySystem {
      * Perform an attack between two entities
      */
     private performAttack(attacker: Entity, target: Entity, attack: AttackComponent, currentTime: number): void {
+        // Check if attacker is enemy attacking core - if Charger, trigger explosion instead
+        const attackerTeam = attacker.getComponent(TeamComponent);
+        const targetTeam = target.getComponent(TeamComponent);
+        const attackerEnemyType = attacker.getComponent(EnemyTypeComponent);
+        
+        if (attackerTeam && targetTeam && attackerTeam.isEnemy() && targetTeam.isCore() && attackerEnemyType) {
+            const enemyType = attackerEnemyType.getEnemyType();
+            const typeConfig = enemyTypeConfigs[enemyType];
+            
+            if (typeConfig.explosionOnContact.enabled) {
+                // Trigger explosion instead of normal attack
+                this.triggerChargerExplosion(attacker, target, attack, currentTime);
+                return;
+            }
+        }
+        
         // Update attack cooldown
         attack.performAttack(currentTime);
         
@@ -113,5 +131,31 @@ export class MeleeAttackSystem implements IEntitySystem {
         });
         
         GlobalEventDispatcher.dispatch(attackEvent);
+    }
+    
+    /**
+     * Trigger Charger explosion on core contact
+     */
+    private triggerChargerExplosion(attacker: Entity, target: Entity, attack: AttackComponent, currentTime: number): void {
+        const attackerEnemyType = attacker.getComponent(EnemyTypeComponent);
+        if (!attackerEnemyType) return;
+        
+        const enemyType = attackerEnemyType.getEnemyType();
+        const typeConfig = enemyTypeConfigs[enemyType];
+        const explosionDamage = typeConfig.explosionOnContact.damage;
+        
+        // Update attack cooldown to prevent normal attack
+        attack.performAttack(currentTime);
+        
+        // Dispatch explosion event
+        const explosionEvent = new Event(EventType.ChargerExplosion, {
+            attacker: attacker,
+            target: target,
+            attackerId: attacker.getId(),
+            targetId: target.getId(),
+            damage: explosionDamage
+        });
+        
+        GlobalEventDispatcher.dispatch(explosionEvent);
     }
 }

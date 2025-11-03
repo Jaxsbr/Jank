@@ -42,6 +42,8 @@ export class CombatSystem implements IEventListener {
             this.handleAttackExecuted(event);
         } else if (event.eventName === EventType.ProjectileHit) {
             this.handleProjectileHit(event);
+        } else if (event.eventName === EventType.ChargerExplosion) {
+            this.handleChargerExplosion(event);
         }
     }
 
@@ -107,6 +109,45 @@ export class CombatSystem implements IEventListener {
 
         // Projectiles don't have critical hits or effect types
         this.applyDamageAndCheckDeath(targetId, damage, hitPosition, false, undefined);
+    }
+
+    /**
+     * Handle Charger explosion event
+     * Applies explosion damage to core and kills the Charger
+     */
+    private handleChargerExplosion(event: Event): void {
+        const attackerId = event.args['attackerId'] as string;
+        const targetId = event.args['targetId'] as string;
+        const damage = event.args['damage'] as number;
+
+        // Get explosion position from attacker (Charger)
+        const chargerEntity = EntityFinder.findEntityById(this.entities, attackerId);
+        if (!chargerEntity) {
+            return;
+        }
+
+        const hitPosition = new THREE.Vector3();
+        const posComp = chargerEntity.getComponent(PositionComponent);
+        if (posComp) {
+            const p = posComp.getPosition();
+            hitPosition.set(p.x, p.y, p.z);
+        } else {
+            const geom = chargerEntity.getComponent(GeometryComponent);
+            if (geom) {
+                geom.getGeometryGroup().getWorldPosition(hitPosition);
+            }
+        }
+
+        // Apply explosion damage to core
+        this.applyDamageAndCheckDeath(targetId, damage, hitPosition, false, undefined);
+
+        // Kill the Charger (kamikaze explosion)
+        const chargerHealth = chargerEntity.getComponent(HealthComponent);
+        if (chargerHealth && chargerHealth.isAlive()) {
+            // Set HP to 0 to trigger death
+            chargerHealth.removeHP(chargerHealth.getHP());
+            this.applyDamageAndCheckDeath(attackerId, 0, hitPosition, false, undefined);
+        }
     }
 
     /**

@@ -23,6 +23,7 @@ export class DeathEffectSystem implements IEntitySystem {
     private readonly eventDispatcher: EventDispatcherSingleton;
     private readonly config: DeathEffectConfig;
     private active: ActiveDeathEffect[] = [];
+    private kamikazeChargers: Set<string> = new Set(); // Track chargers that exploded
 
     constructor(scene: THREE.Scene, entityManager: EntityManager, eventDispatcher: EventDispatcherSingleton, config: DeathEffectConfig = defaultDeathEffectConfig) {
         this.scene = scene;
@@ -31,7 +32,19 @@ export class DeathEffectSystem implements IEntitySystem {
         this.config = config;
         this.eventDispatcher.registerListener('DeathEffectSystem', {
             onEvent: (event: Event) => {
-                if (event.eventName === EventType.EntityDeath) {
+                if (event.eventName === EventType.ChargerExplosion) {
+                    // Track charger that exploded to skip normal death effect
+                    const attackerId = event.args['attackerId'] as string;
+                    if (attackerId) {
+                        this.kamikazeChargers.add(attackerId);
+                    }
+                } else if (event.eventName === EventType.EntityDeath) {
+                    const entityId = event.args['entityId'] as string;
+                    // Skip normal death effect for kamikaze chargers
+                    if (entityId && this.kamikazeChargers.has(entityId)) {
+                        this.kamikazeChargers.delete(entityId);
+                        return;
+                    }
                     const providedPos = (event.args['position'] as THREE.Vector3) || undefined;
                     if (providedPos) {
                         this.spawnEffectAtPosition(providedPos);

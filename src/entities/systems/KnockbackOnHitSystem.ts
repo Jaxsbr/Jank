@@ -7,12 +7,14 @@ import { EventType } from '../../systems/eventing/EventType';
 import { IEventListener } from '../../systems/eventing/IEventListener';
 import { EntityFinder } from '../../utils/EntityFinder';
 import { Time } from '../../utils/Time';
+import { EnemyTypeComponent } from '../components/EnemyTypeComponent';
 import { GeometryComponent } from '../components/GeometryComponent';
 import { MetaUpgradeComponent } from '../components/MetaUpgradeComponent';
 import { MovementComponent } from '../components/MovementComponent';
 import { PositionComponent } from '../components/PositionComponent';
 import { ProjectileComponent } from '../components/ProjectileComponent';
 import { TeamComponent } from '../components/TeamComponent';
+import { enemyTypeConfigs } from '../config/EnemyTypeConfig';
 import { KnockbackConfig, defaultKnockbackConfig } from '../config/KnockbackConfig';
 
 interface StaggerData {
@@ -102,6 +104,27 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
     }
 
     private applyKnockback(attacker: Entity, target: Entity, knockbackLevel: number, config: KnockbackConfig): void {
+        // Check if target has knockback resistance (e.g., Tank)
+        const enemyTypeComp = target.getComponent(EnemyTypeComponent);
+        if (enemyTypeComp) {
+            const enemyType = enemyTypeComp.getEnemyType();
+            const typeConfig = enemyTypeConfigs[enemyType];
+            const resistance = typeConfig.knockbackResistance;
+            
+            // Skip knockback if fully resistant
+            if (resistance >= 1.0) {
+                return;
+            }
+            
+            // Apply resistance multiplier (0.0 = full knockback, 1.0 = immune, in-between = partial)
+            // For partial resistance, reduce knockback distance proportionally
+            const effectiveKnockbackLevel = knockbackLevel * (1.0 - resistance);
+            if (effectiveKnockbackLevel <= 0) {
+                return;
+            }
+            knockbackLevel = effectiveKnockbackLevel;
+        }
+        
         const attackerPos = attacker.getComponent(PositionComponent) as PositionComponent | undefined;
         const targetPos = target.getComponent(PositionComponent) as PositionComponent | undefined;
         if (!attackerPos || !targetPos) return;

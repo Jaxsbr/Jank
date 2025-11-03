@@ -31,6 +31,11 @@ import { materialConfigsByLevel } from './config/MaterialConfig';
 import { defaultMetaUpgradeConfig } from './config/MetaUpgradeConfig';
 import { defaultPelletProjectileConfig } from './config/PelletProjectileConfig';
 import { defaultRangedAttackConfig } from './config/RangedAttackConfig';
+import {
+    calculateScaledDamage,
+    calculateScaledHP,
+    calculateScaledSpeed
+} from './config/WaveDifficultyConfig';
 
 export interface IEntityFactory {
     createCoreEntity(): Entity;
@@ -261,21 +266,22 @@ export class EntityFactory implements IEntityFactory {
     /**
      * Merges enemy type config overrides into base config.
      * Type configs override base values for stats and visuals.
-     * Note: HP is preserved from baseConfig if it's been modified (e.g., wave bonus already applied),
-     * otherwise uses type's base HP.
+     * Applies wave scaling to HP, damage, and speed if wave number is provided.
      */
-    private applyEnemyTypeConfig(baseConfig: EnemyEntityConfig, enemyType: EnemyType): EnemyEntityConfig {
+    private applyEnemyTypeConfig(baseConfig: EnemyEntityConfig, enemyType: EnemyType, wave?: number): EnemyEntityConfig {
         const typeConfig = enemyTypeConfigs[enemyType];
         
-        // Preserve HP from baseConfig if it's been customized (e.g., wave bonus added),
-        // otherwise use type's base HP
-        const baseHP = baseConfig.health.maxHP;
-        const typeBaseHP = typeConfig.health.maxHP;
-        // If baseConfig HP differs from default (75), assume it includes wave bonus and preserve it
-        // Otherwise, use type's base HP
-        const finalHP = baseHP !== defaultEnemyEntityConfig.health.maxHP 
-            ? baseHP - defaultEnemyEntityConfig.health.maxHP + typeBaseHP // Adjust by type difference
-            : typeBaseHP;
+        // Start with type's base stats
+        let finalHP = typeConfig.health.maxHP;
+        let finalDamage = typeConfig.combat.attack.damage;
+        let finalSpeed = typeConfig.movement.maxSpeed;
+        
+        // Apply wave scaling if wave number is provided
+        if (wave !== undefined) {
+            finalHP = calculateScaledHP(finalHP, wave);
+            finalDamage = calculateScaledDamage(finalDamage, wave);
+            finalSpeed = calculateScaledSpeed(finalSpeed, wave);
+        }
         
         return {
             ...baseConfig,
@@ -284,13 +290,13 @@ export class EntityFactory implements IEntityFactory {
             },
             movement: {
                 ...baseConfig.movement,
-                maxSpeed: typeConfig.movement.maxSpeed
+                maxSpeed: finalSpeed
             },
             combat: {
                 ...baseConfig.combat,
                 attack: {
                     ...baseConfig.combat.attack,
-                    damage: typeConfig.combat.attack.damage
+                    damage: finalDamage
                 }
             },
             geometry: typeConfig.geometry,
@@ -302,13 +308,15 @@ export class EntityFactory implements IEntityFactory {
     createEnemyEntity(
         config: EnemyEntityConfig = defaultEnemyEntityConfig, 
         collisionConfig: CollisionConfig = defaultCollisionConfig,
-        enemyType?: EnemyType
+        enemyType?: EnemyType,
+        wave?: number
     ): Entity {
         const entity = this.entityManager.createEntity();
         
         // Apply enemy type config overrides if type is specified
+        // Pass wave number for scaling
         const finalConfig = enemyType 
-            ? this.applyEnemyTypeConfig(config, enemyType)
+            ? this.applyEnemyTypeConfig(config, enemyType, wave)
             : config;
         
         // Add base components (health, position, geometry, rotation, bob animation)

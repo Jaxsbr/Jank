@@ -9,6 +9,9 @@ import { PositionComponent } from '../components/PositionComponent';
 import { TeamComponent, TeamType } from '../components/TeamComponent';
 import { EnemyEntityConfig, defaultEnemyEntityConfig } from '../config/EnemyEntityConfig';
 import { EnemyType } from '../config/EnemyTypeConfig';
+import {
+    scaleWaveConfig
+} from '../config/WaveDifficultyConfig';
 import { RoundConfig, WaveConfig, defaultWaveConfig } from '../config/WaveSpawnerConfig';
 
 export interface EnemySpawnerConfig {
@@ -52,6 +55,7 @@ export class EnemySpawnerSystem {
         this.entityFactory = entityFactory;
         this.entityManager = entityManager;
         this.config = config;
+        // Store base config - we'll scale it dynamically per wave
         this.waveConfig = config.waveConfig ?? defaultWaveConfig;
 
         // Listen for enemy kills to track completion
@@ -66,6 +70,13 @@ export class EnemySpawnerSystem {
         // Start with wave break (will trigger first wave start)
         this.currentState = SpawnerState.WAVE_BREAK;
         this.breakTimer = 0; // Start immediately
+    }
+
+    /**
+     * Get the wave config scaled for the current wave
+     */
+    private getScaledWaveConfig(): WaveConfig {
+        return scaleWaveConfig(this.waveConfig, this.currentWave);
     }
 
     public update(deltaSeconds: number): void {
@@ -242,15 +253,11 @@ export class EnemySpawnerSystem {
         // Determine enemy type for this wave/round
         const enemyType = this.getEnemyTypeForRound(this.currentWave, this.currentRound);
 
-        // Calculate HP scaling based on wave (25 HP per wave)
-        const waveHpBonus = 25 * this.currentWave;
-
-        // Start with default config - factory will apply type config and preserve wave bonus
+        // Get base stats from type config (will be used by factory)
+        // The factory will apply type config first, then we'll scale after that
+        // For now, pass default config - type and wave scaling will be applied in factory
         const cfg: EnemyEntityConfig = {
             ...defaultEnemyEntityConfig,
-            health: {
-                maxHP: defaultEnemyEntityConfig.health.maxHP + waveHpBonus, // Include wave bonus for factory to preserve
-            },
             position: spawnPos.clone(),
             movement: {
                 ...defaultEnemyEntityConfig.movement,
@@ -261,7 +268,7 @@ export class EnemySpawnerSystem {
             },
         } as EnemyEntityConfig;
 
-        this.entityFactory.createEnemyEntity(cfg, undefined, enemyType);
+        this.entityFactory.createEnemyEntity(cfg, undefined, enemyType, this.currentWave);
         this.totalEnemiesSpawned++;
         this.enemiesSpawnedThisWave++;
     }
@@ -294,7 +301,9 @@ export class EnemySpawnerSystem {
             return;
         }
 
-        this.currentRoundConfig = this.waveConfig.rounds[this.currentRound - 1] ?? null;
+        // Get scaled wave config for current wave
+        const scaledWaveConfig = this.getScaledWaveConfig();
+        this.currentRoundConfig = scaledWaveConfig.rounds[this.currentRound - 1] ?? null;
         this.batchesSpawnedThisRound = 0;
         this.enemiesSpawnedThisRound = 0;
         this.spawnTimer = 0;
@@ -431,8 +440,9 @@ export class EnemySpawnerSystem {
      * Get total enemies that will be spawned for the current wave
      */
     public getTotalEnemiesForWave(): number {
+        const scaledWaveConfig = this.getScaledWaveConfig();
         let total = 0;
-        for (const roundConfig of this.waveConfig.rounds) {
+        for (const roundConfig of scaledWaveConfig.rounds) {
             total += roundConfig.totalBatches * roundConfig.batchSize;
         }
         return total;
@@ -442,8 +452,27 @@ export class EnemySpawnerSystem {
      * Get enemy counts per round for the current wave
      */
     public getRoundEnemyCounts(): number[] {
-        return this.waveConfig.rounds.map(roundConfig => 
+        const scaledWaveConfig = this.getScaledWaveConfig();
+        return scaledWaveConfig.rounds.map(roundConfig => 
             roundConfig.totalBatches * roundConfig.batchSize
         );
+    }
+
+    /**
+     * Get wave break duration for the current wave
+     */
+    public getWaveBreakDuration(): number {
+        const scaledWaveConfig = this.getScaledWaveConfig();
+        return scaledWaveConfig.breakDuration;
+    }
+
+    /**
+     * Get round break duration for the current round
+     */
+    public getRoundBreakDuration(): number {
+        if (!this.currentRoundConfig) {
+            return 5.0; // Default fallback
+        }
+        return this.currentRoundConfig.breakDuration;
     }
 }

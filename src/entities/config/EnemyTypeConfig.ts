@@ -26,6 +26,11 @@ export interface EnemyTypeConfig {
             damage: number; // Absolute damage value
         };
     };
+    knockbackResistance: number; // Knockback resistance (0.0 = full knockback, 1.0 = immune)
+    explosionOnContact: {
+        enabled: boolean; // Whether enemy explodes on contact with core
+        damage: number; // Explosion damage to core (higher than normal attack)
+    };
     // Visual overrides
     geometry: GeometryConfig; // Full geometry config (size, protrusions)
     material: MaterialConfig; // Full material config (colors, emissive)
@@ -45,15 +50,20 @@ export interface EnemyTypeConfig {
 export const enemyTypeConfigs: Record<EnemyType, EnemyTypeConfig> = {
     [EnemyType.CHARGER]: {
         health: {
-            maxHP: 55 // Low HP (vs 75 default)
+            maxHP: 555 // Low HP (vs 75 default)
         },
         movement: {
-            maxSpeed: 0.035 // High speed (vs 0.02 default)
+            maxSpeed: 0.1 // High speed (increased for more urgency)
         },
         combat: {
             attack: {
                 damage: 7 // Medium damage (vs 5 default)
             }
+        },
+        knockbackResistance: 0.0, // Normal knockback
+        explosionOnContact: {
+            enabled: true, // Explodes on contact
+            damage: 15 // Higher than normal attack damage
         },
         geometry: {
             mainSphere: {
@@ -119,12 +129,17 @@ export const enemyTypeConfigs: Record<EnemyType, EnemyTypeConfig> = {
             maxHP: 175 // High HP (vs 75 default)
         },
         movement: {
-            maxSpeed: 0.0125 // Low speed (vs 0.02 default)
+            maxSpeed: 0.028 // Low speed (increased for faster pacing)
         },
         combat: {
             attack: {
                 damage: 3.5 // Low damage (vs 5 default)
             }
+        },
+        knockbackResistance: 1.0, // Immune to knockback
+        explosionOnContact: {
+            enabled: false, // No explosion
+            damage: 0
         },
         geometry: {
             mainSphere: {
@@ -199,12 +214,17 @@ export const enemyTypeConfigs: Record<EnemyType, EnemyTypeConfig> = {
             maxHP: 75 // Default value
         },
         movement: {
-            maxSpeed: 0.02 // Default value
+            maxSpeed: 0.042 // Speed increased for faster pacing
         },
         combat: {
             attack: {
                 damage: 5 // Default value
             }
+        },
+        knockbackResistance: 0.0, // Normal knockback
+        explosionOnContact: {
+            enabled: false, // No explosion
+            damage: 0
         },
         geometry: {
             mainSphere: {

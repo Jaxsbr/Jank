@@ -264,17 +264,20 @@ GlobalEventDispatcher.registerListener('MainGame', {
         } else if (event.eventName === EventType.WaveCompleted) {
             const wave = event.args['wave'] as number;
             
+            // Get scaled wave break duration from spawner
+            const waveBreakDuration = enemySpawner.getWaveBreakDuration();
+            
             // Show wave complete, then countdown
             waveAnnouncementUI.showBrief(`Wave ${wave} Complete!`, 2.0);
             
             setTimeout(() => {
-                waveAnnouncementUI.showWithCountdown('Next wave starting in:', 5, () => {
+                waveAnnouncementUI.showWithCountdown('Next wave starting in:', waveBreakDuration, () => {
                     // Countdown tick - could add sound effect here
                 });
                 
                 setTimeout(() => {
                     enemySpawner.onWaveBreakComplete();
-                }, 5000);
+                }, waveBreakDuration * 1000);
             }, 2000);
         }
     }

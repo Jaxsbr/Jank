@@ -20,9 +20,10 @@ export class RotationSystem implements IEntitySystem {
                 const [rotation, geometry] = components;
                 const dt = Time.getDeltaTime();
                 // Back-compat: rotation values were tuned as per-frame deltas; convert to per second
-                const rx = rotation.getX() * 60;
-                const ry = rotation.getY() * 60;
-                const rz = rotation.getZ() * 60;
+                const speedMultiplier = rotation.getSpeedMultiplier();
+                const rx = rotation.getX() * 60 * speedMultiplier;
+                const ry = rotation.getY() * 60 * speedMultiplier;
+                const rz = rotation.getZ() * 60 * speedMultiplier;
                 geometry.rotate(rx * dt, ry * dt, rz * dt);
             });
     }

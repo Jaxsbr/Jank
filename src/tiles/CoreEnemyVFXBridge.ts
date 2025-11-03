@@ -32,6 +32,8 @@ export class CoreEnemyVFXBridge implements IEventListener {
             this.handleDamageTaken(event);
         } else if (event.eventName === EventType.RangedAttackExecuted) {
             this.handleRangedAttackExecuted();
+        } else if (event.eventName === EventType.ChargerExplosion) {
+            this.handleChargerExplosion(event);
         }
     }
 
@@ -93,6 +95,23 @@ export class CoreEnemyVFXBridge implements IEventListener {
         // Flash the center tile when ranged attack is fired
         // Color matches the orange pellet projectile
         this.tileVFXController.flashCenterTile(0xFF6600, 1.5);
+    }
+
+    /**
+     * Handle Charger explosion event
+     */
+    private handleChargerExplosion(event: Event): void {
+        const attacker = event.args['attacker'] as Entity;
+        
+        if (!attacker) return;
+
+        const attackerPosition = attacker.getComponent(PositionComponent);
+        if (!attackerPosition) return;
+
+        const explosionPos = attackerPosition.toVector3();
+        
+        // Emit orange explosion burst at charger position
+        this.tileVFXController.emitLocalBurst(explosionPos, 1.5);
     }
 
     /**
