@@ -20,7 +20,7 @@ export class ProjectileComponent implements IComponent {
         attackerId: string,
         targetId: string | null = null,
         knockbackConfig: KnockbackConfig | null = null,
-        spawnTime: number = 0
+        spawnTime = 0
     ) {
         this.velocity = velocity.clone();
         this.damage = damage;

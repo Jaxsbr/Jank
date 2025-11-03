@@ -8,7 +8,7 @@ export class TileComponent implements IComponent {
     private isActive: boolean;
     private level: number;
 
-    constructor(q: number, r: number, tileType: string, isCenter: boolean = false) {
+    constructor(q: number, r: number, tileType: string, isCenter = false) {
         this.q = q;
         this.r = r;
         this.tileType = tileType;

@@ -11,9 +11,9 @@ export class CoreHPHUD {
     private screenWidth: number;
     private screenHeight: number;
 
-    private barWidthPx: number = 20;
-    private barHeightPx: number = 200;
-    private marginLeftPx: number = 24;
+    private barWidthPx = 20;
+    private barHeightPx = 200;
+    private marginLeftPx = 24;
 
     constructor(width: number, height: number) {
         this.screenWidth = width;

@@ -1,7 +1,7 @@
 import { IComponent } from '../../ecs/IComponent';
 
 export class BobAnimationComponent implements IComponent {
-    private animationTime: number = 0;
+    private animationTime = 0;
     private animationSpeed: number;
     private originalAnimationSpeed: number;
     private bobAmplitude: number;

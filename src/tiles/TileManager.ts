@@ -95,7 +95,7 @@ export class TileManager {
     /**
      * Expand the grid by adding a new ring of tiles
      */
-    public expandByRings(rings: number = 1): Entity[] {
+    public expandByRings(rings = 1): Entity[] {
         const newTiles: Entity[] = [];
         const currentRadius = this.tileGrid.getCurrentRadius();
         

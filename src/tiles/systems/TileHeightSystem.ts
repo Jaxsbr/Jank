@@ -7,7 +7,7 @@ export class TileHeightSystem implements IEntitySystem {
     private baseHeight: number;
     private heightPerLevel: number;
 
-    constructor(baseHeight: number = 0.1, heightPerLevel: number = 0.05) {
+    constructor(baseHeight = 0.1, heightPerLevel = 0.05) {
         this.baseHeight = baseHeight;
         this.heightPerLevel = heightPerLevel;
     }

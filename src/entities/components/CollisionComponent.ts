@@ -8,7 +8,7 @@ export class CollisionComponent implements IComponent {
     private collisionRadius: number;
     private immovable: boolean;
 
-    constructor(collisionRadius: number, immovable: boolean = false) {
+    constructor(collisionRadius: number, immovable = false) {
         this.collisionRadius = collisionRadius;
         this.immovable = immovable;
     }

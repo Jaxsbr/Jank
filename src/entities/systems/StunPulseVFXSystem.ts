@@ -118,13 +118,13 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             
             const line = new THREE.Line(geometry, arcMaterial.clone());
             line.material = arcMaterial.clone();
-            (line.material as THREE.LineBasicMaterial).color.setHex(color);
+            (line.material).color.setHex(color);
             line.material.opacity = levelConfig.arcOpacity;
             group.add(line);
 
             arcs.push({
                 line,
-                material: line.material as THREE.LineBasicMaterial,
+                material: line.material,
                 segments,
                 startRadius: 0.3,
                 endRadius: 1.5,
@@ -149,14 +149,14 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
                 new THREE.SphereGeometry(levelConfig.ringParticleSize, 8, 8),
                 particleMaterial.clone()
             );
-            (mesh.material as THREE.MeshBasicMaterial).color.setHex(color);
+            (mesh.material).color.setHex(color);
             mesh.material.opacity = levelConfig.particleOpacity;
             group.add(mesh);
 
             const angle = (i / levelConfig.ringParticleCount) * Math.PI * 2;
             ringParticles.push({
                 mesh,
-                material: mesh.material as THREE.MeshBasicMaterial,
+                material: mesh.material,
                 velocity: new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)).normalize(),
                 startScale: 1.0,
                 endScale: 2.5
@@ -204,13 +204,13 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             
             const line = new THREE.Line(geometry, arcMaterial.clone());
             line.material = arcMaterial.clone();
-            (line.material as THREE.LineBasicMaterial).color.setHex(color);
+            (line.material).color.setHex(color);
             line.material.opacity = levelConfig.arcOpacity;
             group.add(line);
 
             arcs.push({
                 line,
-                material: line.material as THREE.LineBasicMaterial,
+                material: line.material,
                 segments,
                 startRadius: 0.2,
                 endRadius: 0.8,
@@ -235,13 +235,13 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
                 new THREE.SphereGeometry(levelConfig.particleSize, 8, 8),
                 particleMaterial.clone()
             );
-            (mesh.material as THREE.MeshBasicMaterial).color.setHex(color);
+            (mesh.material).color.setHex(color);
             mesh.material.opacity = levelConfig.particleOpacity;
             group.add(mesh);
 
             particles.push({
                 mesh,
-                material: mesh.material as THREE.MeshBasicMaterial,
+                material: mesh.material,
                 velocity: new THREE.Vector3(
                     (Math.random() - 0.5) * 0.5,
                     1.0 + Math.random() * 0.5,
@@ -319,7 +319,7 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             const easedT = 1 - Math.pow(1 - t, 2);
             const radius = THREE.MathUtils.lerp(arc.startRadius, arc.endRadius, easedT);
             
-            const positions = (arc.line.geometry as THREE.BufferGeometry).attributes['position'] as THREE.BufferAttribute;
+            const positions = (arc.line.geometry).attributes['position'] as THREE.BufferAttribute;
             for (let s = 0; s < arc.segments; s++) {
                 const segmentT = s / (arc.segments - 1);
                 const angle = Math.random() * Math.PI * 2;
@@ -362,7 +362,7 @@ export class StunPulseVFXSystem implements IEntitySystem, IEventListener {
             const easedT = 1 - Math.pow(1 - t, 2);
             const radius = THREE.MathUtils.lerp(arc.startRadius, arc.endRadius, easedT);
             
-            const positions = (arc.line.geometry as THREE.BufferGeometry).attributes['position'] as THREE.BufferAttribute;
+            const positions = (arc.line.geometry).attributes['position'] as THREE.BufferAttribute;
             for (let s = 0; s < arc.segments; s++) {
                 const segmentT = s / (arc.segments - 1);
                 const angle = Math.random() * Math.PI * 2;

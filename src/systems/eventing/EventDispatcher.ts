@@ -3,7 +3,7 @@ import { IEventListener } from './IEventListener';
 
 export class EventDispatcherSingleton {
     private static instance: EventDispatcherSingleton;
-    private listeners: Map<string, IEventListener> = new Map();
+    private listeners = new Map<string, IEventListener>();
 
     private constructor() {}
 

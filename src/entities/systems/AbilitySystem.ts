@@ -14,7 +14,7 @@ import { TeamComponent } from '../components/TeamComponent';
 import { AbilityConfig, abilityConfigByLevel } from '../config/AbilityConfig';
 
 export class AbilitySystem implements IEntitySystem {
-    private pendingActivation: boolean = false;
+    private pendingActivation = false;
 
     constructor() {}
 
@@ -47,7 +47,7 @@ export class AbilitySystem implements IEntitySystem {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const stunLevel: number = (metaComp as MetaUpgradeComponent).getStunPulseLevel();
+        const stunLevel: number = (metaComp).getStunPulseLevel();
         if (stunLevel <= 0) {
             this.pendingActivation = false;
             return;

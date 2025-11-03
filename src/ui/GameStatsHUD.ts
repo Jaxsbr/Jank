@@ -3,8 +3,8 @@ export class GameStatsHUD {
     private killsText!: HTMLDivElement;
     private enemiesAliveText!: HTMLDivElement;
 
-    private totalKills: number = 0;
-    private enemiesAlive: number = 0;
+    private totalKills = 0;
+    private enemiesAlive = 0;
 
     constructor() {
         this.createUI();

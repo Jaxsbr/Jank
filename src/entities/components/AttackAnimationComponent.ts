@@ -9,8 +9,8 @@ export class AttackAnimationComponent implements IComponent {
     private attackAnimationDuration: number; // in seconds
 
     constructor(
-        attackScaleMultiplier: number = 1.2,
-        attackAnimationDuration: number = 0.2 // Default 200ms = 0.2s
+        attackScaleMultiplier = 1.2,
+        attackAnimationDuration = 0.2 // Default 200ms = 0.2s
     ) {
         this.isAttacking = false;
         this.attackAnimationEndTime = 0;

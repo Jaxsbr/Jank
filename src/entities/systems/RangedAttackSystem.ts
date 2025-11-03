@@ -17,7 +17,7 @@ import { defaultRangedAttackConfig } from '../config/RangedAttackConfig';
 
 export class RangedAttackSystem implements IEntitySystem {
     private readonly entityFactory: EntityFactory;
-    private readonly rangedCooldowns: Map<string, number> = new Map(); // entityId -> last ranged attack time
+    private readonly rangedCooldowns = new Map<string, number>(); // entityId -> last ranged attack time
 
     constructor(entityFactory: EntityFactory) {
         this.entityFactory = entityFactory;

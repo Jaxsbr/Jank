@@ -6,7 +6,7 @@ export class TargetComponent implements IComponent {
     private currentTarget: Entity | null;
     private targetSearchRange: number;
 
-    constructor(targetSearchRange: number = 10.0) {
+    constructor(targetSearchRange = 10.0) {
         this.currentTarget = null;
         this.targetSearchRange = targetSearchRange;
     }

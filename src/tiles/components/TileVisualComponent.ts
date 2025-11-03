@@ -105,7 +105,7 @@ export class TileVisualComponent implements IComponent {
     /**
      * Animate height change
      */
-    public updateHeight(deltaTime: number, animationSpeed: number = 2.0): void {
+    public updateHeight(deltaTime: number, animationSpeed = 2.0): void {
         const heightDiff = this.targetHeight - this.currentHeight;
         if (Math.abs(heightDiff) > 0.001) {
             this.currentHeight += heightDiff * animationSpeed * deltaTime;
@@ -207,7 +207,7 @@ export class TileVisualComponent implements IComponent {
     /**
      * Update glow intensity with interpolation
      */
-    public updateGlowIntensity(deltaTime: number, decayRate: number = 2.0): void {
+    public updateGlowIntensity(deltaTime: number, decayRate = 2.0): void {
         const intensityDiff = this.targetGlowIntensity - this.glowIntensity;
         if (Math.abs(intensityDiff) > 0.001) {
             this.glowIntensity += intensityDiff * decayRate * deltaTime;
@@ -269,7 +269,7 @@ export class TileVisualComponent implements IComponent {
      * @param color - Optional heartbeat color to transition to
      * @param colorTransitionSpeed - Speed of color transition (default 3.0)
      */
-    public updateIdleHeartbeat(time: number, amplitude: number = 0.25, frequency: number = 1.0, deltaTime: number = 0.016, color?: number, colorTransitionSpeed: number = 3.0): void {
+    public updateIdleHeartbeat(time: number, amplitude = 0.25, frequency = 1.0, deltaTime = 0.016, color?: number, colorTransitionSpeed = 3.0): void {
         // Update target heartbeat color if provided
         if (color !== undefined && color !== this.targetHeartbeatColor) {
             this.targetHeartbeatColor = color;

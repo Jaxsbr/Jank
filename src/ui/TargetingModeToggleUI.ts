@@ -13,7 +13,7 @@ export class TargetingModeToggleUI {
     private container!: HTMLDivElement;
     private button!: HTMLButtonElement;
     private entityManager: EntityManager;
-    private isVisible: boolean = false;
+    private isVisible = false;
     private onModeChanged?: (mode: TargetingMode) => void;
 
     constructor(entityManager: EntityManager, callbacks: ITargetingModeToggleCallbacks) {

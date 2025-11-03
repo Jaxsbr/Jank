@@ -101,7 +101,7 @@ export class TileVFXController implements IEventListener {
     /**
      * Emit a ripple effect from the center
      */
-    public emitRippleFromCenter(strength: number = 1.0, speed: number = 5.0, falloff: number = 0.8): void {
+    public emitRippleFromCenter(strength = 1.0, speed = 5.0, falloff = 0.8): void {
         const wave: ActiveWave = {
             kind: 'ripple',
             origin: this.centerPosition.clone(),
@@ -118,7 +118,7 @@ export class TileVFXController implements IEventListener {
     /**
      * Emit a shockwave effect from the given origin
      */
-    public emitShockwave(origin: THREE.Vector3, strength: number = 0.9, radius: number = 10.0, speed: number = 8.0): void {
+    public emitShockwave(origin: THREE.Vector3, strength = 0.9, radius = 10.0, speed = 8.0): void {
         const wave: ActiveWave = {
             kind: 'shock',
             origin: origin.clone(),
@@ -135,7 +135,7 @@ export class TileVFXController implements IEventListener {
     /**
      * Emit a local burst effect from the given origin
      */
-    public emitLocalBurst(origin: THREE.Vector3, strength: number = 0.7): void {
+    public emitLocalBurst(origin: THREE.Vector3, strength = 0.7): void {
         const wave: ActiveWave = {
             kind: 'burst',
             origin: origin.clone(),
@@ -152,7 +152,7 @@ export class TileVFXController implements IEventListener {
     /**
      * Emit a stun pulse shockwave effect from the center
      */
-    public emitStunPulse(strength: number = 2.5, speed: number = 20.0, radius: number = 12.0): void {
+    public emitStunPulse(strength = 2.5, speed = 20.0, radius = 12.0): void {
         const wave: ActiveWave = {
             kind: 'stunpulse',
             origin: this.centerPosition.clone(),
@@ -169,7 +169,7 @@ export class TileVFXController implements IEventListener {
     /**
      * Flash the center tile for ranged attack visual feedback
      */
-    public flashCenterTile(color: number = 0xFF6600, intensity: number = 1.5): void {
+    public flashCenterTile(color = 0xFF6600, intensity = 1.5): void {
         const centerTile = this.tiles.find(tile => {
             const tileComponent = tile.getComponent(TileComponent);
             return tileComponent && tileComponent.isCenterTile();

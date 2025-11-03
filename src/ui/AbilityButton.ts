@@ -14,7 +14,7 @@ export class AbilityButton {
     private button!: HTMLButtonElement;
     private entityManager: EntityManager;
     private onActivate: () => void;
-    private isVisible: boolean = false;
+    private isVisible = false;
 
     constructor(entityManager: EntityManager, callbacks: IAbilityButtonCallbacks) {
         this.entityManager = entityManager;

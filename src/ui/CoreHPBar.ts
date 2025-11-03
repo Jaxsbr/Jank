@@ -5,8 +5,8 @@ export class CoreHPBar {
     private backgroundMesh!: THREE.Mesh;
     private fillMesh!: THREE.Mesh;
     private borderMesh!: THREE.Mesh;
-    private maxHP: number = 100;
-    private currentHP: number = 100;
+    private maxHP = 100;
+    private currentHP = 100;
     private camera: THREE.Camera;
 
     constructor(camera: THREE.Camera) {

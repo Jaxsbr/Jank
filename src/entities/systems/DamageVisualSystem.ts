@@ -185,7 +185,7 @@ export class DamageVisualSystem implements IEventListener {
 
         // Determine stun color based on level (from config)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const cfgLocal = this.config as import('../config/DamageVisualConfig').DamageVisualConfig;
+        const cfgLocal = this.config;
         let stunCfg: { color: number; tintIntensity: number; duration: number };
         if (stunLevel === 1) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -264,7 +264,7 @@ export class DamageVisualSystem implements IEventListener {
                 
                 // Special handling for Tank: protrusion glow
                 if (enemyType === EnemyType.TANK && 'protrusionFlash' in typeColors) {
-                    const tankColors = typeColors as typeof this.config.enemyTypeColors[EnemyType.TANK];
+                    const tankColors = typeColors;
                     // Store original emissive values
                     const secondaryMaterial = geometryComponent.getSecondaryMaterial();
                     originalSecondaryEmissive = secondaryMaterial.emissive.getHex();
@@ -389,7 +389,7 @@ export class DamageVisualSystem implements IEventListener {
      */
     private getEffectColor(effectType: EffectType): number {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const cfgLocal = this.config as import('../config/DamageVisualConfig').DamageVisualConfig;
+        const cfgLocal = this.config;
         switch (effectType) {
             case EffectType.ATTACK:
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return

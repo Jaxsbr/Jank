@@ -3,9 +3,9 @@
  * All time values are in seconds for consistency across the application
  */
 export class Time {
-    private static currentTime: number = 0;
-    private static lastTime: number = 0;
-    private static deltaTime: number = 0;
+    private static currentTime = 0;
+    private static lastTime = 0;
+    private static deltaTime = 0;
 
     /**
      * Get the current time in seconds

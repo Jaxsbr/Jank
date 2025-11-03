@@ -24,7 +24,7 @@ import { StunPulseVFXSystem } from './entities/systems/StunPulseVFXSystem';
 import { StunSystem } from './entities/systems/StunSystem';
 import { TargetingSystem } from './entities/systems/TargetingSystem';
 import { EnvironmentManager } from './environment/EnvironmentManager';
-import { defaultEnvironment } from './environment/configs/DefaultEnvironment';
+import { defaultEnvironment } from './environment/configs/defaultEnvironment';
 import './styles.css';
 import { Renderer } from './systems/Renderer';
 import { Event } from './systems/eventing/Event';
@@ -80,7 +80,7 @@ const stunPulseVFXSystem = new StunPulseVFXSystem(GlobalEventDispatcher, scene)
 const deathEffectSystem = new DeathEffectSystem(scene, entityManager, GlobalEventDispatcher, defaultDeathEffectConfig)
 const damageTextSystem = new DamageTextSystem(GlobalEventDispatcher, scene, renderer.getCamera())
 new EntityCleanupSystem(scene, GlobalEventDispatcher)
-const enemySpawner = new EnemySpawnerSystem(entityFactory, entityManager, {
+const enemySpawner: EnemySpawnerSystem = new EnemySpawnerSystem(entityFactory, entityManager, {
     innerRadius: 6,
     outerRadius: 12,
 })
@@ -97,8 +97,7 @@ tileManager.initialize()
 
 // Create HP HUD (screen-space) and systems
 const coreHPHUD = new CoreHPHUD(window.innerWidth, window.innerHeight);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const coreHPBarSystem = new CoreHPBarSystem(coreHPHUD as unknown as any, entityManager);
+const coreHPBarSystem: CoreHPBarSystem = new CoreHPBarSystem(coreHPHUD, entityManager);
 
 // Create a larger uniform grid for demo
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -265,7 +264,7 @@ GlobalEventDispatcher.registerListener('MainGame', {
             const wave = event.args['wave'] as number;
             
             // Get scaled wave break duration from spawner
-            const waveBreakDuration = enemySpawner.getWaveBreakDuration();
+            const waveBreakDuration: number = enemySpawner.getWaveBreakDuration();
             
             // Show wave complete, then countdown
             waveAnnouncementUI.showBrief(`Wave ${wave} Complete!`, 2.0);

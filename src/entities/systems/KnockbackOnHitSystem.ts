@@ -28,9 +28,9 @@ export class KnockbackOnHitSystem implements IEventListener, IEntitySystem {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
     private config: KnockbackConfig;
-    private staggerMap: Map<string, StaggerData> = new Map();
+    private staggerMap = new Map<string, StaggerData>();
     // Apply knockback as a decaying velocity for smooth motion
-    private knockbackVelocityByEntityId: Map<string, THREE.Vector3> = new Map();
+    private knockbackVelocityByEntityId = new Map<string, THREE.Vector3>();
     
 
     constructor(eventDispatcher: EventDispatcherSingleton, config: KnockbackConfig = defaultKnockbackConfig) {

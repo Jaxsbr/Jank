@@ -36,20 +36,20 @@ export class EnemySpawnerSystem {
 
     // State management
     private currentState: SpawnerState = SpawnerState.WAVE_BREAK;
-    private currentWave: number = 1;
-    private currentRound: number = 0;
+    private currentWave = 1;
+    private currentRound = 0;
     private currentRoundConfig: RoundConfig | null = null;
 
     // Spawning state
-    private batchesSpawnedThisRound: number = 0;
-    private enemiesSpawnedThisRound: number = 0;
-    private spawnTimer: number = 0;
-    private breakTimer: number = 0;
-    private enemiesSpawnedThisWave: number = 0; // Track total enemies spawned in current wave
+    private batchesSpawnedThisRound = 0;
+    private enemiesSpawnedThisRound = 0;
+    private spawnTimer = 0;
+    private breakTimer = 0;
+    private enemiesSpawnedThisWave = 0; // Track total enemies spawned in current wave
 
     // Event tracking
-    private lastRegisteredEnemyCount: number = 0;
-    private totalEnemiesSpawned: number = 0;
+    private lastRegisteredEnemyCount = 0;
+    private totalEnemiesSpawned = 0;
 
     constructor(entityFactory: EntityFactory, entityManager: EntityManager, config: EnemySpawnerConfig) {
         this.entityFactory = entityFactory;

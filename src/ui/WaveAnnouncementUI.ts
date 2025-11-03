@@ -8,8 +8,8 @@ export interface Announcement {
 export class WaveAnnouncementUI {
     private container: HTMLDivElement;
     private announcementElement: HTMLDivElement | null = null;
-    private isShowing: boolean = false;
-    private currentCountdown: number = 0;
+    private isShowing = false;
+    private currentCountdown = 0;
     private countdownInterval: number | null = null;
 
     constructor() {
@@ -92,7 +92,7 @@ export class WaveAnnouncementUI {
         });
     }
 
-    public showBrief(text: string, duration: number = 2.0): void {
+    public showBrief(text: string, duration = 2.0): void {
         this.show({ text, duration });
     }
 

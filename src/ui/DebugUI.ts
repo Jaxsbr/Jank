@@ -14,7 +14,7 @@ export interface IDebugUICallbacks {
 
 export class DebugUI {
     private container!: HTMLDivElement;
-    private isVisible: boolean = false;
+    private isVisible = false;
     private entityManager: EntityManager;
     private onRestartGame?: () => void;
     private ring1Checkbox!: HTMLInputElement;

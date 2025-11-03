@@ -17,14 +17,12 @@ export interface UpgradeCost {
     wavePoints?: number;
 }
 
-export interface LevelBasedCost {
-    [level: number]: UpgradeCost; // level number (1, 2, 3) -> cost for that level
-}
+export type LevelBasedCost = Record<number, UpgradeCost>;
 
 export interface MetaPointsConfig {
     killMilestones: KillMilestone[];
     waveMilestones: WaveMilestone[];
-    upgradeCosts: { [upgradeId: string]: UpgradeCost | LevelBasedCost };
+    upgradeCosts: Record<string, UpgradeCost | LevelBasedCost>;
 }
 
 export const defaultMetaPointsConfig: MetaPointsConfig = {

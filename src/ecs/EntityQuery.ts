@@ -9,12 +9,12 @@ export type ComponentType<T extends IComponent> = new (...args: never[]) => T;
 /**
  * Type helper for query results - returns tuple of components in the same order as requested
  */
-export type QueryResult<T extends readonly ComponentType<IComponent>[]> = {
+export interface QueryResult<T extends readonly ComponentType<IComponent>[]> {
     entity: Entity;
     components: {
         [K in keyof T]: T[K] extends ComponentType<infer U> ? U : never;
     };
-};
+}
 
 /**
  * EntityQuery provides a fluent API for querying entities by components.

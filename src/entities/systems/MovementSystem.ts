@@ -14,7 +14,7 @@ import { MovementSystemConfig, defaultMovementSystemConfig } from '../config/Mov
 export class MovementSystem implements IEntitySystem {
     private enemyConfig: EnemyEntityConfig;
     // Steering: remember last movement direction per entity
-    private lastDirection2DByEntityId: Map<string, THREE.Vector3> = new Map();
+    private lastDirection2DByEntityId = new Map<string, THREE.Vector3>();
     private movementConfig: MovementSystemConfig;
 
     constructor(enemyConfig: EnemyEntityConfig = defaultEnemyEntityConfig, movementConfig: MovementSystemConfig = defaultMovementSystemConfig) {

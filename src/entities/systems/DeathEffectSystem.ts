@@ -23,7 +23,7 @@ export class DeathEffectSystem implements IEntitySystem {
     private readonly eventDispatcher: EventDispatcherSingleton;
     private readonly config: DeathEffectConfig;
     private active: ActiveDeathEffect[] = [];
-    private kamikazeChargers: Set<string> = new Set(); // Track chargers that exploded
+    private kamikazeChargers = new Set<string>(); // Track chargers that exploded
 
     constructor(scene: THREE.Scene, entityManager: EntityManager, eventDispatcher: EventDispatcherSingleton, config: DeathEffectConfig = defaultDeathEffectConfig) {
         this.scene = scene;
@@ -84,7 +84,7 @@ export class DeathEffectSystem implements IEntitySystem {
 
             // Jitter arcs
             for (const line of fx.arcs) {
-                const positions = ((line.geometry as THREE.BufferGeometry).attributes['position']) as THREE.BufferAttribute;
+                const positions = ((line.geometry).attributes['position']) as THREE.BufferAttribute;
                 const segments = positions.count;
                 for (let s = 0; s < segments; s++) {
                     const angle = Math.random() * Math.PI * 2;
@@ -157,7 +157,7 @@ export class DeathEffectSystem implements IEntitySystem {
         sphereMat.dispose();
         // Dispose arc resources
         for (const line of fx.arcs) {
-            (line.geometry as THREE.BufferGeometry).dispose();
+            (line.geometry).dispose();
             (line.material as THREE.LineBasicMaterial).dispose();
         }
         this.active.splice(index, 1);

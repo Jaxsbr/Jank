@@ -6,10 +6,10 @@ export class WaveProgressBarUI {
     private flagsContainer!: HTMLDivElement;
     private flags: HTMLDivElement[] = [];
 
-    private currentWave: number = 1;
-    private totalEnemiesPerWave: number = 0;
-    private enemiesSpawned: number = 0;
-    private currentRound: number = 0;
+    private currentWave = 1;
+    private totalEnemiesPerWave = 0;
+    private enemiesSpawned = 0;
+    private currentRound = 0;
     private roundEnemyCounts: number[] = [0, 0, 0]; // Enemy counts per round
     private roundFlagPositions: number[] = [0, 0, 0]; // Percent positions for 3 rounds
 

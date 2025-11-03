@@ -36,17 +36,17 @@ export class TileAnimationSystem implements IEntitySystem {
                 .withComponents(TeamComponent, HealthComponent)
                 .filter(({ components }) => {
                     const [team] = components;
-                    return (team as TeamComponent).getTeamType() === TeamType.CORE;
+                    return (team).getTeamType() === TeamType.CORE;
                 })
                 .execute()
                 .find(({ components }) => {
                     const [, health] = components;
-                    return (health as HealthComponent).isAlive();
+                    return (health).isAlive();
                 });
 
             if (coreEntityResult) {
                 const [, health] = coreEntityResult.components;
-                coreHealthPercentage = (health as HealthComponent).getHPPercentage();
+                coreHealthPercentage = (health).getHPPercentage();
             }
         }
 

@@ -26,8 +26,8 @@ export class GeometryComponent implements IComponent {
     private materialConfig: MaterialConfig;
 
     constructor(
-        mainSphereRadius: number = 0.5,
-        mainSphereSegments: number = 32,
+        mainSphereRadius = 0.5,
+        mainSphereSegments = 32,
         secondaryConfigs: SecondaryGeometryConfig[] = [],
         materialConfig: MaterialConfig = defaultMaterialConfig
     ) {

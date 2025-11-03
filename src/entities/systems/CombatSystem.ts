@@ -19,7 +19,7 @@ import { TeamComponent } from '../components/TeamComponent';
 export class CombatSystem implements IEventListener {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
-    private reportedEnemyKills: Set<string> = new Set();
+    private reportedEnemyKills = new Set<string>();
 
     constructor(eventDispatcher: EventDispatcherSingleton) {
         this.eventDispatcher = eventDispatcher;

@@ -50,7 +50,7 @@ interface ArcFX extends BaseFX {
 export class HitParticleSystem implements IEventListener, IEntitySystem {
     private eventDispatcher: EventDispatcherSingleton;
     private entities: readonly Entity[] = [];
-    private particles: Array<ShardFX | FluffyFX | ArcFX> = [];
+    private particles: (ShardFX | FluffyFX | ArcFX)[] = [];
     private config: HitParticleConfig;
     private scene: THREE.Scene | null = null;
     private arcConfigRef: ArcFXConfig;
@@ -60,7 +60,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
         this.config = config;
         this.scene = scene ?? null;
         // Cache arc config reference to avoid repeated unsafe accesses on dynamic config
-        this.arcConfigRef = (config as HitParticleConfig).arcs as ArcFXConfig;
+        this.arcConfigRef = (config).arcs;
         this.eventDispatcher.registerListener('HitParticleSystem', this);
     }
 
@@ -149,8 +149,8 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                     const enemyPos = enemyGeom.getPosition();
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                     const corePos = coreGeom.getPosition();
-                    const enemyV = enemyPos as THREE.Vector3;
-                    const coreV = corePos as THREE.Vector3;
+                    const enemyV = enemyPos;
+                    const coreV = corePos;
                     // Midpoint in world space (on XZ plane)
                     worldMidpoint = new THREE.Vector3(
                         (enemyV.x + coreV.x) * 0.5,
@@ -240,8 +240,8 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                     const enemyPos = enemyGeom.getPosition();
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                     const corePos = coreGeom.getPosition();
-                    const enemyV = enemyPos as THREE.Vector3;
-                    const coreV = corePos as THREE.Vector3;
+                    const enemyV = enemyPos;
+                    const coreV = corePos;
                     worldMidpoint = new THREE.Vector3(
                         (enemyV.x + coreV.x) * 0.5,
                         Math.max(enemyV.y, coreV.y) + this.config.fluffy.midpointYOffset,
@@ -308,8 +308,8 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                     const enemyPos = enemyGeom.getPosition();
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                     const corePos = coreGeom.getPosition();
-                    const enemyV = enemyPos as THREE.Vector3;
-                    const coreV = corePos as THREE.Vector3;
+                    const enemyV = enemyPos;
+                    const coreV = corePos;
                     worldMidpoint = new THREE.Vector3(
                         (enemyV.x + coreV.x) * 0.5,
                         Math.max(enemyV.y, coreV.y) + arcConf.midpointYOffset,
@@ -374,15 +374,15 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                 p.group.clear();
                 // dispose materials based on kind
                 if (p.kind === 'shards') {
-                    (p as ShardFX).material.dispose();
+                    (p).material.dispose();
                 } else if (p.kind === 'fluffy') {
-                    (p as FluffyFX).material.dispose();
+                    (p).material.dispose();
                 } else {
                     // arcs
-                    const a = p as ArcFX;
+                    const a = p;
                     a.material.dispose();
                     for (const line of a.lines) {
-                        (line.geometry as THREE.BufferGeometry).dispose();
+                        (line.geometry).dispose();
                     }
                 }
                 this.particles.splice(i, 1);
@@ -390,12 +390,12 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
             }
 
             if (p.kind === 'shards') {
-                const s = p as ShardFX;
+                const s = p;
                 const scale = s.startScale + (s.endScale - s.startScale) * t;
                 s.group.scale.setScalar(scale);
                 s.material.opacity = this.config.shards.opacity * (1 - t);
             } else if (p.kind === 'fluffy') {
-                const f = p as FluffyFX;
+                const f = p;
                 const dt = Math.max(0.001, Time.getDeltaTime());
                 const gravity = this.config.fluffy.gravity; // mild gravity
                 for (const part of f.particles) {
@@ -405,14 +405,14 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                 }
                 f.material.opacity = this.config.fluffy.opacity * (1 - t);
             } else {
-                const a = p as ArcFX;
+                const a = p;
                 // ease radius for arcs outward over life
                 const eased = 1 - Math.pow(1 - t, 2);
                 const arcConf = this.arcConfigRef;
                 const radius = THREE.MathUtils.lerp(arcConf.radiusStart, arcConf.radiusEnd, eased);
                 const jitter = arcConf.jitter;
                 for (const line of a.lines) {
-                    const positions = ((line.geometry as THREE.BufferGeometry).attributes['position']) as THREE.BufferAttribute;
+                    const positions = ((line.geometry).attributes['position']) as THREE.BufferAttribute;
                     const segs = positions.count;
                     for (let s = 0; s < segs; s++) {
                         const angle = Math.random() * Math.PI * 2;
@@ -444,7 +444,7 @@ export class HitParticleSystem implements IEventListener, IEntitySystem {
                 const a = p as ArcFX;
                 a.material.dispose();
                 for (const line of a.lines) {
-                    (line.geometry as THREE.BufferGeometry).dispose();
+                    (line.geometry).dispose();
                 }
             }
         }

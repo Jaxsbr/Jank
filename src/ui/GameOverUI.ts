@@ -5,7 +5,7 @@ export interface IGameOverUICallbacks {
 
 export class GameOverUI {
     private container!: HTMLDivElement;
-    private isVisible: boolean = false;
+    private isVisible = false;
     private onReplay: () => void;
     private onUpgrade: () => void;
 
@@ -149,7 +149,7 @@ export class GameOverUI {
     }
 
     public show(wave: number, kills: number): void {
-        const statsContainer = this.container.querySelector('#game-over-stats') as HTMLDivElement;
+        const statsContainer = this.container.querySelector('#game-over-stats')!;
         if (statsContainer) {
             statsContainer.innerHTML = `
                 Wave Reached: ${wave}<br>

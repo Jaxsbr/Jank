@@ -19,7 +19,7 @@ export class SpatialQuery {
         entities: readonly Entity[], 
         center: THREE.Vector3, 
         radius: number,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): Entity[] {
         const entitiesInRadius: { entity: Entity; distance: number }[] = [];
         
@@ -55,7 +55,7 @@ export class SpatialQuery {
     public static getClosestEntity(
         entities: readonly Entity[], 
         position: THREE.Vector3,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): Entity | null {
         let closestEntity: Entity | null = null;
         let closestDistance = Infinity;
@@ -92,7 +92,7 @@ export class SpatialQuery {
         entities: readonly Entity[], 
         min: THREE.Vector3, 
         max: THREE.Vector3,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): Entity[] {
         const entitiesInBox: Entity[] = [];
         
@@ -128,7 +128,7 @@ export class SpatialQuery {
         entities: readonly Entity[], 
         center: THREE.Vector3, 
         radius: number,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): { entity: Entity; distance: number }[] {
         const entitiesInRadius: { entity: Entity; distance: number }[] = [];
         
@@ -167,7 +167,7 @@ export class SpatialQuery {
         entities: readonly Entity[], 
         center: THREE.Vector3, 
         radius: number,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): Entity[] {
         const entitiesInRadius: { entity: Entity; distance: number }[] = [];
         
@@ -207,7 +207,7 @@ export class SpatialQuery {
     public static getClosestEntity2D(
         entities: readonly Entity[], 
         position: THREE.Vector3,
-        requirePositionComponent: boolean = true
+        requirePositionComponent = true
     ): Entity | null {
         let closestEntity: Entity | null = null;
         let closestDistance = Infinity;

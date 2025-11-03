@@ -16,11 +16,11 @@ export class MovementComponent implements IComponent {
 
     constructor(
         targetPosition: Vector3 = new Vector3(0, 0, 0),
-        maxSpeed: number = 1.0,
-        targetReachedThreshold: number = 0.1,
-        acceleration: number = 0.02,
-        deceleration: number = 0.03,
-        decelerationDistance: number = 2.0
+        maxSpeed = 1.0,
+        targetReachedThreshold = 0.1,
+        acceleration = 0.02,
+        deceleration = 0.03,
+        decelerationDistance = 2.0
     ) {
         this.targetPosition = targetPosition.clone();
         this.movementSpeed = maxSpeed; // Keep for backward compatibility

@@ -24,9 +24,9 @@ const UPGRADE_DEFINITIONS: UpgradeDefinition[] = [
 
 export class UpgradeShopUI {
     private container!: HTMLDivElement;
-    private isVisible: boolean = false;
+    private isVisible = false;
     private onReplay: () => void;
-    private upgradeElements: Map<string, { button: HTMLButtonElement; levelDisplay: HTMLDivElement }> = new Map();
+    private upgradeElements = new Map<string, { button: HTMLButtonElement; levelDisplay: HTMLDivElement }>();
 
     constructor(callbacks: IUpgradeShopUICallbacks) {
         this.onReplay = callbacks.onReplay;
@@ -348,7 +348,7 @@ export class UpgradeShopUI {
 
     private updateUI(): void {
         // Update points display
-        const pointsContainer = this.container.querySelector('#upgrade-shop-points') as HTMLDivElement;
+        const pointsContainer = this.container.querySelector('#upgrade-shop-points')!;
         if (pointsContainer) {
             const killPoints = metaPointsService.getKillPoints();
             const wavePoints = metaPointsService.getWavePoints();

@@ -5,7 +5,7 @@ import { HexCoordinate } from './HexCoordinate';
 import { TileComponent } from './components/TileComponent';
 
 export class TileGrid {
-    private tiles: Map<string, Entity> = new Map();
+    private tiles = new Map<string, Entity>();
     private centerTile: Entity | null = null;
     private scene: THREE.Scene;
 
@@ -123,7 +123,7 @@ export class TileGrid {
     /**
      * Convert hex coordinates to world position
      */
-    public hexToWorldPosition(coordinate: HexCoordinate, tileSize: number = 1): THREE.Vector3 {
+    public hexToWorldPosition(coordinate: HexCoordinate, tileSize = 1): THREE.Vector3 {
         const x = tileSize * (3/2 * coordinate.q);
         const z = tileSize * (Math.sqrt(3)/2 * coordinate.q + Math.sqrt(3) * coordinate.r);
         return new THREE.Vector3(x, 0, z);
@@ -132,7 +132,7 @@ export class TileGrid {
     /**
      * Convert world position to hex coordinates
      */
-    public worldToHexPosition(worldPos: THREE.Vector3, tileSize: number = 1): HexCoordinate {
+    public worldToHexPosition(worldPos: THREE.Vector3, tileSize = 1): HexCoordinate {
         const q = (2/3 * worldPos.x) / tileSize;
         const r = (-1/3 * worldPos.x + Math.sqrt(3)/3 * worldPos.z) / tileSize;
         return this.hexRound({ q, r });
@@ -145,7 +145,7 @@ export class TileGrid {
      * @param tileSize - Size of tiles (default 1)
      * @returns Array of tiles within the radius
      */
-    public getTilesNearPosition(position: THREE.Vector3, radius: number, tileSize: number = 1): Entity[] {
+    public getTilesNearPosition(position: THREE.Vector3, radius: number, tileSize = 1): Entity[] {
         const tiles: Entity[] = [];
         
         // Convert world position to hex coordinates
@@ -181,7 +181,7 @@ export class TileGrid {
      * @param tileSize - Size of tiles (default 1)
      * @returns The tile at the position, or null if none exists
      */
-    public getTileAtPosition(position: THREE.Vector3, tileSize: number = 1): Entity | null {
+    public getTileAtPosition(position: THREE.Vector3, tileSize = 1): Entity | null {
         const hexCoord = this.worldToHexPosition(position, tileSize);
         return this.getTile(hexCoord);
     }
@@ -194,7 +194,7 @@ export class TileGrid {
      * @param tolerance - Position tolerance for "on tile" detection (default 0.1)
      * @returns Array of entities positioned on the tile
      */
-    public getEntitiesOnTile(tile: Entity, entities: readonly Entity[], tileSize: number = 1, tolerance: number = 0.1): Entity[] {
+    public getEntitiesOnTile(tile: Entity, entities: readonly Entity[], tileSize = 1, tolerance = 0.1): Entity[] {
         const entitiesOnTile: Entity[] = [];
         
         // Get tile's world position

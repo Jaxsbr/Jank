@@ -21,7 +21,7 @@ export class EffectTickSystem implements IEntitySystem {
     private tickInterval: number; // How often to apply tick effects (in seconds)
     private lastTickTime: number;
 
-    constructor(eventDispatcher: EventDispatcherSingleton, tickInterval: number = 1.0) {
+    constructor(eventDispatcher: EventDispatcherSingleton, tickInterval = 1.0) {
         this.eventDispatcher = eventDispatcher;
         this.tickInterval = tickInterval;
         this.lastTickTime = 0;

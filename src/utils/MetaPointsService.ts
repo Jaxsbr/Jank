@@ -4,9 +4,7 @@ import { defaultMetaPointsConfig, LevelBasedCost, UpgradeCost } from '../entitie
  * Singleton service for managing meta progression points and upgrades.
  * Persists data to localStorage for cross-session persistence.
  */
-export interface PurchasedUpgrades {
-    [upgradeId: string]: number; // upgradeId -> level (e.g., 'ring-1': 1, 'ring-2': 1)
-}
+export type PurchasedUpgrades = Record<string, number>;
 
 class MetaPointsService {
     private static instance: MetaPointsService;
@@ -16,11 +14,11 @@ class MetaPointsService {
     private readonly STORAGE_KEY_KILL_MILESTONE = 'metaKillMilestoneReached';
     private readonly STORAGE_KEY_WAVE_MILESTONE = 'metaWaveMilestoneReached';
 
-    private killPoints: number = 0;
-    private wavePoints: number = 0;
+    private killPoints = 0;
+    private wavePoints = 0;
     private purchasedUpgrades: PurchasedUpgrades = {};
-    private highestKillMilestone: number = 0;
-    private highestWaveMilestone: number = 0;
+    private highestKillMilestone = 0;
+    private highestWaveMilestone = 0;
 
     private constructor() {
         this.loadFromStorage();
